@@ -1,0 +1,32 @@
+{% ckan_extends %}
+
+{% set activities = h.get_agents(g.pkg_dict.get('id', {})).items() %}
+{% set limit = 3 %}
+
+{% block attribution_row %}
+    {% for activity, agents in activities %}
+    <tr>
+        <th scope="row" class="dataset-label">{{ _(activity) | capitalize }}</th>
+        <td class="dataset-details">
+            {% for agent in agents[:limit] %}
+                {% if agent.agent_type == 'individual' %}
+                    <div class="agent-individual">
+                        {{ agent['family_name'] }}, {{ agent['given_names'] | truncate(2, true, '.') }}{% if agent['orcid'] %}
+                        (<a href="https://orcid.org/{{ agent['orcid'] }}"><i class="fab fa-orcid"></i>
+                        {{ agent['orcid'] }}</a>){% endif %}{% if agents | length > limit or not loop.last %};{% endif %}
+                    </div>
+                {% elif agent.agent_type == 'org' %}
+                    <div class="agent-org">
+                        {{ agent['name'] }}{% if agent['ror_id'] %}
+                        (<a href="https://ror.org/{{ agent['ror_id'] }}"><i class="fas fa-building"></i>
+                        {{ agent['ror_id'] }}</a>){% endif %}{% if agents | length > limit or not loop.last %};{% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+            {% if agents | length > limit %}
+                <span>et al.</span>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+{% endblock %}
