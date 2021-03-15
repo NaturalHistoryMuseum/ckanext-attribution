@@ -7,21 +7,22 @@
 from ckan.model import DomainObject, meta, user_table
 from ckan.model.types import make_uuid
 from sqlalchemy import (Boolean, Column, ForeignKey, Table, UnicodeText)
+from ckan.plugins import toolkit
 
 # this table stores agent
 agent_table = Table(
-    u'agent',
+    'agent',
     meta.metadata,
-    Column(u'id', UnicodeText, primary_key=True, default=make_uuid),
-    Column(u'agent_type', UnicodeText, nullable=False),
-    Column(u'family_name', UnicodeText, nullable=True),
-    Column(u'given_names', UnicodeText, nullable=True),
-    Column(u'given_names_first', Boolean, nullable=False, default=True),
-    Column(u'name', UnicodeText, nullable=True),
-    Column(u'orcid', UnicodeText, nullable=True, unique=True),
-    Column(u'ror_id', UnicodeText, nullable=True, unique=True),
-    Column(u'user_id', UnicodeText,
-           ForeignKey(u'user.id', onupdate=u'CASCADE', ondelete=u'CASCADE'), nullable=True)
+    Column('id', UnicodeText, primary_key=True, default=make_uuid),
+    Column('agent_type', UnicodeText, nullable=False),
+    Column('family_name', UnicodeText, nullable=True),
+    Column('given_names', UnicodeText, nullable=True),
+    Column('given_names_first', Boolean, nullable=True, default=True),
+    Column('name', UnicodeText, nullable=True),
+    Column('external_id', UnicodeText, nullable=True, unique=True),
+    Column('external_id_scheme', UnicodeText, nullable=True),
+    Column('user_id', UnicodeText,
+           ForeignKey('user.id', onupdate='CASCADE', ondelete='CASCADE'), nullable=True)
 )
 
 
@@ -29,8 +30,45 @@ class Agent(DomainObject):
     '''An agent (e.g. a researcher or institution) that contributes to a package.'''
 
     @property
+    def display_name(self):
+        if self.agent_type != 'individual':
+            return self.name
+        return ' '.join(
+            [self.given_names, self.family_name] if self.given_names_first else [self.family_name,
+                                                                                 self.given_names])
+
+    @property
+    def standardised_name(self):
+        '''
+        Family name first for individuals.
+        :return:
+        '''
+        if self.agent_type != 'individual':
+            return self.name
+        return ', '.join([self.family_name, self.given_names])
+
+    @property
+    def external_id_url(self):
+        if self.external_id is None:
+            return
+        external_scheme_dict = toolkit.get_action('external_id_schemes')({}, {})
+        return external_scheme_dict[self.external_id_scheme]['url'].format(self.external_id)
+
+    @property
     def affiliations(self):
-        return {a.other_agent(self.id): a for a in self._affiliations}
+        return [{'agent': a.other_agent(self.id), 'affiliation': a} for a in self._affiliations]
+
+    @property
+    def sort_name(self):
+        return self.family_name if self.agent_type == 'individual' else self.name
+
+    def as_dict(self):
+        agent_dict = super(Agent, self).as_dict()
+        agent_dict['display_name'] = self.display_name
+        agent_dict['standardised_name'] = self.standardised_name
+        agent_dict['external_id_url'] = self.external_id_url
+        return agent_dict
+
 
 
 def check_for_table():

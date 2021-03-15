@@ -4,10 +4,10 @@
 # This file is part of ckanext-attribution
 # Created by the Natural History Museum in London, UK
 
-import itertools
+import re
 
 from ckan.plugins import toolkit
-from ckanext.attribution.model.crud import PackageContributionActivityQuery
+from ckanext.attribution.model.crud import PackageQuery
 
 
 def can_edit():
@@ -16,21 +16,26 @@ def can_edit():
     :return:
     '''
     try:
-        permitted = toolkit.check_access(u'agent_update', {}, {})
+        permitted = toolkit.check_access('agent_update', {}, {})
         return permitted
     except toolkit.NotAuthorized:
         return False
 
 
-def get_agents(pkg_id):
-    '''
+def split_caps(string_input):
+    return re.sub('(.)(?=[A-Z][^A-Z])', '\\1 ', string_input)
 
+
+def as_string(input):
+    # TODO
+    return str(input)
+
+
+def get_contributions(pkg_id):
+    '''
+    Template access for the
+    :func:`~ckanext.attribution.model.crud.PackageQuery.get_contributions` query method.
     :param pkg_id:
     :return:
     '''
-    link_records = PackageContributionActivityQuery.read_package(pkg_id)
-    activities = sorted([r.contribution_activity for r in link_records], key=lambda x: x.activity)
-    grouped_activities = {
-        k: [a.agent for a in sorted(v, key=lambda x: len(list(v)) if x.order is None else x.order)] for
-        k, v in itertools.groupby(activities, key=lambda x: x.activity)}
-    return grouped_activities
+    return PackageQuery.get_contributions(pkg_id)

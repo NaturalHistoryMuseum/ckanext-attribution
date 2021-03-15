@@ -1,25 +1,25 @@
 {% ckan_extends %}
 
-{% set activities = h.get_agents(g.pkg_dict.get('id', {})).items() %}
+{% set activities = h.get_contributions(g.pkg_dict.get('id', {})).items() %}
 {% set limit = 3 %}
 
 {% block attribution_row %}
-    {% for activity, agents in activities %}
+    {% for activity_name, agents in activities %}
     <tr>
-        <th scope="row" class="dataset-label">{{ _(activity) | capitalize }}</th>
+        <th scope="row" class="dataset-label">{{ _(h.split_caps(activity_name)) }}{% if agents | length > 1 %}s{% endif %}</th>
         <td class="dataset-details">
             {% for agent in agents[:limit] %}
-                {% if agent.agent_type == 'individual' %}
-                    <div class="agent-individual">
-                        {{ agent['family_name'] }}, {{ agent['given_names'] | truncate(2, true, '.') }}{% if agent['orcid'] %}
-                        (<a href="https://orcid.org/{{ agent['orcid'] }}"><i class="fab fa-orcid"></i>
-                        {{ agent['orcid'] }}</a>){% endif %}{% if agents | length > limit or not loop.last %};{% endif %}
+                {% if agent.agent.agent_type == 'individual' %}
+                    <div class="agent-individual {% if agent.level %}agent-level-{{ agent.level.lower() }}{% endif %}">
+                        {{ agent.agent['family_name'] }}, {{ agent.agent['given_names'] | truncate(2, true, '.') }}{% if agent.agent['orcid'] %}
+                        (<a href="https://orcid.org/{{ agent.agent['orcid'] }}"><i class="fab fa-orcid"></i>
+                        {{ agent.agent['orcid'] }}</a>){% endif %}{% if agents | length > limit or not loop.last %};{% endif %}
                     </div>
-                {% elif agent.agent_type == 'org' %}
+                {% elif agent.agent.agent_type == 'org' %}
                     <div class="agent-org">
-                        {{ agent['name'] }}{% if agent['ror_id'] %}
-                        (<a href="https://ror.org/{{ agent['ror_id'] }}"><i class="fas fa-building"></i>
-                        {{ agent['ror_id'] }}</a>){% endif %}{% if agents | length > limit or not loop.last %};{% endif %}
+                        {{ agent.agent['name'] }}{% if agent.agent['ror_id'] %}
+                        (<a href="https://ror.org/{{ agent.agent['ror_id'] }}"><i class="fas fa-building"></i>
+                        {{ agent.agent['ror_id'] }}</a>){% endif %}{% if agents | length > limit or not loop.last %};{% endif %}
                     </div>
                 {% endif %}
             {% endfor %}

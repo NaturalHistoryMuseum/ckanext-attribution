@@ -7,29 +7,28 @@
 import orcid
 import requests
 from ckan.plugins import toolkit
-from paste.deploy.converters import asbool
 from werkzeug.utils import cached_property
 
 
 class OrcidApi(object):
     ''' '''
     def __init__(self):
-        self.key = toolkit.config.get(u'ckanext.attribution.orcid_key')
-        self.secret = toolkit.config.get(u'ckanext.attribution.orcid_secret')
-        self._debug = asbool(toolkit.config.get(u'ckanext.attribution.debug', True))
+        self.key = toolkit.config.get('ckanext.attribution.orcid_key')
+        self.secret = toolkit.config.get('ckanext.attribution.orcid_secret')
+        self._debug = toolkit.config.get('ckanext.attribution.debug', 'True') == 'True'
 
     @cached_property
     def conn(self):
         ''' '''
         if self.key is None or self.secret is None:
-            raise Exception(toolkit._(u'ORCID API credentials not supplied.'))
+            raise Exception(toolkit._('ORCID API credentials not supplied.'))
         return orcid.PublicAPI(self.key, self.secret, sandbox=self._debug)
 
     @cached_property
     def read_token(self):
         ''' '''
         if self.key is None or self.secret is None:
-            raise Exception(toolkit._(u'ORCID API credentials not supplied.'))
+            raise Exception(toolkit._('ORCID API credentials not supplied.'))
         url = 'https://sandbox.orcid.org/oauth/token' if self._debug else \
             'https://orcid.org/oauth/token'
         r = requests.post(url, data={
@@ -45,31 +44,43 @@ class OrcidApi(object):
         else:
             return None
 
-    def search(self, surname_q=None, orcid_q=None, given_q=None):
+    def search(self, orcid_q=None, q=None):
         '''
-        
 
-        :param surname_q:  (Default value = None)
         :param orcid_q:  (Default value = None)
-        :param given_q:  (Default value = None)
+        :param q:  (Default value = None)
 
         '''
         query = []
-        if surname_q is not None and surname_q != u'':
-            query.append(u'family-name:' + surname_q)
-        if orcid_q is not None and orcid_q != u'':
-            query.append(u'orcid:' + orcid_q)
-        if given_q is not None and given_q != u'':
-            query.append(u'given-names:' + given_q)
-        query = u'+AND+'.join(query)
-        search_results = self.conn.search(query, access_token=self.read_token, rows=10)
-        return search_results
+        if orcid_q is not None and orcid_q != '':
+            query.append('orcid:' + orcid_q)
+        if q is not None and q != '':
+            query.append('text:' + q)
+        query = '+AND+'.join(query)
+        search_response = self.conn.search(query, access_token=self.read_token, rows=20)
+        records = []
+        loaded_ids = []
+        for r in search_response.get('result', []):
+            _id = r.get(u'orcid-identifier', {}).get(u'path', None)
+            if _id is not None and _id not in loaded_ids:
+                try:
+                    orcid_record = self.as_agent_record(self.read(_id))
+                    records.append(orcid_record)
+                    loaded_ids.append(_id)
+                except AttributeError as e:
+                    # probably a malformed orcid record
+                    continue
+        result = {
+            'total': search_response.get('num-found', 0),
+            'records': records
+        }
+        return result
 
     def read(self, orcid_id):
         '''
-        
 
-        :param orcid_id: 
+
+        :param orcid_id:
 
         '''
         record = self.conn.read_record_public(orcid_id, 'record', self.read_token)
@@ -77,20 +88,15 @@ class OrcidApi(object):
 
     def as_agent_record(self, orcid_record):
         '''
-        
 
-        :param orcid_record: 
+
+        :param orcid_record:
 
         '''
-        # FIXME
-        names = orcid_record.get(u'person', {}).get(u'name', {})
-        employments = orcid_record.get(u'activities-summary', {}).get(u'employments', {}).get(
-            u'employment-summary', [])
+        names = orcid_record.get('person', {}).get('name', {})
         return {
-            u'surname': names.get(u'family-name', {}).get(u'value', u''),
-            u'given_names': names.get(u'given-names', {}).get(u'value', u''),
-            u'affiliations': list(
-                set([e.get(u'organization', {}).get(u'name', None) for e in employments if
-                     e.get(u'organization', {}).get(u'name', None) is not None])),
-            u'orcid': orcid_record.get(u'orcid-identifier', {}).get(u'path', u'')
+            'family_name': names.get('family-name', {}).get('value', ''),
+            'given_names': names.get('given-names', {}).get('value', ''),
+            'external_id': orcid_record.get('orcid-identifier', {}).get('path', ''),
+            'external_id_scheme': 'orcid'
         }

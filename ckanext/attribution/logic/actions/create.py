@@ -34,20 +34,20 @@ def agent_affiliation_create(context, data_dict):
     :rtype: dict
 
     '''
-    toolkit.check_access(u'agent_affiliation_create', context, data_dict)
-    if u'agent_a_id' not in data_dict or u'agent_b_id' not in data_dict:
-        raise toolkit.ValidationError(u'Two agent IDs are required.')
-    for agent_id in [data_dict.get(u'agent_a_id'), data_dict.get(u'agent_b_id')]:
+    toolkit.check_access('agent_affiliation_create', context, data_dict)
+    if 'agent_a_id' not in data_dict or 'agent_b_id' not in data_dict:
+        raise toolkit.ValidationError('Two agent IDs are required.')
+    for agent_id in [data_dict.get('agent_a_id'), data_dict.get('agent_b_id')]:
         try:
-            toolkit.get_action(u'agent_show')(context, {
-                u'id': agent_id
+            toolkit.get_action('agent_show')(context, {
+                'id': agent_id
             })
         except toolkit.ObjectNotFound:
             raise toolkit.ValidationError(
-                u'Agent ({0}) does not exist.'.format(agent_id))
+                'Agent ({0}) does not exist.'.format(agent_id))
     new_affiliation = AgentAffiliationQuery.create(**data_dict)
     if new_affiliation is None:
-        raise toolkit.ValidationError(u'Unable to create affiliation. Check the fields are valid.')
+        raise toolkit.ValidationError('Unable to create affiliation. Check the fields are valid.')
     return new_affiliation.as_dict()
 
 
@@ -65,24 +65,20 @@ def agent_create(context, data_dict):
     :param given_names_first: whether given names should be displayed before the family name
                               (default True) [individual only, optional]
     :type given_names_first: bool, optional
-    :param orcid: an individual's `ORCID <https://orcid.org>`_ [individual only, optional]
-    :type orcid: str, optional
     :param user_id: the ID for a registered user of this CKAN instance associated with this agent
                     [individual only, optional]
     :type user_id: str, optional
     :param name: name of an organisation [org only, required]
     :type name: str, optional
-    :param ror_id: an organisation's `ROR <https://ror.org>`_ ID [org only, optional]
-    :type ror_id: str, optional
     :returns: New agent record.
     :rtype: dict
 
     '''
-    toolkit.check_access(u'agent_create', context, data_dict)
+    toolkit.check_access('agent_create', context, data_dict)
     AgentQuery.validate(data_dict)
     new_agent = AgentQuery.create(**data_dict)
     if new_agent is None:
-        raise toolkit.ValidationError(u'Unable to create agent. Check the fields are valid.')
+        raise toolkit.ValidationError('Unable to create agent. Check the fields are valid.')
     return new_agent.as_dict()
 
 
@@ -109,23 +105,23 @@ def contribution_activity_create(context, data_dict):
     :rtype: dict
 
     '''
-    toolkit.check_access(u'contribution_activity_create', context, data_dict)
+    toolkit.check_access('contribution_activity_create', context, data_dict)
     # check for required fields
-    package_id, agent_id = toolkit.get_or_bust(data_dict, [u'package_id', u'agent_id'])
+    package_id, agent_id = toolkit.get_or_bust(data_dict, ['package_id', 'agent_id'])
     try:
-        toolkit.get_action(u'package_show')(context, {
-            u'id': package_id
+        toolkit.get_action('package_show')(context, {
+            'id': package_id
         })
     except toolkit.ObjectNotFound:
         raise toolkit.ValidationError(
-            u'Cannot create activity for a package ({0}) that does not exist.'.format(package_id))
+            'Cannot create activity for a package ({0}) that does not exist.'.format(package_id))
     try:
-        toolkit.get_action(u'agent_show')(context, {
-            u'id': agent_id
+        toolkit.get_action('agent_show')(context, {
+            'id': agent_id
         })
     except toolkit.ObjectNotFound:
         raise toolkit.ValidationError(
-            u'Cannot create activity for an agent ({0}) that does not exist.'.format(agent_id))
+            'Cannot create activity for an agent ({0}) that does not exist.'.format(agent_id))
     new_activity = ContributionActivityQuery.create(**data_dict)
     PackageContributionActivityQuery.create(package_id=package_id,
                                             contribution_activity_id=new_activity.id)

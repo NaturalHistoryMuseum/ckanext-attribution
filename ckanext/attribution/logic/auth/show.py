@@ -13,7 +13,7 @@ def agent_affiliation_show(context, data_dict):
     Allow for everyone.
     '''
     return {
-        u'success': True
+        'success': True
     }
 
 
@@ -23,7 +23,7 @@ def agent_show(context, data_dict):
     Allow for everyone.
     '''
     return {
-        u'success': True
+        'success': True
     }
 
 
@@ -33,7 +33,7 @@ def agent_contribution_activity_show(context, data_dict):
     Allow for everyone.
     '''
     return {
-        u'success': True
+        'success': True
     }
 
 
@@ -43,7 +43,7 @@ def contribution_activity_show(context, data_dict):
     Allow for everyone.
     '''
     return {
-        u'success': True
+        'success': True
     }
 
 
@@ -53,5 +53,14 @@ def package_contribution_activity_show(context, data_dict):
     Allow for everyone.
     '''
     return {
-        u'success': True
+        'success': True
+    }
+
+@toolkit.auth_allow_anonymous_access
+def package_contributions_show(context, data_dict):
+    '''
+    Allow for everyone.
+    '''
+    return {
+        'success': True
     }

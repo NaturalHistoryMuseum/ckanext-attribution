@@ -10,17 +10,19 @@ from ckanext.attribution.model.agent import agent_table
 from sqlalchemy import Column, Date, ForeignKey, Table, UnicodeText
 
 agent_affiliation_table = Table(
-    u'agent_affiliation',
+    'agent_affiliation',
     meta.metadata,
-    Column(u'id', UnicodeText, primary_key=True, default=make_uuid),
-    Column(u'agent_a_id', UnicodeText,
-           ForeignKey(u'agent.id', onupdate=u'CASCADE', ondelete=u'CASCADE'), nullable=False),
-    Column(u'agent_b_id', UnicodeText,
-           ForeignKey(u'agent.id', onupdate=u'CASCADE', ondelete=u'CASCADE'), nullable=False),
-    Column(u'affiliation_type', UnicodeText, nullable=True),
-    Column(u'description', UnicodeText, nullable=True),
-    Column(u'start_date', Date, nullable=True),
-    Column(u'end_date', Date, nullable=True)
+    Column('id', UnicodeText, primary_key=True, default=make_uuid),
+    Column('agent_a_id', UnicodeText,
+           ForeignKey('agent.id', onupdate='CASCADE', ondelete='CASCADE'), nullable=False),
+    Column('agent_b_id', UnicodeText,
+           ForeignKey('agent.id', onupdate='CASCADE', ondelete='CASCADE'), nullable=False),
+    Column('affiliation_type', UnicodeText, nullable=True),
+    Column('description', UnicodeText, nullable=True),
+    Column('start_date', Date, nullable=True),
+    Column('end_date', Date, nullable=True),
+    Column('package_id', UnicodeText,
+           ForeignKey('package.id', onupdate='CASCADE', ondelete='CASCADE'), nullable=True)
 )
 
 

@@ -34,14 +34,33 @@ class BaseQuery(object):
     def validate(cls, data_dict):
         '''
         Ensure the data_dict provided contains the correct parameters for creating or updating a
-        record.
+        record, and fix issues where possible by deleting extra fields.
 
         :param data_dict: a complete dictionary of parameters that will be passed to :func:`create`
                           or :func:`update`
         :type data_dict: dict
-        :returns: True if valid, raises error if not
+        :returns: updated data_dict if valid, raises error if not
         '''
-        return True
+        def _empty_string_to_null(item):
+            if isinstance(item, list):
+                return [_empty_string_to_null(i) for i in item]
+            if isinstance(item, dict):
+                return {k: _empty_string_to_null(v) for k, v in item.items()}
+            if item == '':
+                return None
+            return item
+
+        data_dict = cls._columns(**_empty_string_to_null(data_dict))
+
+        if 'id' in data_dict:
+            existing_record = cls.read(data_dict.get('id'))
+            if existing_record is None:
+                return data_dict
+            for c in cls.t.c:
+                if c.name not in data_dict:
+                    data_dict[c.name] = getattr(existing_record, c.name)
+
+        return data_dict
 
     @classmethod
     def create(cls, **kwargs):
@@ -72,9 +91,16 @@ class BaseQuery(object):
         '''
         Retrieve all records matching the search criteria.
 
-        :param query:
+        :param query: a sqlalchemy filter query
         '''
         return Session.query(cls.m).filter(query).all()
+
+    @classmethod
+    def all(cls):
+        '''
+        Return all records.
+        '''
+        return Session.query(cls.m).all()
 
     @classmethod
     def update(cls, item_id, **kwargs):
@@ -85,6 +111,10 @@ class BaseQuery(object):
         :param kwargs:
 
         '''
+        try:
+            del kwargs['id']
+        except KeyError:
+            pass
         retrieved_item = Session.query(cls.m).filter(cls.m.id == item_id)
         if retrieved_item.count() < 1:
             raise toolkit.ObjectNotFound('{0} was not found.'.format(item_id))
