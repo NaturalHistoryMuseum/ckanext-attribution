@@ -29,10 +29,10 @@ def setup_relationships():
 
     # Agent
     meta.mapper(Agent, agent_table, properties={
-        u'user': relationship(User,
-                              backref=backref(u'agent', cascade=u'all, delete-orphan'),
-                              primaryjoin=agent_table.c.user_id.__eq__(User.id)
-                              ),
+        'user': relationship(User,
+                             backref=backref('agent', cascade='all, delete-orphan'),
+                             primaryjoin=agent_table.c.user_id.__eq__(User.id)
+                             ),
         'contribution_activities': relationship(ContributionActivity,
                                                 secondary=agent_contribution_activity_table)
     })
@@ -40,55 +40,58 @@ def setup_relationships():
     # ContributionActivity
     meta.mapper(ContributionActivity, contribution_activity_table, properties={
         'agent': relationship(Agent, secondary=agent_contribution_activity_table, uselist=False),
-        'package': relationship(Package, secondary=package_contribution_activity_table, uselist=False)
+        'package': relationship(Package, secondary=package_contribution_activity_table,
+                                uselist=False)
     })
 
     # AgentAffiliation
     meta.mapper(AgentAffiliation, agent_affiliation_table, properties={
-        u'_agent_backref': relationship(Agent,
-                                        backref=backref(u'_affiliations',
-                                                        cascade=u'all, delete-orphan'),
-                                        primaryjoin=or_(
-                                            agent_affiliation_table.c.agent_a_id.__eq__(Agent.id),
-                                            agent_affiliation_table.c.agent_b_id.__eq__(Agent.id)),
-                                        ),
-        u'_agent_a': relationship(Agent,
-                                  primaryjoin=agent_affiliation_table.c.agent_a_id.__eq__(
-                                      Agent.id)),
-        u'_agent_b': relationship(Agent,
-                                  primaryjoin=agent_affiliation_table.c.agent_b_id.__eq__(
-                                      Agent.id)),
+        '_agent_backref': relationship(Agent,
+                                       backref=backref('_affiliations',
+                                                       cascade='all, delete-orphan'),
+                                       primaryjoin=or_(
+                                           agent_affiliation_table.c.agent_a_id.__eq__(Agent.id),
+                                           agent_affiliation_table.c.agent_b_id.__eq__(Agent.id)),
+                                       ),
+        '_agent_a': relationship(Agent,
+                                 primaryjoin=agent_affiliation_table.c.agent_a_id.__eq__(
+                                     Agent.id)),
+        '_agent_b': relationship(Agent,
+                                 primaryjoin=agent_affiliation_table.c.agent_b_id.__eq__(
+                                     Agent.id)),
+        'package': relationship(Package,
+                                primaryjoin=agent_affiliation_table.c.package_id == Package.id)
     })
 
     # AgentContributionActivity
     meta.mapper(AgentContributionActivity, agent_contribution_activity_table, properties={
-        u'agent': relationship(Agent,
-                               backref=backref(u'contribution_activity_link',
-                                               cascade=u'all, delete-orphan'),
-                               primaryjoin=agent_contribution_activity_table.c.agent_id.__eq__(
-                                   Agent.id)
-                               ),
-        u'contribution_activity': relationship(ContributionActivity,
-                                               backref=backref(u'agent_link',
-                                                               cascade=u'all, delete-orphan'),
-                                               primaryjoin=agent_contribution_activity_table.c.contribution_activity_id.__eq__(
-                                                   ContributionActivity.id)
-                                               )
+        'agent': relationship(Agent,
+                              backref=backref('contribution_activity_link',
+                                              cascade='all, delete-orphan'),
+                              primaryjoin=agent_contribution_activity_table.c.agent_id.__eq__(
+                                  Agent.id)
+                              ),
+        'contribution_activity': relationship(ContributionActivity,
+                                              backref=backref('agent_link',
+                                                              cascade='all, delete-orphan'),
+                                              primaryjoin=agent_contribution_activity_table.c.contribution_activity_id.__eq__(
+                                                  ContributionActivity.id)
+                                              )
     })
 
     # PackageContributionActivity
     meta.mapper(PackageContributionActivity, package_contribution_activity_table, properties={
-        u'package': relationship(Package,
-                                 backref=backref(u'contribution_activity_link',
-                                                 cascade=u'all, delete-orphan'),
-                                 primaryjoin=package_contribution_activity_table.c.package_id
-                                 .__eq__(
-                                     Package.id)
-                                 ),
-        u'contribution_activity': relationship(ContributionActivity,
-                                               backref=backref(u'package_link',
-                                                               cascade=u'all, delete-orphan'),
-                                               primaryjoin=package_contribution_activity_table.c.contribution_activity_id.__eq__(
-                                                   ContributionActivity.id)
-                                               )
+        'package': relationship(Package,
+                                backref=backref('contribution_activity_link',
+                                                cascade='all, delete-orphan'),
+                                primaryjoin=package_contribution_activity_table.c.package_id
+                                .__eq__(
+                                    Package.id)
+                                ),
+        'contribution_activity': relationship(ContributionActivity,
+                                              backref=backref('package_link',
+                                                              cascade='all, delete-orphan'),
+                                              primaryjoin=package_contribution_activity_table.c.contribution_activity_id.__eq__(
+                                                  ContributionActivity.id)
+                                              )
     })

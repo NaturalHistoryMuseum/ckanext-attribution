@@ -1,0 +1,19 @@
+{
+  "name": "ckanext-attribution",
+  "version": "0.0.1",
+  "description": "CKAN Attribution Plugin",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NaturalHistoryMuseum/ckanext-attribution.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NaturalHistoryMuseum/ckanext-attribution/issues"
+  },
+  "homepage": "https://github.com/NaturalHistoryMuseum/ckanext-attribution",
+  "dependencies": {
+    "less": "^3.12.2",
+    "package-edit": "file:ckanext/attribution/theme/assets/scripts/apps/package-edit"
+  }
+}

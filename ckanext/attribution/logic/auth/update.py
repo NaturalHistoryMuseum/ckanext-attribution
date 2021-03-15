@@ -12,7 +12,7 @@ def agent_affiliation_update(context, data_dict):
     Allow for logged-in users.
     '''
     return {
-        u'success': True
+        'success': True
     }
 
 
@@ -21,7 +21,16 @@ def agent_update(context, data_dict):
     Only allow for sysadmins (who usually skip this method, except in tests).
     '''
     return {
-        u'success': is_sysadmin(context.get(u'user'))
+        'success': is_sysadmin(context.get('user'))
+    }
+
+
+def agent_external_update(context, data_dict):
+    '''
+    Allow for logged-in users.
+    '''
+    return {
+        'success': True
     }
 
 
@@ -30,5 +39,5 @@ def contribution_activity_update(context, data_dict):
     Allow for logged-in users.
     '''
     return {
-        u'success': True
+        'success': True
     }

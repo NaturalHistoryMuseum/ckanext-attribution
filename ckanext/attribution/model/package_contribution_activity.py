@@ -10,13 +10,13 @@ from ckanext.attribution.model.contribution_activity import (contribution_activi
 from sqlalchemy import (Column, ForeignKey, Table, UnicodeText)
 
 package_contribution_activity_table = Table(
-    u'package_contribution_activity',
+    'package_contribution_activity',
     meta.metadata,
-    Column(u'id', UnicodeText, primary_key=True, default=make_uuid),
-    Column(u'package_id', UnicodeText,
-           ForeignKey(u'package.id', onupdate=u'CASCADE', ondelete=u'CASCADE'), nullable=False),
-    Column(u'contribution_activity_id', UnicodeText,
-           ForeignKey(u'contribution_activity.id', onupdate=u'CASCADE', ondelete=u'CASCADE'),
+    Column('id', UnicodeText, primary_key=True, default=make_uuid),
+    Column('package_id', UnicodeText,
+           ForeignKey('package.id', onupdate='CASCADE', ondelete='CASCADE'), nullable=False),
+    Column('contribution_activity_id', UnicodeText,
+           ForeignKey('contribution_activity.id', onupdate='CASCADE', ondelete='CASCADE'),
            nullable=False, unique=True),
 )
 

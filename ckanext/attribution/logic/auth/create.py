@@ -10,7 +10,7 @@ def agent_affiliation_create(context, data_dict):
     Allow for logged-in users.
     '''
     return {
-        u'success': True
+        'success': True
     }
 
 
@@ -19,7 +19,7 @@ def agent_create(context, data_dict):
     Allow for logged-in users.
     '''
     return {
-        u'success': True
+        'success': True
     }
 
 
@@ -28,5 +28,5 @@ def contribution_activity_create(context, data_dict):
     Allow for logged-in users.
     '''
     return {
-        u'success': True
+        'success': True
     }

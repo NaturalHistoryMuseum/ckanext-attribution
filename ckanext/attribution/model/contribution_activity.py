@@ -10,13 +10,13 @@ from sqlalchemy import (Column, DateTime, Table, UnicodeText, Integer)
 
 # this table stores contribution activities
 contribution_activity_table = Table(
-    u'contribution_activity',
+    'contribution_activity',
     meta.metadata,
-    Column(u'id', UnicodeText, primary_key=True, default=make_uuid),
-    Column(u'activity', UnicodeText, nullable=False),
-    Column(u'level', UnicodeText, nullable=True),
-    Column(u'time', DateTime, nullable=True),
-    Column(u'order', Integer, nullable=True)
+    Column('id', UnicodeText, primary_key=True, default=make_uuid),
+    Column('activity', UnicodeText, nullable=False),
+    Column('level', UnicodeText, nullable=True),
+    Column('time', DateTime, nullable=True),
+    Column('order', Integer, nullable=True)
 )
 
 
