@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import _ from 'lodash';
+import debounce from 'lodash.debounce';
 
 export default {
     name: 'Autocomplete',
@@ -96,7 +96,7 @@ export default {
         }
     },
     created() {
-        this.debouncedTextChange = _.debounce(this.textChange, this.delay);
+        this.debouncedTextChange = debounce(this.textChange, this.delay);
         if (this.value) {
             let matchingOptions = this.options.filter((o) => o.value === this.value);
             if (matchingOptions.length > 0) {

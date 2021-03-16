@@ -97,7 +97,7 @@
 
 <script>
 import {mapActions, mapGetters, mapState} from 'vuex';
-import _ from 'lodash';
+import cloneDeep from 'lodash.clonedeep';
 import {get, post} from '../api';
 import {nanoid} from 'nanoid';
 
@@ -201,7 +201,7 @@ export default {
             })
         },
         resetEdits() {
-            this.editedDetails = _.cloneDeep(this.details);
+            this.editedDetails = cloneDeep(this.details);
             // set some defaults
             if ((!this.editedDetails.agent_type) && (!this.editedDetails.external_id_scheme)) {
                 // TODO: probably need a more centralised list of agent types (i.e. via API)

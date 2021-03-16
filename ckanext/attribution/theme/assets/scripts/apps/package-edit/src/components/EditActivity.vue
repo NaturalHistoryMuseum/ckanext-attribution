@@ -70,7 +70,7 @@
 
 <script>
 import {mapActions, mapGetters, mapState} from 'vuex';
-import _ from 'lodash';
+import cloneDeep from 'lodash.clonedeep';
 import draggable from 'vuedraggable';
 import DatePicker from 'vue2-datepicker';
 import 'vue2-datepicker/index.css';
@@ -201,7 +201,7 @@ export default {
             });
         },
         refresh() {
-            this.editedDetails = _.cloneDeep(this.details);
+            this.editedDetails = cloneDeep(this.details);
             if (!this.details.id) {
                 this.$set(this.editedDetails, 'id', 'new')
             }
@@ -234,11 +234,3 @@ export default {
     }
 }
 </script>
-
-<style scoped>
-
-.mx-datepicker {
-    width: 100%;
-}
-
-</style>

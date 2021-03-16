@@ -1,40 +1,10 @@
 'use strict';
 
-const {VueLoaderPlugin} = require('vue-loader');
+const merge = require('webpack-merge');
+const commonConfig = require('./webpack.config.common');
 
-module.exports = {
-    mode:    'development',
-    entry:   [
-        './src/app.js'
-    ],
-    module:  {
-        rules: [
-            {
-                test: /\.vue$/,
-                use:  'vue-loader'
-            },
-            {
-                test: /\.js$/,
-                use:  'babel-loader'
-            },
-            {
-                test: /\.css$/,
-                use: ['style-loader', 'css-loader'],
-            }
-        ]
-    },
-    plugins: [
-        new VueLoaderPlugin()
-    ],
-    output:  {
-        library:       'package-edit',
-        libraryTarget: 'umd',
-        filename:      'package-edit.js',
-        publicPath: '/assets/scripts/apps/package-edit/'
-    },
-    resolve: {
-        alias: {
-            vue: 'vue/dist/vue.js'
-        }
-    }
+const webpackConfig = {
+    mode: 'development'
 };
+
+module.exports = merge(commonConfig, webpackConfig);
