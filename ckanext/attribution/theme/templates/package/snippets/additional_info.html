@@ -4,29 +4,24 @@
 {% set limit = 3 %}
 
 {% block attribution_row %}
-    {% for activity_name, agents in activities %}
-    <tr>
-        <th scope="row" class="dataset-label">{{ _(h.split_caps(activity_name)) }}{% if agents | length > 1 %}s{% endif %}</th>
-        <td class="dataset-details">
-            {% for agent in agents[:limit] %}
-                {% if agent.agent.agent_type == 'individual' %}
-                    <div class="agent-individual {% if agent.level %}agent-level-{{ agent.level.lower() }}{% endif %}">
-                        {{ agent.agent['family_name'] }}, {{ agent.agent['given_names'] | truncate(2, true, '.') }}{% if agent.agent['orcid'] %}
-                        (<a href="https://orcid.org/{{ agent.agent['orcid'] }}"><i class="fab fa-orcid"></i>
-                        {{ agent.agent['orcid'] }}</a>){% endif %}{% if agents | length > limit or not loop.last %};{% endif %}
-                    </div>
-                {% elif agent.agent.agent_type == 'org' %}
-                    <div class="agent-org">
-                        {{ agent.agent['name'] }}{% if agent.agent['ror_id'] %}
-                        (<a href="https://ror.org/{{ agent.agent['ror_id'] }}"><i class="fas fa-building"></i>
-                        {{ agent.agent['ror_id'] }}</a>){% endif %}{% if agents | length > limit or not loop.last %};{% endif %}
-                    </div>
-                {% endif %}
-            {% endfor %}
-            {% if agents | length > limit %}
-                <span>et al.</span>
-            {% endif %}
-        </td>
-    </tr>
-    {% endfor %}
+{% for activity_name, agents in activities %}
+<tr>
+    <th scope="row" class="dataset-label">{{ _(h.split_caps(activity_name)) }}</th>
+    <td class="dataset-details">
+        {% for agent in agents[:limit] %}
+        {% set id_icon = 'fab fa-orcid' if agent.agent['external_id_scheme'] == 'orcid' else 'fas
+        fa-link' %}
+        <div class="agent {% if agent.level %}agent-level-{{ agent.level.lower() }}{% endif %}">
+            {{ agent.agent['standardised_name'] }}{% if agent.agent['external_id'] %} (<a
+            href="{{ agent.agent['external_id_url'] }}"><i class="{{ id_icon }}"></i>
+            {{ agent.agent['external_id'] }}</a>){% endif %}{% if agents | length > limit or not
+            loop.last %};{% endif %}
+        </div>
+        {% endfor %}
+        {% if agents | length > limit %}
+        <span>et al.</span>
+        {% endif %}
+    </td>
+</tr>
+{% endfor %}
 {% endblock %}
