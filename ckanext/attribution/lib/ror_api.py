@@ -50,8 +50,14 @@ class RorApi(object):
         '''
         if ror_record is None:
             return {}
+        address = ror_record.get('addresses')
+        if address is not None and len(address) > 0:
+            location = address[0].get('city')
+        else:
+            location = ror_record.get('country', {}).get('country_name')
         return {
             'name': ror_record.get('name', ''),
             'external_id': ror_record.get('id', '').split('/')[-1],
-            'external_id_scheme': 'ror'
+            'external_id_scheme': 'ror',
+            'location': location
         }

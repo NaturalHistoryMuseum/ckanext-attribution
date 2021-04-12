@@ -1,27 +1,8 @@
 {% ckan_extends %}
 
-{% set activities = h.get_contributions(g.pkg_dict.get('id', {})).items() %}
+<!--{% set activities = h.get_contributions(g.pkg_dict.get('id', {})) %}-->
 {% set limit = 3 %}
 
 {% block attribution_row %}
-{% for activity_name, agents in activities %}
-<tr>
-    <th scope="row" class="dataset-label">{{ _(h.split_caps(activity_name)) }}</th>
-    <td class="dataset-details">
-        {% for agent in agents[:limit] %}
-        {% set id_icon = 'fab fa-orcid' if agent.agent['external_id_scheme'] == 'orcid' else 'fas
-        fa-link' %}
-        <div class="agent {% if agent.level %}agent-level-{{ agent.level.lower() }}{% endif %}">
-            {{ agent.agent['standardised_name'] }}{% if agent.agent['external_id'] %} (<a
-            href="{{ agent.agent['external_id_url'] }}"><i class="{{ id_icon }}"></i>
-            {{ agent.agent['external_id'] }}</a>){% endif %}{% if agents | length > limit or not
-            loop.last %};{% endif %}
-        </div>
-        {% endfor %}
-        {% if agents | length > limit %}
-        <span>et al.</span>
-        {% endif %}
-    </td>
-</tr>
-{% endfor %}
+
 {% endblock %}

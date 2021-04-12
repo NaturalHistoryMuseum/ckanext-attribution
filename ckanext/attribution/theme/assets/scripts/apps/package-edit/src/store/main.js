@@ -1,196 +1,144 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
-import {get, post} from '../api';
+import {get} from '../api';
+import {Activity, Affiliation, Agent, Citation, Meta} from '../models/main';
+import VuexORM from '@vuex-orm/core';
 
 Vue.use(Vuex);
 
+const database = new VuexORM.Database();
+database.register(Agent);
+database.register(Affiliation);
+database.register(Activity);
+database.register(Meta);
+database.register(Citation);
+
 const store = new Vuex.Store(
     {
-        state: {
-            packageId: null,
-            canEdit: false,
-            contributions: [],
-            iconDict: {
-                individual: 'user',
-                org: 'building',
-                other: 'asterisk'
-            },
-            schemeDict: [],
-            roleList: [],
-            levelList: [
-                'Lead',
-                'Equal',
-                'Supporting'
-            ]
+        plugins  : [VuexORM.install(database)],
+        state    : {
+            packageId      : null,
+            packageDetail  : {},
+            canEdit        : false,
+            controlledLists: {
+                'agentTypes'    : {},
+                'activityTypes' : {},
+                'activityLevels': [],
+                'agentIdSchemes': {}
+            }
         },
-        getters: {
-            agents: state => {
-                let agent_list = {};
-                state.contributions.forEach((c) => {
-                    if (agent_list[c.agent.id]) {
-                        agent_list[c.agent.id].activities.push(c.contribution_activity)
-                    } else {
-                        agent_list[c.agent.id] = {
-                            agent: c.agent,
-                            activities: [c.contribution_activity]
-                        }
-                    }
-                })
-                return agent_list
+        getters  : {
+            agentTypeIcon    : (state) => (agentType) => {
+                let typeDetails = state.controlledLists.agentTypes[agentType];
+                return typeDetails ? typeDetails.fa_icon : 'fas fa-asterisk';
             },
-            activities: state => {
-                let activity_list = {}
-                state.contributions.forEach(c => {
-                    let name = c.contribution_activity.activity;
-                    if (activity_list[name]) {
-                        activity_list[name].push(c.contribution_activity)
-                    } else {
-                        activity_list[name] = [c.contribution_activity]
-                    }
-                })
-                return activity_list;
+            agentIdIcon      : (state) => (idScheme) => {
+                let schemeDetails = state.controlledLists.agentIdSchemes[idScheme];
+                return schemeDetails ? schemeDetails.fa_icon : 'fas fa-link';
             },
-            similarActivity: state => (activityName) => {
-                if (!activityName) {
-                    return [];
-                }
-                return state.contributions.filter((c) => {
-                    return c.contribution_activity.activity.toLowerCase() === activityName.toLowerCase();
+            serialisedContent: () => {
+                let serialise = (model) => model.query().with('meta').all().map(x => x.$toJson());
+                return JSON.stringify({
+                    agents      : serialise(Agent),
+                    activities  : serialise(Activity),
+                    affiliations: serialise(Affiliation),
+                    citations   : serialise(Citation)
                 });
-            },
-            typeIcon: state => (agentType) => {
-                return 'fas fa-' + state.iconDict[agentType.toLowerCase()];
-            },
-            identifierIcon: state => (schemeName) => {
-                if (schemeName === 'orcid') {
-                    return 'fab fa-orcid';
-                } else if (schemeName === 'ror') {
-                    return 'fas fa-university'
-                } else {
-                    return 'fas fa-link';
-                }
-            },
-            identifierType: state => (schemeName) => {
-                if (!schemeName) {
-                    return null;
-                }
-                return state.schemeDict.filter(s => s.name === schemeName.toLowerCase())[0];
-            },
-            defaultIdentifierType: state => (agentType) => {
-                return state.schemeDict.filter(s => s.details.default.includes(agentType))[0];
             }
         },
         mutations: {
             setPackageId(state, payload) {
-                Vue.set(state, 'packageId', payload)
+                Vue.set(state, 'packageId', payload);
             },
             setEditPermission(state, payload) {
-                Vue.set(state, 'canEdit', payload)
-            },
-            addContributors(state, payload) {
-                state.contributions = [...payload];
+                Vue.set(state, 'canEdit', payload);
             }
         },
-        actions: {
+        actions  : {
+            initialise(context) {
+                return context.dispatch('initLists')
+                              .then(() => context.dispatch('getContributions'));
+            },
             getContributions(context) {
-                let url = 'package_contributions_show?id=' + context.state.packageId;
-                get(url).then(d => {
-                    context.commit('addContributors', d.result);
-                })
-            },
-            getRoles(context) {
-                return get('contribution_roles_list').then(d => {
-                    if (d.success) {
-                        context.state.roleList = Object.entries(d.result).map(r => {
-                            return {'label': r[0], 'credit': r[1]}
+                if ((!context.state.packageId) || context.state.packageId === '') {
+                    return;
+                }
+                return get(`package_contributions_show?id=${context.state.packageId}`).then(res => {
+                    if (res === undefined) {
+                        return;
+                    }
+                    let agentIds = res.map(r => r.agent.id);
+                    // there seems to be some kind of bug in .create() where it will sometimes
+                    // create everything and then delete it - manually clearing first then
+                    // using .insert() instead avoids that
+                    context.dispatch('entities/deleteAll').then(() => {
+                        Agent.insert({
+                            data: res.map(r => {
+                                let agent = r.agent;
+                                agent.affiliations = r.affiliations.map(a => {
+                                    a.db_id = a.id;
+                                    a.id = null;
+                                    if (!agentIds.includes(a.other_agent.id)) {
+                                        a.other_agent.meta = {is_hidden: true};
+                                    }
+                                    return a;
+                                });
+                                agent._activities = r.activities.filter(a => a.activity !== '[citation]')
+                                                     .map(a => {
+                                                         if (!a.package_id) {
+                                                             a.package_id = context.state.packageId;
+                                                         }
+                                                         return a;
+                                                     });
+                                agent._citation = r.activities.filter(a => a.activity === '[citation]')
+                                                   .map(a => {
+                                                       if (!a.package_id) {
+                                                           a.package_id = context.state.packageId;
+                                                       }
+                                                       return a;
+                                                   })
+                                                   .slice(-1)[0];
+                                return agent;
+                            })
                         });
-                    }
-                }).catch(e => console.error(e));
-            },
-            getSchemes(context) {
-                get('external_id_schemes').then(d => {
-                    if (d.success) {
-                        context.state.schemeDict = Object.entries(d.result).map(r => {
-                            return {'name': r[0], 'details': r[1]}
-                        });
-                    }
-                }).catch(e => console.error(e));
-            },
-            updateAgent(context, agentId) {
-                let url = 'agent_show?id=' + agentId;
-                get(url).then(d => {
-                    if (!d.success) {
-                        console.error('Unable to update.')
-                        return;
-                    }
-                    context.state.contributions = context.state.contributions.map(c => {
-                        if (c.agent.id === agentId) {
-                            c.agent = d.result;
-                        }
-                        return c;
-                    })
-                })
-            },
-            updateActivities(context, activityName) {
-                context.state.contributions.forEach((c, i) => {
-                    if (c.contribution_activity.activity !== activityName) {
-                        return;
-                    }
-                    let url = 'contribution_activity_show?id=' + c.contribution_activity.id;
-                    get(url).then(d => {
-                        if (!d.success) {
-                            console.error('Unable to update.')
-                            return;
-                        }
-                        Vue.set(context.state.contributions[i], 'contribution_activity', d.result);
-                    })
-                })
-            },
-            externalUpdate(context, agentId) {
-                return post('agent_external_update', {id: agentId}).then(d => {
-                    if (!d.success) {
-                        console.error('Unable to update.')
-                        return;
-                    }
-                    context.state.contributions = context.state.contributions.map(c => {
-                        if (c.agent.id === agentId) {
-                            c.agent = d.result;
-                        }
-                        return c;
-                    })
+                    });
                 });
             },
-            removeAgent(context, agentId) {
-                let contribution = context.getters.agents[agentId];
-                contribution.activities.forEach(a => context.dispatch('removeActivity', a.id))
-            },
-            removeActivity(context, activityId) {
-                let activity = context.state.contributions.filter(c => {
-                    return c.contribution_activity.id === activityId
-                })[0].contribution_activity;
-                if (activity.order) {
-                    context.getters.activities[activity.activity].filter(a => {
-                        return a.id !== activityId && a.order && a.order >= activity.order;
-                    }).sort((a, b) => a.order - b.order).forEach((a, i) => {
-                        post('contribution_activity_update', {
-                            id: a.id,
-                            order: activity.order + i
-                        }).then(d => {
-                            let i = context.state.contributions.map(c => c.contribution_activity.id).indexOf(d.result.id);
-                            Vue.set(context.state.contributions[i].contribution_activity, 'order', d.result.order);
-                        }).catch(e => console.error(e))
-                    })
+            getPackage(context, packageId) {
+                context.commit('setPackageId', packageId);
+                if ((!context.state.packageId) || context.state.packageId === '') {
+                    return;
                 }
-
-                return post('contribution_activity_delete', {id: activityId}).then(d => {
-                    if (!d.success) {
-                        console.error(d);
-                        return;
-                    }
-                    context.state.contributions = context.state.contributions.filter(c => {
-                        return c.contribution_activity.id !== activityId;
-                    })
-                })
+                return get(`package_show?id=${packageId}`).then(res => {
+                    context.state.packageDetail = res;
+                });
+            },
+            initLists(context) {
+                return get('attribution_controlled_lists').then(res => {
+                    Vue.set(context.state.controlledLists, 'agentTypes', res.agent_types);
+                    Vue.set(context.state.controlledLists, 'activityTypes', res.contribution_activity_types);
+                    Vue.set(context.state.controlledLists, 'activityLevels', res.contribution_activity_levels);
+                    Vue.set(context.state.controlledLists, 'agentIdSchemes', res.agent_external_id_schemes);
+                });
+            },
+            removeContributor(context, contributorId) {
+                // mark for deletion rather than deleting instantly
+                Agent.updateMeta(contributorId, {is_hidden: true, to_delete: true});
+                Agent.query().with('_activities').find(contributorId).activities.forEach(a => {
+                    Activity.updateMeta(a.id, {to_delete: true});
+                });
+            },
+            syncAgent(context, contributorId) {
+                // download details from external source
+                Agent.updateMeta(contributorId, {syncing: true});
+                return get(`agent_external_read?id=${contributorId}&diff=True`).then(res => {
+                    Agent.update({where: contributorId, data: res});
+                    Agent.updateMeta(contributorId, {is_dirty: true});
+                }).finally(() => Agent.updateMeta(contributorId, {syncing: false}));
+            },
+            toggleActivity(context, activityId) {
+                let activity = Activity.query().with('meta').find(activityId);
+                Activity.updateMeta(activityId, {'to_delete': !activity.meta.to_delete});
             }
         }
     }

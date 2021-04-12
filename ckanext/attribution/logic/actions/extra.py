@@ -11,47 +11,86 @@ from ckanext.attribution.model.crud import AgentQuery
 
 
 @toolkit.side_effect_free
-def contribution_roles_list(context, data_dict):
+def attribution_controlled_lists(context, data_dict):
     '''
-    List translated available contribution roles from the CRediT schema (https://credit.niso.org).
-    :returns: Dict of translated roles and the standard CRediT role name.
+    Return one or more lists or dicts of defined values, e.g. agent types or contribution activity
+    types. Details dicts can include various pieces of arbitrary information (e.g. names,
+    translations, or icon definitions for templates) as long as the initial structure is retained.
+
+    :param lists: names of the lists to be returned
+    :type lists: list, optional
+    :return: dict of all requested lists (or all lists if unspecified)
     :rtype: dict
-
     '''
-    return {
-        toolkit._('Conceptualization'): 'Conceptualization',
-        toolkit._('Data curation'): 'Data curation',
-        toolkit._('Formal analysis'): 'Formal analysis',
-        toolkit._('Funding acquisition'): 'Funding acquisition',
-        toolkit._('Investigation'): 'Investigation',
-        toolkit._('Methodology'): 'Methodology',
-        toolkit._('Project administration'): 'Project administration',
-        toolkit._('Resources'): 'Resources',
-        toolkit._('Software'): 'Software',
-        toolkit._('Supervision'): 'Supervision',
-        toolkit._('Validation'): 'Validation',
-        toolkit._('Visualization'): 'Visualization',
-        toolkit._('Writing – original draft'): 'Writing – original draft',
-        toolkit._('Writing – review & editing'): 'Writing – review & editing',
-    }
-
-
-@toolkit.side_effect_free
-def external_id_schemes(context, data_dict):
-    return {
-        'orcid': {
-            'url': 'https://orcid.org/{0}',
-            'label': 'ORCID',
-            'agent_types': ['individual'],
-            'default': ['individual']
+    all_lists = {
+        'agent_types': {'person': {'fa_icon': 'fas fa-user',
+                                   'default_scheme': 'orcid'},
+                        'org': {'fa_icon': 'fas fa-building',
+                                'default_scheme': 'ror'},
+                        'other': {'fa_icon': 'fas fa-asterisk',
+                                  'default_scheme': None}},
+        'contribution_activity_types': {
+            'credit': [{'name': 'Conceptualization'},
+                       {'name': 'Data curation'},
+                       {'name': 'Formal analysis'},
+                       {'name': 'Funding acquisition'},
+                       {'name': 'Investigation'},
+                       {'name': 'Methodology'},
+                       {'name': 'Project administration'},
+                       {'name': 'Resources'},
+                       {'name': 'Software'},
+                       {'name': 'Supervision'},
+                       {'name': 'Validation'},
+                       {'name': 'Visualization'},
+                       {'name': 'Writing – original draft'},
+                       {'name': 'Writing – review & editing'}],
+            'datacite': [
+                {'name': 'ContactPerson'},
+                {'name': 'DataCollector'},
+                {'name': 'DataCurator'},
+                {'name': 'DataManager'},
+                {'name': 'Distributor'},
+                {'name': 'Editor'},
+                {'name': 'HostingInstitution'},
+                {'name': 'Other'},
+                {'name': 'Producer'},
+                {'name': 'ProjectLeader'},
+                {'name': 'ProjectManager'},
+                {'name': 'ProjectMember'},
+                {'name': 'RegistrationAgency'},
+                {'name': 'RegistrationAuthority'},
+                {'name': 'RelatedPerson'},
+                {'name': 'ResearchGroup'},
+                {'name': 'RightsHolder'},
+                {'name': 'Researcher'},
+                {'name': 'Sponsor'},
+                {'name': 'Supervisor'},
+                {'name': 'WorkPackageLeader'},
+            ]
         },
-        'ror': {
-            'url': 'https://ror.org/{0}',
-            'label': 'ROR',
-            'agent_types': ['org'],
-            'default': ['org']
+        'contribution_activity_levels': ['Lead', 'Supporting', 'Equal'],
+        'agent_external_id_schemes': {
+            'orcid': {
+                'url': 'https://orcid.org/{0}',
+                'label': 'ORCID',
+                'fa_icon': 'fab fa-orcid'
+
+            },
+            'ror': {
+                'url': 'https://ror.org/{0}',
+                'label': 'ROR',
+                'fa_icon': 'fas fa-university'
+            }
         }
     }
+    lists = data_dict.get('lists')
+    if lists is not None and isinstance(lists, str):
+        lists = [l.strip() for l in lists.split(',')]
+    if lists is not None and isinstance(lists, list):
+        lists = [l for l in lists if l in all_lists]
+        return {k: v for k, v in all_lists.items() if k in lists}
+    else:
+        return all_lists
 
 
 @toolkit.side_effect_free
@@ -105,3 +144,33 @@ def agent_external_search(context, data_dict):
                           'remaining': ror_remaining}
 
     return results
+
+
+@toolkit.side_effect_free
+def agent_external_read(context, data_dict):
+    '''
+    Read data for a record from an external source like ORCID or ROR.
+
+    :param id: ID of the record to read
+    :type id: str
+    :param diff: only show values that differ from the record's current values (default False)
+    :type diff: bool, optional
+    :returns: The details pulled from the external source, formatted as a record dict
+    :rtype: dict
+
+    '''
+    toolkit.check_access('agent_show', context, data_dict)
+    try:
+        item_id = data_dict.pop('id')
+    except KeyError:
+        raise toolkit.ValidationError('Record ID must be provided.')
+    diff = toolkit.asbool(data_dict.get('diff', False))
+    updated_dict = AgentQuery.read_from_external_api(item_id)
+    updated_dict['id'] = item_id
+    del updated_dict['user_id']  # this is internal only so it's always going to be None
+    if diff:
+        item_dict = AgentQuery.read(item_id).as_dict()
+        for k, v in item_dict.items():
+            if k in updated_dict and updated_dict.get(k) == v:
+                del updated_dict[k]
+    return updated_dict

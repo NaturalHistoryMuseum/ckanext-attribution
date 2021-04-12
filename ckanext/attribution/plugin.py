@@ -9,6 +9,7 @@ from ckanext.attribution.lib import helpers
 from ckanext.attribution.model import (agent, agent_affiliation, agent_contribution_activity,
                                        contribution_activity, package_contribution_activity,
                                        relationships)
+from ckanext.attribution.model.crud import PackageQuery, AgentAffiliationQuery
 
 try:
     from ckanext.doi.interfaces import IDoi
@@ -26,6 +27,8 @@ class AttributionPlugin(SingletonPlugin):
     implements(interfaces.IConfigurable)
     implements(interfaces.IConfigurer)
     implements(interfaces.ITemplateHelpers)
+    if doi_available:
+        implements(IDoi, inherit=True)
 
     # IActions
     def get_actions(self):
@@ -41,19 +44,20 @@ class AttributionPlugin(SingletonPlugin):
             'contribution_activity_show': show.contribution_activity_show,
             'package_contribution_activity_show': show.package_contribution_activity_show,
             'package_contributions_show': show.package_contributions_show,
-            'agent_all_affiliations': show.agent_all_affiliations,
+            'agent_affiliations': show.agent_affiliations,
             'agent_affiliation_update': update.agent_affiliation_update,
             'agent_update': update.agent_update,
             'agent_external_update': update.agent_external_update,
             'contribution_activity_update': update.contribution_activity_update,
+            'package_update': update.package_update,
             'agent_affiliation_delete': delete.agent_affiliation_delete,
             'agent_delete': delete.agent_delete,
             'agent_contribution_activity_delete': delete.agent_contribution_activity_delete,
             'contribution_activity_delete': delete.contribution_activity_delete,
             'package_contribution_activity_delete': delete.package_contribution_activity_delete,
-            'contribution_roles_list': extra.contribution_roles_list,
+            'attribution_controlled_lists': extra.attribution_controlled_lists,
             'agent_external_search': extra.agent_external_search,
-            'external_id_schemes': extra.external_id_schemes
+            'agent_external_read': extra.agent_external_read
         }
         return actions
 
@@ -100,7 +104,14 @@ class AttributionPlugin(SingletonPlugin):
     def get_helpers(self):
         return {
             'get_contributions': helpers.get_contributions,
-            'as_string': helpers.as_string,
             'can_edit': helpers.can_edit,
             'split_caps': helpers.split_caps
         }
+
+    # IDoi
+    def build_metadata_dict(self, pkg_dict, metadata_dict, errors):
+        # there's no mapping between CRediT roles and datacite contributor types, so everyone gets
+        # added as a creator (with no type) at the moment
+        # agents = PackageQuery.get_agents(pkg_dict['id'])
+        # creators = []
+        return metadata_dict, errors

@@ -20,21 +20,21 @@ class AgentQuery(BaseQuery):
 
     Fields
     ======
-    :param agent_type: broad type of agent; usually 'individual' or 'org'
+    :param agent_type: broad type of agent; usually 'person' or 'org'
     :type agent_type: str
     :param external_id: the agent's ID from an external service like ORCID or ROR
     :type external_id: str, optional
     :param external_id_scheme: the name of the scheme for the external ID, e.g. 'orcid' or 'ror'
     :type external_id_scheme: str, optional
-    :param family_name: family name of an individual [individual only, required]
+    :param family_name: family name of an person [person only, required]
     :type family_name: str, optional
-    :param given_names: given name(s) or initials of an individual [individual only, required]
+    :param given_names: given name(s) or initials of an person [person only, required]
     :type given_names: str, optional
     :param given_names_first: whether given names should be displayed before the family name
-                              (default True) [individual only, optional]
+                              (default True) [person only, optional]
     :type given_names_first: bool, optional
     :param user_id: the ID for a registered user of this CKAN instance associated with this agent
-                    [individual only, optional]
+                    [person only, optional]
     :type user_id: str, optional
     :param name: name of an organisation [org only, required]
     :type name: str, optional
@@ -49,24 +49,25 @@ class AgentQuery(BaseQuery):
     @classmethod
     def validate(cls, data_dict):
         data_dict = super(AgentQuery, cls).validate(data_dict)
-        valid_agent_types = ['individual', 'org']
+        valid_agent_types = ['person', 'org']
         agent_type = toolkit.get_or_bust(data_dict, 'agent_type')
         if agent_type not in valid_agent_types:
             raise toolkit.Invalid(
                 'Agent type must be one of {0}'.format(', '.join(valid_agent_types)))
 
         valid_params = {
-            'individual': dict(required=['family_name', 'given_names'],
-                               optional=['given_names_first', 'user_id']),
-            'org': dict(required=['name'], optional=['user_id'])
+            'person': dict(required=['family_name', 'given_names'],
+                           optional=['given_names_first']),
+            'org': dict(required=['name'], optional=['location'])
         }
         required = ['agent_type'] + valid_params[agent_type]['required']
-        optional = ['external_id', 'external_id_scheme'] + valid_params[agent_type]['optional']
+        optional = ['user_id', 'external_id', 'external_id_scheme'] + valid_params[agent_type]['optional']
         for k in required:
             if k not in data_dict:
                 raise toolkit.ValidationError('{0} is a required field.'.format(k))
         if 'external_id' in data_dict and 'external_id_scheme' not in data_dict:
-            raise toolkit.ValidationError('external_id_scheme is a required field when external_id is set.')
+            raise toolkit.ValidationError(
+                'external_id_scheme is a required field when external_id is set.')
         all_fields = required + optional
         for k in data_dict:
             if k not in all_fields:
@@ -87,23 +88,26 @@ class AgentQuery(BaseQuery):
         return Session.query(Agent).filter(Agent.external_id == eid).first()
 
     @classmethod
-    def update_from_external_api(cls, agent_id, api=None):
+    def read_from_external_api(cls, agent_id, api=None):
         record = cls.read(agent_id)
         if record.external_id is None:
             raise Exception(toolkit._('Record does not have an external ID set.'))
         if record.external_id_scheme is None:
             raise Exception(toolkit._('External ID scheme not set.'))
-        if record.external_id_scheme not in toolkit.get_action('external_id_schemes')({}, {}):
-            raise Exception(toolkit._('External ID scheme "{0}" not recognised.'.format(record.external_id_scheme)))
+        external_id_schemes = toolkit.get_action('attribution_controlled_lists')({}, {
+            'lists': ['agent_external_id_schemes']})['agent_external_id_schemes']
+        if record.external_id_scheme not in external_id_schemes:
+            raise Exception(toolkit._(
+                'External ID scheme "{0}" not recognised.'.format(record.external_id_scheme)))
         if record.external_id_scheme == 'orcid':
-            return cls._update_from_orcid_api(record, api)
+            return cls._read_from_orcid_api(record, api)
         elif record.external_id_scheme == 'ror':
-            return cls._update_from_ror_api(record)
+            return cls._read_from_ror_api(record)
         else:
             raise NotImplementedError
 
     @classmethod
-    def _update_from_orcid_api(cls, record, api=None):
+    def _read_from_orcid_api(cls, record, api=None):
         '''
         Update the data for an agent using the ORCID API and the agent's stored ORCID.
 
@@ -123,14 +127,15 @@ class AgentQuery(BaseQuery):
         except HTTPError:
             orcid_results = api.search(orcid_q=record.external_id)
             if orcid_results['total'] == 0:
-                raise Exception(toolkit._('This ORCID ({0}) does not exist.'.format(record.external_id)))
+                raise Exception(
+                    toolkit._('This ORCID ({0}) does not exist.'.format(record.external_id)))
             else:
                 orcid_record = orcid_results['records'][0]
         orcid_record['id'] = record.id
-        return cls.update(record.id, **cls.validate(orcid_record))
+        return cls.validate(orcid_record)
 
     @classmethod
-    def _update_from_ror_api(cls, record):
+    def _read_from_ror_api(cls, record):
         '''
         Update the data for an agent using the ROR API and the agent's stored ROR ID.
 
@@ -143,7 +148,8 @@ class AgentQuery(BaseQuery):
         api = RorApi()
         ror_record = api.read(record.external_id)
         if ror_record is None:
-            raise Exception(toolkit._('Unable to find this ROR ID ({0}).'.format(record.external_id)))
+            raise Exception(
+                toolkit._('Unable to find this ROR ID ({0}).'.format(record.external_id)))
         updated_entry = api.as_agent_record(ror_record)
         updated_entry['id'] = record.id
-        return cls.update(record.id, **cls.validate(updated_entry))
+        return cls.validate(updated_entry)

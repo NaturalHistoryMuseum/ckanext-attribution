@@ -4,6 +4,8 @@
 # This file is part of ckanext-attribution
 # Created by the Natural History Museum in London, UK
 
+import itertools
+
 from ckan.plugins import toolkit
 from ckanext.attribution.model.crud import (AgentAffiliationQuery, AgentContributionActivityQuery,
                                             AgentQuery, ContributionActivityQuery,
@@ -67,7 +69,7 @@ def agent_list(context, data_dict):
                    AgentQuery.m.external_id.ilike(q_string)]
         portal_results = AgentQuery.search(or_(*q_parts))
     else:
-        portal_results = [a.as_dict() for a in AgentQuery.all()]
+        portal_results = AgentQuery.all()
     results = [a.as_dict() for a in portal_results]
     return results
 
@@ -139,15 +141,54 @@ def package_contributions_show(context, data_dict):
     toolkit.check_access('package_contributions_show', context, data_dict)
     item_id = toolkit.get_or_bust(data_dict, 'id')
     contributions = PackageQuery.get_contributions(item_id)
-    contributions_dict = [{'contribution_activity': a.as_dict(), 'agent': a.agent.as_dict()} for v
-                          in contributions.values() for a in v]
+    by_agent = {k: list(v) for k, v in
+                itertools.groupby(sorted(contributions, key=lambda x: x.agent.id),
+                                  key=lambda x: x.agent.id)}
+    contributions_dict = [
+        {
+            'agent': v[0].agent.as_dict(),
+            'activities': [a.as_dict() for a in v],
+            'affiliations': toolkit.get_action('agent_affiliations')(context,
+                                               {'agent_id': k, 'package_id': item_id})
+        } for k, v in by_agent.items()]
     return contributions_dict
 
 
 @toolkit.side_effect_free
-def agent_all_affiliations(context, data_dict):
+def agent_affiliations(context, data_dict):
+    '''
+    Show affiliated agents, either all or for a given package. Including a package ID will still
+    return 'global' affiliations, e.g. those with no specific package associated.
+
+    :param agent_id: ID of the agent
+    :type id: str
+    :param package_id: ID of the package
+    :type package_id: str, optional
+    :returns: The package contribution activity record.
+    :rtype: dict
+
+    '''
     toolkit.check_access('agent_show', context, data_dict)
     toolkit.check_access('agent_affiliation_show', context, data_dict)
     agent_id = toolkit.get_or_bust(data_dict, 'agent_id')
+    package_id = data_dict.get('package_id')
     agent = AgentQuery.read(agent_id)
-    return [{k: v.as_dict() for k, v in a.items()} for a in agent.affiliations]
+    affiliations = agent.affiliations
+    if package_id is not None:
+        affiliations = [a for a in affiliations if a['affiliation'].package_id is None or a[
+            'affiliation'].package_id == package_id]
+
+    def _transform(a):
+        detail = a.get('affiliation').as_dict()
+        try:
+            del detail['agent_a_id']
+        except KeyError:
+            pass
+        try:
+            del detail['agent_b_id']
+        except KeyError:
+            pass
+        detail['other_agent'] = a.get('agent').as_dict()
+        return detail
+
+    return [_transform(a) for a in affiliations]

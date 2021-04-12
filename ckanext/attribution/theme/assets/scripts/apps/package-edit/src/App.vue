@@ -1,44 +1,113 @@
 <template>
     <div>
-        <label>Contributors</label>
-        <ContributionBlock v-for="agent in agents" :key="agent.agent.id" :agent="agent.agent"
-                           :activities="agent.activities"/>
-        <AgentSearch></AgentSearch>
+        <CitationPreview/>
+        <div class="cited-contributors">
+            <draggable v-model="citedContributors" group="citationOrder" handle=".citation-ordering">
+                <ContributionBlock v-for="contributor in citedContributors" :contributor-id="contributor.id"
+                                   :key="contributor.id"/>
+            </draggable>
+        </div>
+        <div class="other-contributors">
+            <draggable v-model="otherContributors" group="citationOrder" handle=".citation-ordering">
+                <ContributionBlock v-for="contributor in otherContributors" :contributor-id="contributor.id"
+                                   :key="contributor.id"/>
+            </draggable>
+        </div>
+        <AgentSearch/>
+        <input type="hidden" id="contributor-content" name="attribution" :value="serialisedContent">
     </div>
 </template>
 
 <script>
 import ContributionBlock from './components/ContributionBlock.vue';
-import {mapActions, mapGetters, mapMutations, mapState} from 'vuex';
 import AgentSearch from './components/AgentSearch.vue';
-import EditActivity from './components/EditActivity.vue';
+import {mapActions, mapMutations, mapGetters} from 'vuex';
+import {Agent, Citation} from './models/main';
+import draggable from 'vuedraggable';
+import CitationPreview from './components/CitationPreview.vue';
 
 export default {
-    name: 'App',
+    name      : 'App',
     components: {
-        EditActivity,
-        AgentSearch,
+        CitationPreview,
         ContributionBlock,
+        AgentSearch,
+        draggable
     },
-    data: function () {
+    props     : ['packageId', 'canEdit'],
+    data      : function () {
         return {
+            sortedAgents: [],
+            cl          : console.log
+        };
+    },
+    computed  : {
+        ...mapGetters(['serialisedContent']),
+        citedContributors: {
+            get() {
+                return Agent.query()
+                            .with('meta')
+                            .where('isActive', true)
+                            .where('citeable', true)
+                            .get()
+                            .sort((a, b) => {
+                                // .orderBy doesn't seem to update automatically but this does
+                                return a.citation.order - b.citation.order;
+                            });
+            },
+            set(newValue) {
+                newValue.forEach((v, i) => {
+                    let makeCitation = [];
+                    if (!v.citation) {
+                        makeCitation.push(Citation.insert({
+                            data: {
+                                activity: '[citation]',
+                                scheme  : 'internal',
+                                agent_id: v.id,
+                                order   : i + 1,
+                                meta    : {is_new: true}
+                            }
+                        }));
+                    } else if (!v.citeable) {
+                        makeCitation.push(Citation.updateMeta(v.citation.id, {to_delete: false}));
+                    }
+
+                    Promise.all(makeCitation).then(() => {
+                        if (v.citation.order !== i + 1) {
+                            Citation.update({where: v.citation.id, data: {order: i + 1}});
+                            Citation.updateMeta(v.citation.id, {is_dirty: true})
+                        }
+                    });
+                });
+            }
+        },
+        otherContributors: {
+            get() {
+                return Agent.query()
+                            .with('meta')
+                            .where('isActive', true)
+                            .where('citeable', false)
+                            .orderBy('agent_type', 'desc')
+                            .orderBy('standardisedName')
+                            .get();
+            },
+            set(newValue) {
+                newValue.forEach(v => {
+                    if (v.citation) {
+                        Citation.updateMeta(v.citation.id, {to_delete: true});
+                    }
+                });
+            }
         }
     },
-    props: ['packageId', 'canEdit'],
-    computed: {
-        ...mapState(['contributions']),
-        ...mapGetters(['agents'])
+    methods   : {
+        ...mapActions(['initialise', 'getPackage']),
+        ...mapMutations(['setEditPermission'])
     },
-    methods: {
-        ...mapActions(['getContributions', 'getSchemes']),
-        ...mapMutations(['setPackageId', 'setEditPermission'])
-    },
-    created: function () {
-        this.setPackageId(this.packageId);
-        // TODO
+    created   : function () {
+        this.getPackage(this.packageId);
         this.setEditPermission(this.canEdit === 'True');
-        this.getContributions();
-        this.getSchemes();
+        this.initialise();
     }
-}
+};
 </script>

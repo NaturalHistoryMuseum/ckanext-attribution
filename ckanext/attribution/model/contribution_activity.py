@@ -14,6 +14,7 @@ contribution_activity_table = Table(
     meta.metadata,
     Column('id', UnicodeText, primary_key=True, default=make_uuid),
     Column('activity', UnicodeText, nullable=False),
+    Column('scheme', UnicodeText, nullable=False),
     Column('level', UnicodeText, nullable=True),
     Column('time', DateTime, nullable=True),
     Column('order', Integer, nullable=True)

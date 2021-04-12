@@ -1,86 +1,172 @@
 <template>
-    <div class="contribution-block">
-        <Agent :details="agent" v-if="!agentEditing" v-on:toggle-edit="toggleAgentEdit" :affiliations="affiliations"/>
-        <EditAgent :details="agent" v-if="agentEditing" v-on:toggle-edit="toggleAgentEdit"
-                   :affiliations="affiliations"/>
-        <div class="agent-activities">
-            <Activity v-for="activity in activities" :key="activity.id" :details="activity" :editing="activityEditing && activityEditing.id === activity.id"
-                      v-on:toggle-edit="toggleActivityEdit(activity)"/>
-            <span @click="$emit('save-activity')" v-if="activityCreating" class="icon-btn">
-                <i class="fas fa-lg fa-check-circle"></i>
-            </span>
-            <span @click="toggleActivityEdit({})" class="icon-btn">
+    <div class="contribution-block" :class="{'cited': contributor.citeable}">
+        <div class="citation-ordering">
+            <template v-if="contributor.citeable">
+                <i class="fas fa-angle-up fa-lg btn-1" :class="{'btn-disabled': contributor.citation.order === 1}"
+                   @click="moveCitation(-1)"></i>
+                <span title="Cited author" class="btn-2">{{ contributor.citation.order }}</span>
+                <i class="fas fa-angle-down fa-lg btn-3" :class="{'btn-disabled': lastCited}" @click="moveCitation(1)"></i>
+                <i class="fas fa-minus btn-4" title="Remove from citation" @click="toggleCitation"></i>
+            </template>
+            <template v-if="!contributor.citeable">
+                <i class="fas fa-plus btn-2" title="Include in citation" @click="toggleCitation"></i>
+            </template>
+
+        </div>
+        <div>
+            <ShowAgent :contributor-id="contributorId" v-if="!contributor.meta.is_editing"
+                       v-on:toggle-edit="toggleAgentEdit"/>
+            <EditAgent :contributor-id="contributorId" v-if="contributor.meta.is_editing"
+                       v-on:toggle-edit="toggleAgentEdit"/>
+            <div class="agent-activities">
+                <ShowActivity v-for="activity in contributor.activities" :key="activity.id" :activity-id="activity.id"
+                              v-on:toggle-edit="toggleActivityEdit(activity.id)"/>
+                <span @click="newActivity" class="icon-btn">
                 <i class="fas fa-lg" :class="activityCreating ? 'fa-times-circle' : 'fa-plus-circle'"></i>
             </span>
+            </div>
+            <EditActivity v-if="activityEditing" :activity-id="activityEditing" v-on:toggle-edit="saveActivityEdit"/>
         </div>
-        <EditActivity v-if="activityEditing" :details="activityEditing" :other-roles="otherRoles" :agent="agent"
-                      v-on:save-edit="saveActivityEdit" v-on:toggle-edit="toggleActivityEdit(activityEditing)"/>
     </div>
 </template>
 
 <script>
-import Agent from './Agent.vue';
-import Activity from './Activity.vue';
-import EditAgent from './EditAgent.vue';
-import EditActivity from './EditActivity.vue';
-import {get} from '../api';
-import {mapActions, mapState} from 'vuex';
+const ShowAgent = () => import(/* webpackChunkName: 'show-agent' */ './ShowAgent.vue');
+const ShowActivity = () => import(/* webpackChunkName: 'show-activity' */ './ShowActivity.vue');
+const EditAgent = () => import(/* webpackChunkName: 'edit-agent' */ './EditAgent.vue');
+const EditActivity = () => import(/* webpackChunkName: 'edit-activity' */ './EditActivity.vue');
+import {mapState} from 'vuex';
+import Common from './Common.vue';
+import {Activity, Agent, Citation} from '../models/main';
 
 export default {
-    name: 'ContributionBlock',
-    props: ['agent', 'activities'],
+    name      : 'ContributionBlock',
+    extends   : Common,
     components: {
         EditAgent,
         EditActivity,
-        Activity,
-        Agent
+        ShowActivity,
+        ShowAgent
     },
-    data: function () {
+    data      : function () {
         return {
-            agentEditing: false,
-            activityEditing: null,
-            affiliations: []
-        }
+            activityEditing: null
+        };
     },
-    computed: {
-        ...mapState(['packageId', 'roleList']),
-        otherRoles() {
-            return this.activities.map(a => a.activity).filter(a => (a !== this.activityEditing.activity) || !this.activityEditing.activity)
-        },
+    computed  : {
+        ...mapState(['packageId', 'controlledLists']),
         activityCreating() {
-            return this.activityEditing && !this.activityEditing.id;
+            return this.activityEditing ? Activity.query().with('meta')
+                                                  .find(this.activityEditing).meta.is_new : false;
+        },
+        lastCited() {
+            if (this.contributor.citeable) {
+                return Agent.query()
+                            .where('isActive', true)
+                            .where('citeable', true)
+                            .count() === this.contributor.citation.order;
+            }
+
         }
     },
-    methods: {
-        ...mapActions(['updateAgent']),
+    methods   : {
         toggleAgentEdit() {
-            if (this.agentEditing) {
-                this.updateAgent(this.agent.id);
-                this.getAffiliations();
-            }
-            this.agentEditing = !this.agentEditing;
+            Agent.updateMeta(this.contributorId, {'is_editing': !this.contributor.meta.is_editing});
         },
-        getAffiliations() {
-            let url = 'agent_all_affiliations?agent_id=' + this.agent.id;
-            get(url).then(d => {
-                this.affiliations = d.result.filter(x => {
-                    return (x.affiliation.package_id === this.packageId) || (x.affiliation.package_id === null);
-                });
-            })
-        },
-        toggleActivityEdit(activity) {
-            if (this.activityEditing === null || this.activityEditing.id !== activity.id) {
-                this.activityEditing = activity;
+        toggleActivityEdit(activityId) {
+            if (activityId && this.activityEditing !== activityId) {
+                this.activityEditing = activityId;
             } else {
                 this.activityEditing = null;
             }
         },
         saveActivityEdit() {
             this.activityEditing = null;
+        },
+        newActivity() {
+            if (this.activityCreating) {
+                Activity.delete(this.activityEditing);
+                this.activityEditing = null;
+            } else {
+                Activity.insert({
+                    data: {
+                        agent_id: this.contributorId,
+                        package_id: this.packageId,
+                        meta    : {
+                            is_new: true
+                        }
+                    }
+                }).then(records => {
+                    this.activityEditing = records.activities[0].id;
+                });
+            }
+        },
+        moveCitation(by) {
+            let currentPosition = this.contributor.citation.order;
+            let newPosition = currentPosition + by;
+            if (newPosition < 1 || (this.lastCited && by === 1)) {
+                return;
+            }
+            Citation.update({
+                where: c => c.order === newPosition,
+                data : {
+                    order: currentPosition
+                }
+            }).then(() => {
+                Citation.update({
+                    where: this.contributor.citation.id,
+                    data : {
+                        order: newPosition
+                    }
+                });
+            });
+
+        },
+        toggleCitation() {
+            if (this.contributor.citeable) {
+                Citation.updateMeta(this.contributor.citation.id, {
+                    to_delete: true
+                });
+            } else {
+                let citationCount = Agent.query()
+                                         .where('isActive', true)
+                                         .where('citeable', true)
+                                         .count();
+                if (this.contributor.citation) {
+                    Citation.update({
+                        where: this.contributor.citation.id, data: {
+                            order: citationCount + 1
+                        }
+                    });
+                    Citation.updateMeta(this.contributor.citation.id, {
+                        to_delete: false
+                    });
+                } else {
+                    Citation.insert({
+                        data: {
+                            activity: '[citation]',
+                            scheme  : 'internal',
+                            agent_id: this.contributorId,
+                            package_id: this.packageId,
+                            order   : citationCount + 1,
+                            meta    : {is_new: true}
+                        }
+                    });
+                }
+            }
         }
     },
-    created() {
-        this.getAffiliations();
+    watch     : {
+        activityEditing(newId, oldId) {
+            if (oldId) {
+                Activity.updateMeta(oldId, {'is_editing': false}).catch(() => {
+                });
+            }
+            if (newId) {
+                Activity.updateMeta(newId, {'is_editing': true}).catch(() => {
+                });
+            }
+        }
     }
-}
+};
 </script>

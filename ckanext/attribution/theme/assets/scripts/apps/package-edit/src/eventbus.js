@@ -1,10 +1,16 @@
 import Vue from 'vue';
+import store from './store/main';
 
 const events = {
     saveActivity: 'save-activity',
-    closeActivity: 'close-activity'
+    closeActivity: 'close-activity',
+    removeContributor: 'remove-contributor'
 }
 
 const eventBus = new Vue();
+
+eventBus.$on(events.removeContributor, (contributorId) => {
+    store.dispatch('removeContributor', contributorId);
+})
 
 export {eventBus, events};

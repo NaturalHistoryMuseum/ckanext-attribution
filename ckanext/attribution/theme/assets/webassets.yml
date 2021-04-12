@@ -5,7 +5,7 @@ main-js:
     preload:
       - base/main
   contents:
-    - scripts/apps/package-edit/dist/package-edit.js
+    - scripts/apps/package-edit/dist/*.js
 
 main-css:
   output: ckanext-attribution/%(version)s_main.css

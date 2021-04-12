@@ -1,7 +1,7 @@
 <template>
     <div class="autocomplete" :class="hasLabel ? 'autocomplete-label' : 'autocomplete-no-label'">
         <label :for="'autocomplete-text-' + itemId" v-if="hasLabel">{{ label }}</label>
-        <input class="autocomplete-text" type="text" @input="debouncedTextChange" :id="'autocomplete-text-' + itemId"
+        <input class="autocomplete-text" type="text" @input="debounced" :id="'autocomplete-text-' + itemId"
                autocomplete="off" v-model="textInput" @focusin="showOptions"
                placeholder="Type to search">
         <div class="autocomplete-options" :id="'autocomplete-list-' + itemId" v-if="optionsShown && optionCount > 0">
@@ -42,7 +42,8 @@ export default {
     data: function () {
         return {
             textInput: null,
-            optionsShown: false
+            optionsShown: false,
+            typing: false
         }
     },
     computed: {
@@ -73,7 +74,7 @@ export default {
             return n;
         },
         boxIcon() {
-            return this.failed ? 'fa-times' : this.loading ? 'fa-spinner fa-spin' : 'fa-check';
+            return this.failed ? 'fa-times' : this.loading ? 'fa-spinner fa-spin' : this.typing ? 'fa-xs fa-ellipsis-h' : 'fa-check';
         }
     },
     methods: {
@@ -88,15 +89,20 @@ export default {
         },
         textChange() {
             this.$emit('typing', this.textInput);
+            this.typing = false;
         },
         optionChange(opt) {
             this.optionsShown = false;
             this.textInput = opt.label;
             this.$emit('input', opt.value);
+        },
+        debounced() {
+            this.typing = true;
+            this._debounced();
         }
     },
     created() {
-        this.debouncedTextChange = debounce(this.textChange, this.delay);
+        this._debounced = debounce(this.textChange, this.delay);
         if (this.value) {
             let matchingOptions = this.options.filter((o) => o.value === this.value);
             if (matchingOptions.length > 0) {
@@ -104,6 +110,13 @@ export default {
             }
         }
         this.$parent.$on('custom-option', this.optionChange)
+    },
+    watch: {
+        value() {
+            if (!this.value) {
+                this.textInput = null;
+            }
+        }
     }
 }
 </script>

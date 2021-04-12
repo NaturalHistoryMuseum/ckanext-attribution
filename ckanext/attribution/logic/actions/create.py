@@ -56,17 +56,17 @@ def agent_create(context, data_dict):
     Action for creating an :class:`~ckanext.attribution.model.agent.Agent` record. Different
     fields are required by different agent types.
 
-    :param agent_type: broad type of agent; usually 'individual' or 'org'
+    :param agent_type: broad type of agent; usually 'person' or 'org'
     :type agent_type: str
-    :param family_name: family name of an individual [individual only, required]
+    :param family_name: family name of an person [person only, required]
     :type family_name: str, optional
-    :param given_names: given name(s) or initials of an individual [individual only, required]
+    :param given_names: given name(s) or initials of an person [person only, required]
     :type given_names: str, optional
     :param given_names_first: whether given names should be displayed before the family name
-                              (default True) [individual only, optional]
+                              (default True) [person only, optional]
     :type given_names_first: bool, optional
     :param user_id: the ID for a registered user of this CKAN instance associated with this agent
-                    [individual only, optional]
+                    [person only, optional]
     :type user_id: str, optional
     :param name: name of an organisation [org only, required]
     :type name: str, optional
@@ -95,6 +95,8 @@ def contribution_activity_create(context, data_dict):
     :type agent_id: str
     :param activity: short (one/two words) description for the activity
     :type activity: str
+    :param scheme: name of the role/activity taxonomy, e.g. credit or datacite
+    :type scheme: str, optional
     :param level: lead, equal, or supporting
     :type level: str, optional
     :param time: time activity took place

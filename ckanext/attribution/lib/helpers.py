@@ -26,11 +26,6 @@ def split_caps(string_input):
     return re.sub('(.)(?=[A-Z][^A-Z])', '\\1 ', string_input)
 
 
-def as_string(input):
-    # TODO
-    return str(input)
-
-
 def get_contributions(pkg_id):
     '''
     Template access for the

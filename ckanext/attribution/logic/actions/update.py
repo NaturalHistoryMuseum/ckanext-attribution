@@ -5,9 +5,10 @@
 # Created by the Natural History Museum in London, UK
 
 from ckan.plugins import toolkit
-from ckanext.attribution.model.crud import (AgentContributionActivityQuery, AgentQuery,
+from ckanext.attribution.logic.actions.helpers import parse_contributors
+from ckanext.attribution.model.crud import (AgentQuery,
                                             ContributionActivityQuery,
-                                            PackageContributionActivityQuery, AgentAffiliationQuery)
+                                            AgentAffiliationQuery, PackageQuery)
 
 
 def agent_affiliation_update(context, data_dict):
@@ -63,17 +64,17 @@ def agent_update(context, data_dict):
 
     :param id: ID of the record to update
     :type id: str
-    :param agent_type: broad type of agent; usually 'individual' or 'org'
+    :param agent_type: broad type of agent; usually 'person' or 'org'
     :type agent_type: str, optional
-    :param family_name: family name of an individual [individual only]
+    :param family_name: family name of an person [person only]
     :type family_name: str, optional
-    :param given_names: given name(s) or initials of an individual [individual only]
+    :param given_names: given name(s) or initials of an person [person only]
     :type given_names: str, optional
     :param given_names_first: whether given names should be displayed before the family name
-                              (default True) [individual only]
+                              (default True) [person only]
     :type given_names_first: bool, optional
     :param user_id: the ID for a registered user of this CKAN instance associated with this agent
-                    [individual only]
+                    [person only]
     :type user_id: str, optional
     :param name: name of an organisation [org only]
     :type name: str, optional
@@ -117,10 +118,11 @@ def agent_external_update(context, data_dict):
         item_id = data_dict.pop('id')
     except KeyError:
         raise toolkit.ValidationError('Record ID must be provided.')
-    new_agent = AgentQuery.update_from_external_api(item_id)
-    if new_agent is None:
+    updated_dict = AgentQuery.read_from_external_api(item_id)
+    updated_agent = AgentQuery.update(item_id, **updated_dict)
+    if updated_agent is None:
         raise toolkit.ValidationError('Unable to update agent. Check the fields are valid.')
-    return new_agent.as_dict()
+    return updated_agent.as_dict()
 
 
 def contribution_activity_update(context, data_dict):
@@ -134,6 +136,8 @@ def contribution_activity_update(context, data_dict):
     :type id: str
     :param activity: short (one/two words) description for the activity
     :type activity: str, optional
+    :param scheme: name of the role/activity taxonomy, e.g. credit or datacite
+    :type scheme: str, optional
     :param level: lead, equal, or supporting
     :type level: str, optional
     :param time: time activity took place
@@ -149,3 +153,19 @@ def contribution_activity_update(context, data_dict):
     data_dict = ContributionActivityQuery.validate(data_dict)
     new_activity = ContributionActivityQuery.update(item_id, **data_dict)
     return new_activity.as_dict()
+
+
+@toolkit.chained_action
+def package_update(next_func, context, data_dict):
+    parse_contributors(context, data_dict)
+
+    cited_contributors = sorted([c for c in PackageQuery.get_contributions(data_dict['id']) if
+                                 c.activity == '[citation]'], key=lambda x: x.order)
+    author_string = '; '.join([c.agent.citation_name for c in cited_contributors])
+
+    if author_string is None or author_string == '':
+        author_string = toolkit.config.get('ckanext.doi.publisher',
+                                           toolkit.config.get('ckan.site_title', 'Anonymous'))
+
+    data_dict['author'] = author_string
+    return next_func(context, data_dict)

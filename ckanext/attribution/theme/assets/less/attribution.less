@@ -4,16 +4,60 @@
 @attribution-grey3: #E8E8E8;
 @attribution-grey4: #F2F2F2;
 @attribution-grey5: #FFFFFF;
-@attribution-highlight1: #188100;
+@attribution-bold: #188100;
+@attribution-soft: #bbeda9;
 
 
 // CONTRIBUTION BLOCK ==============================================================================
 
 .contribution-block {
   margin-bottom: 1em;
-  padding-bottom: 0.5em;
+  padding: 2px 2px 0.5em;
   border-bottom: 2px solid @attribution-grey4;
+  background-color: @attribution-grey5;
+  display: grid;
+  grid-template-columns: 2em 1fr;
+  grid-gap: 0.5em;
+
+  & > .citation-ordering {
+    color: #AAAAAA;
+    display: grid;
+    justify-items: center;
+    align-items: center;
+    margin-right: 1em;
+    grid-gap: 0.2em;
+    grid-template-rows: repeat(4, 1fr);
+
+    & > i {
+      cursor: pointer;
+    }
+
+    & .btn-1 {
+      grid-row: 1;
+    }
+
+    & .btn-2 {
+      grid-row: 2;
+    }
+
+    & .btn-3 {
+      grid-row: 3;
+    }
+
+    & .btn-4 {
+      grid-row: 4;
+    }
+  }
+
+  &.cited > .citation-ordering {
+    & > span {
+      font-size: 1.5em;
+      font-weight: bold;
+      cursor: grab;
+    }
+  }
 }
+
 
 // GENERIC FIELDS ==================================================================================
 
@@ -59,6 +103,11 @@
   }
 }
 
+.attribution-save {
+  margin-top: 1em;
+  text-align: right;
+}
+
 @media (max-width: @smallScreen) {
   .attribution-row .wrap-small {
     grid-column-start: 1;
@@ -73,6 +122,28 @@
   align-items: flex-start;
   margin-bottom: 0.2em;
 }
+
+.agent-detail {
+  opacity: 1;
+  transition: opacity 0.5s;
+
+  &.agent-dirty::before {
+    position: absolute;
+    top: 0;
+    left: -3.5em;
+    width: 0.5em;
+    height: 100%;
+    content: '';
+    z-index: -1;
+    background-color: @attribution-soft;
+  }
+
+  &.agent-empty {
+    opacity: 0.5;
+  }
+
+}
+
 
 & .agent-name {
   flex-grow: 1;
@@ -100,6 +171,7 @@
 }
 
 .agent-detail {
+  position: relative;
   padding: 5px 0;
 }
 
@@ -324,7 +396,7 @@
     display: none;
 
     & + label {
-      margin: 0.5em;
+      margin: 0 0.5em;
       display: block;
       position: relative;
       cursor: pointer;
@@ -375,8 +447,8 @@
 
     &:checked + label:after {
       margin-left: 20px;
-      background-color: @attribution-highlight1;
-      color: if(boolean(luma(@attribution-highlight1) < 50%), #FFF, #000);
+      background-color: @attribution-bold;
+      color: if(boolean(luma(@attribution-bold) < 50%), #FFF, #000);
       content: '\f00c';
     }
   }
@@ -387,11 +459,18 @@
   text-align: center;
   width: 100%;
   cursor: pointer;
+  padding: 5px;
+
+  & small {
+    font-variant: all-small-caps;
+    font-size: 0.9em;
+    padding: 0 10px 0;
+  }
 }
 
 .icon-btn {
   margin: 5px;
-  color: @attribution-highlight1;
+  color: @attribution-bold;
   cursor: pointer;
 }
 
@@ -405,9 +484,38 @@
 }
 
 .mx-datepicker {
-    width: 100%;
+  width: 100%;
 }
 
+.is-deleted {
+  opacity: 0.3;
+  position: relative;
+  transition: opacity 0.5s;
+
+  &::after {
+    border-top: 1px solid black;
+    position: absolute;
+    bottom: 50%;
+    left: -2px;
+    right: -2px;
+    content: '';
+  }
+}
+
+.scroll-select {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  justify-items: center;
+
+  & i {
+    cursor: pointer;
+  }
+}
+
+.btn-disabled {
+  opacity: 0.5;
+  cursor: default !important;
+}
 
 // ACTIVITY ========================================================================================
 
@@ -415,19 +523,36 @@
   padding: 0.5em;
   background-color: @attribution-grey4;
   border-radius: 5px;
-  margin: 0 0.2em 0.2em 0;
+  margin: 0.3em;
   white-space: nowrap;
+  display: grid;
+  grid-gap: 10px;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  border: 1px solid @attribution-grey3;
+
+  &:first-of-type {
+    margin-left: 0;
+  }
 
   &:last-of-type {
     margin-right: 1em;
   }
 
-  & > span:last-of-type {
-    margin-right: 0.2em;
+  & > i {
+    cursor: pointer;
   }
 
-  & > i {
-    margin-left: 5px;
+  &.activity-scheme-credit > div {
+    border-bottom: 2px solid #cd2653;
+  }
+
+  &.activity-scheme-datacite > div {
+    border-bottom: 2px solid #0983bb;
+  }
+
+  & > div:hover {
+    border-bottom-style: dashed;
   }
 }
 
@@ -494,15 +619,11 @@
   margin: 1em 0;
 }
 
-.activity-save, .agent-save {
-  margin-top: 1em;
-  text-align: right;
-}
-
 // NEW BLOCK =======================================================================================
 
 .contribution-block-new {
   margin-bottom: 2em;
+  margin-left: 1.5em;
 }
 
 .new-contribution-header {
@@ -519,4 +640,35 @@
 
 .contribution-block-new .toggle-switch:checked + label:after {
   content: '\f0ac';
+}
+
+// CITATION PREVIEW ================================================================================
+
+.citation-preview {
+  padding: 1em;
+  margin: 2em;
+  border-radius: 10px;
+  border: 2px solid @attribution-grey3;
+  background-color: @attribution-grey4;
+
+  & .citation-preview-header {
+    display: flex;
+
+    & .citation-preview-title {
+      font-weight: bold;
+      flex-grow: 1;
+    }
+  }
+
+  & .citation-preview-body {
+    display: grid;
+    grid-gap: 0.5em;
+    align-items: center;
+    margin-top: 1em;
+
+    & .scroll-select > span {
+      font-style: italic;
+      font-size: 0.9em;
+    }
+  }
 }

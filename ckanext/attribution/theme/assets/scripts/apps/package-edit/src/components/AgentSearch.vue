@@ -2,10 +2,10 @@
     <div class="contribution-block-new">
         <div class="new-contribution-header">
             <span>
-                <b>Search by name or ID:</b>
+                <b>Add new contributor:</b>
             </span>
             <div class="toggle-wrapper">
-                <span class="toggle-label">Include external results:</span>
+                <span class="toggle-label">Include external results?</span>
                 <input id="external-search-toggle" v-model="useExternalSearch" type="checkbox" class="toggle-switch"
                        @change="redoSearch">
                 <label for="external-search-toggle"></label>
@@ -18,46 +18,54 @@
                 </div>
             </div>
 
-            <autocomplete-field v-model="newAgent" @typing="updateAgentOptions" :options="agentOptions"
+            <autocomplete-field v-model="newAgent" @typing="updateAgentOptions" @input="setAgent"
+                                :options="agentOptions"
                                 item-id="new-agent" :delay="1000" :loading="searchLoading" :failed="searchFailed">
-                <div class="autocomplete-option null-option" @click="$emit('custom-option', {label: null, value: {}})">
-                    manual add
-                </div>
             </autocomplete-field>
         </div>
-        <NewAgent :details="newAgent" v-if="newAgent" :affiliations="[]" v-on:toggle-edit="newAgent = null"/>
+        <ShowAgent :contributor-id="newAgent.id" v-if="newAgent && newAgent.id"/>
+        <EditActivity :activity-id="activity.id" v-if="activity" v-on:toggle-edit="finish"/>
     </div>
 </template>
 
 <script>
-import {mapGetters} from 'vuex';
-import {get} from '../api';
-import NewAgent from './NewAgent.vue';
-import Agent from './Agent.vue';
+import {mapState} from 'vuex';
+import {cancelAll, get} from '../api';
+const ShowAgent = () => import(/* webpackChunkName: 'show-agent' */ './ShowAgent.vue');
 import axios from 'axios';
+import {Activity, Agent, Citation} from '../models/main';
+const EditActivity = () => import(/* webpackChunkName: 'edit-activity' */ './EditActivity.vue');
 
 export default {
-    name: 'AgentSearch',
-    components: {NewAgent, Agent},
-    data: function () {
+    name      : 'AgentSearch',
+    components: {EditActivity, ShowAgent},
+    data      : function () {
         return {
-            newAgent: null,
-            agentOptions: {},
+            newAgent         : null,
+            agentOptions     : {},
             optionSearchInput: null,
-            searchFailed: null,
+            searchFailed     : null,
             useExternalSearch: false,
-            queuedSearches: 0  // handles cancelled/overwritten requests
-        }
+            queuedSearches   : 0  // handles cancelled/overwritten requests
+        };
     },
-    computed: {
-        ...mapGetters(['agents', 'identifierType']),
+    computed  : {
+        ...mapState(['controlledLists', 'packageId']),
         searchLoading() {
             return this.queuedSearches > 0;
+        },
+        activity() {
+            if (this.newAgent && this.newAgent.activities) {
+                return this.newAgent.activities.slice(-1)[0];
+            } else {
+                return null;
+            }
         }
     },
-    methods: {
+    methods   : {
         updateAgentOptions(input) {
             if (input === '' || input === null) {
+                this.optionSearchInput = null;
                 this.agentOptions = [];
                 return;
             }
@@ -65,58 +73,129 @@ export default {
                 return;
             }
             this.optionSearchInput = input;
-            this.agentOptions = {}
+            this.agentOptions = {};
 
             this.searchFailed = null;
             this.queuedSearches++;
-            get('agent_list?q=' + input, 'internalSearch').then(d => {
-                    this.$set(this.agentOptions, 'default', d.result.map(agent => {
-                        return {label: agent.display_name, value: agent}
+            get('agent_list?q=' + input, 'internalSearch').then(agents => {
+                    this.$set(this.agentOptions, 'default', agents.map(agent => {
+                        let label = agent.display_name;
+                        if (agent.external_id) {
+                            label += ` (${agent.external_id})`;
+                        }
+                        return {
+                            label: label,
+                            value: agent
+                        };
                     }).filter(opt => {
-                        return !Object.keys(this.agents).includes(opt.value.id);
-                    }))
+                        return !Agent.query()
+                                     .whereHas('meta', q => {
+                                         q.where('is_hidden', false);
+                                     })
+                                     .where('id', opt.value.id).exists();
+                    }));
                 }
             ).catch(e => {
                 if (!axios.isCancel(e)) {
+                    cancelAll();
                     this.searchFailed = e;
                 }
             }).finally(() => {
                 this.queuedSearches--;
-            })
+            });
 
             if (this.useExternalSearch) {
                 this.queuedSearches++;
-                get('agent_external_search?q=' + input, 'externalSearch').then(d => {
-                    if (!d.success) {
+                get('agent_external_search?q=' + input, 'externalSearch').then(agents => {
+                    if (!agents) {
                         return;
                     }
-                    Object.entries(d.result).forEach(source => {
-                        let idType = this.identifierType(source[0]);
-                        this.$set(this.agentOptions, idType.details.label, source[1].records.map(agent => {
+                    Object.entries(agents).forEach(source => {
+                        let idType = this.controlledLists.agentIdSchemes[source[0]];
+                        this.$set(this.agentOptions, idType.label, source[1].records.map(agent => {
                             let label = agent.name;
                             if (agent.family_name) {
-                                label = agent.family_name + ', ' + agent.given_names
+                                label = agent.family_name + ', ' + agent.given_names;
                             }
                             return {
                                 label: label,
                                 value: agent
-                            }
-                        }))
-                    })
+                            };
+                        }));
+                    });
                 }).catch(e => {
                     if (!axios.isCancel(e)) {
+                        cancelAll();
                         this.searchFailed = e;
                     }
                 }).finally(() => {
                     this.queuedSearches--;
-                })
+                });
             }
         },
         redoSearch() {
             let input = this.optionSearchInput;
             this.optionSearchInput = null;
             this.updateAgentOptions(input);
+        },
+        finish() {
+            Agent.updateMeta(this.newAgent.id, {'is_hidden': false});
+            this.newAgent = null;
+            this.optionSearchInput = null;
+        },
+        setAgent(input) {
+            if (!input) {
+                this.newAgent = null;
+                return;
+            }
+            let alreadyImported = null;
+            let newId = null;
+            if (input.id) {
+                alreadyImported = Agent.query().where('id', input.id).get();
+            } else if (input.external_id) {
+                alreadyImported = Agent.query()
+                                       .where('external_id', input.external_id)
+                                       .where('external_id_scheme', input.external_id_scheme)
+                                       .get();
+            }
+
+            let updateAgent;
+            if (alreadyImported && alreadyImported.length > 0) {
+                newId = alreadyImported[0].id;
+                updateAgent = () => Agent.updateMeta(newId, {is_hidden: true, to_delete: false, is_new: true});
+            } else {
+                input.meta = {is_hidden: true, to_delete: false, is_new: true};
+                updateAgent = () => Agent.insert({data: input}).then(records => {
+                    newId = records.agents[0].id;
+                });
+            }
+
+            updateAgent().then(() => {
+                Activity.insert({
+                    data:
+                        {
+                            agent_id  : newId,
+                            package_id: this.packageId,
+                            meta      : {is_new: true, is_editing: true}
+                        }
+                }).then(() => {
+                    let citationCount = Agent.query()
+                                             .where('isActive', true)
+                                             .where('citeable', true)
+                                             .count();
+                    return Citation.insert({
+                        data: {
+                            agent_id  : newId,
+                            package_id: this.packageId,
+                            order     : citationCount + 1,
+                            meta      : {is_new: true}
+                        }
+                    });
+                }).then(() => {
+                    this.newAgent = Agent.find(newId);
+                });
+            });
         }
     }
-}
+};
 </script>
