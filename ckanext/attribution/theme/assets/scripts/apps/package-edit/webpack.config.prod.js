@@ -3,7 +3,7 @@
 const merge = require('webpack-merge');
 const commonConfig = require('./webpack.config.common');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
-const {BundleStatsWebpackPlugin} = require('bundle-stats-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 
 const webpackConfig = {
     mode        : 'production',
@@ -13,19 +13,32 @@ const webpackConfig = {
         }
     },
     optimization: {
-        minimizer: [
+        minimize   : true,
+        minimizer  : [
             new OptimizeCSSAssetsPlugin({
                 cssProcessorPluginOptions: {
                     preset: ['default', {discardComments: {removeAll: true}}],
                 }
+            }),
+            new TerserPlugin({
+                extractComments: false
             })
-        ]
+        ],
+        splitChunks: {
+            cacheGroups: {
+                commons: {
+                    test  : /[\\/]node_modules[\\/]/,
+                    name  : 'vendors',
+                    chunks: 'all',
+                    maxSize: 200000
+                }
+            }
+        }
     },
     plugins     : [
-        new BundleStatsWebpackPlugin({baseline: true})
     ],
     output      : {
-        filename: '[name].package-edit.js'
+        filename: '[name].package-edit.js',
     }
 };
 
