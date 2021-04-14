@@ -105,7 +105,9 @@ class AttributionPlugin(SingletonPlugin):
         return {
             'get_contributions': helpers.get_contributions,
             'can_edit': helpers.can_edit,
-            'split_caps': helpers.split_caps
+            'split_caps': helpers.split_caps,
+            'get_cited_contributors': helpers.get_cited_contributors,
+            'controlled_list': helpers.controlled_list
         }
 
     # IDoi
