@@ -77,7 +77,7 @@
 
 <script>
 import {mapState} from 'vuex';
-const draggable = () => import(/* webpackChunkName: 'vue-draggable' */ 'vuedraggable');
+import draggable from 'vuedraggable';
 import DateField from './fields/DateField.vue';
 import Common from './Common.vue';
 import Activity from '../models/activity';

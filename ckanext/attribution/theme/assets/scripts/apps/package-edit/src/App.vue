@@ -24,12 +24,13 @@ import AgentSearch from './components/AgentSearch.vue';
 import {mapActions, mapMutations, mapGetters} from 'vuex';
 import {Agent, Citation} from './models/main';
 import draggable from 'vuedraggable';
-import CitationPreview from './components/CitationPreview.vue';
+const CitationPreview = import(/* webpackChunkName: 'citations' */ './components/CitationPreview.vue')
+import Loader from './components/Loader.vue';
 
 export default {
     name      : 'App',
     components: {
-        CitationPreview,
+        CitationPreview: () => ({component: CitationPreview, loading: Loader}),
         ContributionBlock,
         AgentSearch,
         draggable

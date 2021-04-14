@@ -23,17 +23,7 @@ const webpackConfig = {
             new TerserPlugin({
                 extractComments: false
             })
-        ],
-        splitChunks: {
-            cacheGroups: {
-                commons: {
-                    test  : /[\\/]node_modules[\\/]/,
-                    name  : 'vendors',
-                    chunks: 'all',
-                    maxSize: 200000
-                }
-            }
-        }
+        ]
     },
     plugins     : [
     ],
