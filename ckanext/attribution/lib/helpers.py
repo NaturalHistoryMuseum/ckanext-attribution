@@ -43,9 +43,6 @@ def get_cited_contributors(pkg_id):
                 itertools.groupby(sorted(contributions, key=lambda x: x.agent.id),
                                   key=lambda x: x.agent.id)}
 
-    def _is_cited(entry):
-        return any([a.activity == '[citation]' for a in entry[1]])
-
     def _citation_order(entry):
         activities = entry[1]
         citation = [a.order for a in activities if a.activity == '[citation]']
@@ -54,14 +51,14 @@ def get_cited_contributors(pkg_id):
         else:
             return -1
 
-    def _format_entries(entry_list):
-        return [{'agent': c[1][0].agent,
-                 'contributions': [a for a in c[1] if a.activity != '[citation]']} for c in
-                entry_list]
+    entries = [{'agent': c[1][0].agent,
+                'contributions': [a for a in c[1] if a.activity != '[citation]'],
+                'order': _citation_order(c)} for c in
+               by_agent.items()]
 
-    cited_agents = {'cited' if k else 'uncited': _format_entries(v) for k, v in
-                    itertools.groupby(sorted(by_agent.items(), key=_citation_order),
-                                      key=_is_cited)}
+    cited_agents = {'cited' if k else 'uncited': sorted(list(v), key=lambda x: x['order']) for k, v
+                    in itertools.groupby(sorted(entries, key=lambda x: x['order']),
+                                         key=lambda x: x['order'] != -1)}
     return cited_agents
 
 
