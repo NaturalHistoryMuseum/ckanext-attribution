@@ -9,7 +9,6 @@ from ckanext.attribution.lib import helpers
 from ckanext.attribution.model import (agent, agent_affiliation, agent_contribution_activity,
                                        contribution_activity, package_contribution_activity,
                                        relationships)
-from ckanext.attribution.model.crud import PackageQuery, AgentAffiliationQuery
 
 try:
     from ckanext.doi.interfaces import IDoi
@@ -112,8 +111,51 @@ class AttributionPlugin(SingletonPlugin):
 
     # IDoi
     def build_metadata_dict(self, pkg_dict, metadata_dict, errors):
-        # there's no mapping between CRediT roles and datacite contributor types, so everyone gets
-        # added as a creator (with no type) at the moment
-        # agents = PackageQuery.get_agents(pkg_dict['id'])
-        # creators = []
+        # Adds cited contributors as 'creators' and uncited contributors as 'contributors'.
+        # 'creators' do not get roles/contributor types; 'contributors' do.
+        all_contributors = helpers.get_cited_contributors(pkg_dict['id'])
+        id_schemes = helpers.controlled_list('agent_external_id_schemes')
+
+        def _make_contrib_dict(entry):
+            d = {'is_org': entry['agent'].agent_type == 'org',
+                 'affiliations': [a['agent'].display_name for a in
+                                  entry['agent'].package_affiliations(pkg_dict['id'])]}
+            if entry['agent'].agent_type == 'person':
+                d['family_name'] = entry['agent'].family_name
+                d['given_name'] = entry['agent'].given_names
+            else:
+                d['full_name'] = entry['agent'].name
+            if entry['agent'].external_id and entry['agent'].external_id_scheme:
+                scheme = entry['agent'].external_id_scheme
+                scheme_label = id_schemes.get(scheme, {}).get('label', scheme)
+                scheme_uri = id_schemes.get(scheme, {}).get('scheme_uri')
+                d['identifiers'] = [{'identifier': entry['agent'].external_id_url,
+                                     'scheme': scheme_label,
+                                     'scheme_uri': scheme_uri}]
+            return d
+
+        creators = []
+        for c in all_contributors['cited']:
+            creator_dict = _make_contrib_dict(c)
+            creators.append(creator_dict)
+
+        contributors = []
+        for c in all_contributors['uncited']:
+            # Only one type can be sent to datacite, so use the datacite role/activity where the
+            # contributor is ranked highest, e.g. if they're 2nd Editor and 1st DataManager,
+            # DataManager is used. If none are ranked (or there are multiple with the same rank),
+            # use the first alphabetically. If there are no datacite roles/activities for this
+            # contributor, use 'Other' (because contributor type is a required field).
+            contrib_dict = _make_contrib_dict(c)
+            datacite_roles = sorted([a for a in c['contributions'] if a.scheme == 'datacite'],
+                                    key=lambda x: (x.order or len(c['contributions']), x.activity))
+            if datacite_roles:
+                contrib_dict['contributor_type'] = datacite_roles[0].activity
+            else:
+                contrib_dict['contributor_type'] = 'Other'
+            contributors.append(contrib_dict)
+
+        metadata_dict['creators'] = creators
+        metadata_dict['contributors'] = contributors
+
         return metadata_dict, errors

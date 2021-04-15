@@ -72,12 +72,14 @@ def attribution_controlled_lists(context, data_dict):
         'agent_external_id_schemes': {
             'orcid': {
                 'url': 'https://orcid.org/{0}',
+                'scheme_uri': 'https://orcid.org',
                 'label': 'ORCID',
                 'fa_icon': 'fab fa-orcid'
 
             },
             'ror': {
                 'url': 'https://ror.org/{0}',
+                'scheme_uri': 'https://ror.org',
                 'label': 'ROR',
                 'fa_icon': 'fas fa-university'
             }

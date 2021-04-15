@@ -72,6 +72,10 @@ class Agent(DomainObject):
     def affiliations(self):
         return [{'agent': a.other_agent(self.id), 'affiliation': a} for a in self._affiliations]
 
+    def package_affiliations(self, pkg_id):
+        return [a for a in self.affiliations if
+                a['affiliation'].package_id is None or a['affiliation'].package_id == pkg_id]
+
     @property
     def sort_name(self):
         return self.family_name if self.agent_type == 'person' else self.name
