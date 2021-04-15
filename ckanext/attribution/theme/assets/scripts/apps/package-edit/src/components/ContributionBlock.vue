@@ -112,13 +112,17 @@ export default {
                 data : {
                     order: currentPosition
                 }
+            }).then((records) => {
+                return Citation.updateMeta(records[0].id, {is_dirty: true})
             }).then(() => {
-                Citation.update({
+                return Citation.update({
                     where: this.contributor.citation.id,
                     data : {
                         order: newPosition
                     }
                 });
+            }).then(() => {
+                return Citation.updateMeta(this.contributor.citation.id, {is_dirty: true})
             });
 
         },
