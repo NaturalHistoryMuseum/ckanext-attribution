@@ -1,4 +1,5 @@
 @smallScreen: 500px;
+@attribution-grey0: #757575;
 @attribution-grey1: #C3C3C3;
 @attribution-grey2: #DDDDDD;
 @attribution-grey3: #E8E8E8;
@@ -20,7 +21,7 @@
   grid-gap: 0.5em;
 
   & > .citation-ordering {
-    color: #AAAAAA;
+    color: @attribution-grey0;
     display: grid;
     justify-items: center;
     align-items: center;
@@ -515,6 +516,10 @@
 .btn-disabled {
   opacity: 0.5;
   cursor: default !important;
+}
+
+.screenreader {
+  visibility: hidden;
 }
 
 // ACTIVITY ========================================================================================

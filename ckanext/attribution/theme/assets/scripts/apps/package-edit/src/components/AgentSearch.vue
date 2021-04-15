@@ -1,17 +1,19 @@
 <template>
     <div class="contribution-block-new">
         <div class="new-contribution-header">
-            <span>
-                <b>Add new contributor:</b>
-            </span>
+            <label for="autocomplete-text-new-agent">
+                Add new contributor:
+            </label>
             <div class="toggle-wrapper">
                 <span class="toggle-label">Include external results?</span>
                 <input id="external-search-toggle" v-model="useExternalSearch" type="checkbox" class="toggle-switch"
-                       @change="redoSearch">
-                <label for="external-search-toggle"></label>
+                       @change="redoSearch" aria-labelledby="external-search-toggle-help">
+                <label for="external-search-toggle">
+                    <span class="screenreader">Enable/disable searching external services</span>
+                </label>
                 <div class="help-icon">
                     <i class="fas fa-question-circle"></i>
-                    <div class="help-tooltip" role="tooltip">
+                    <div class="help-tooltip" role="tooltip" id="external-search-toggle-help">
                         Search external APIs (e.g. ORCID and ROR) for contributors that have not yet
                         been imported. This may take several seconds.
                     </div>
