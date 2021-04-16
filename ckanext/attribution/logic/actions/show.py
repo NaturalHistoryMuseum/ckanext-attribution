@@ -161,7 +161,7 @@ def agent_affiliations(context, data_dict):
     return 'global' affiliations, e.g. those with no specific package associated.
 
     :param agent_id: ID of the agent
-    :type id: str
+    :type agent_id: str
     :param package_id: ID of the package
     :type package_id: str, optional
     :returns: The package contribution activity record.
