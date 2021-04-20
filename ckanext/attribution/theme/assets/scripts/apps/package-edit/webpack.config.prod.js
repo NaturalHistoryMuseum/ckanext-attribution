@@ -24,11 +24,6 @@ const webpackConfig = {
                 extractComments: false
             })
         ]
-    },
-    plugins     : [
-    ],
-    output      : {
-        filename: '[name].package-edit.js',
     }
 };
 

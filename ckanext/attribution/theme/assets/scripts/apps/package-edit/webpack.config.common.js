@@ -37,7 +37,7 @@ const webpackConfig = {
     output:  {
         library:       'package-edit',
         libraryTarget: 'umd',
-        filename:      'package-edit.js',
+        filename: '[name].package-edit.js',
         publicPath: '/assets/scripts/apps/package-edit/'
     },
 

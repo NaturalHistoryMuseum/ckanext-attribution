@@ -111,8 +111,12 @@ def agent_external_search(context, data_dict):
     toolkit.check_access('agent_show', context, data_dict)
     q = toolkit.get_or_bust(data_dict, 'q')
     sources = data_dict.get('sources')
-    if sources is not None:
+    if sources is not None and isinstance(sources, str):
+        sources = [sources.lower()]
+    elif sources is not None and isinstance(sources, list):
         sources = [s.lower() for s in sources]
+    elif sources is not None:
+        sources = None
     results = {}
     if q is None or q == '':
         return results

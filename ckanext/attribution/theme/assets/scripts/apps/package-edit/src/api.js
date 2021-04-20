@@ -1,5 +1,6 @@
 import axios from 'axios';
 import axiosCancel from 'axios-cancel';
+import qs from 'qs';
 
 const api = axios.create({
     baseURL: '/api/3/action/',
@@ -28,8 +29,12 @@ export function post(action, body, requestId) {
               });
 }
 
-export function get(action, requestId) {
-    return api.get(action, {requestId: requestId})
+export function get(action, params, requestId) {
+    let serialiser = (p) => {
+        return qs.stringify(p, {arrayFormat: 'repeat'});
+    }
+
+    return api.get(action, {params: params, requestId: requestId, paramsSerializer: serialiser})
               .then(response => {
                   if (response.data && response.data.success) {
                       return response.data.result;

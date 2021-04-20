@@ -385,6 +385,42 @@
   flex-wrap: nowrap;
 }
 
+.checkboxes {
+  display: flex;
+  align-items: center;
+
+  & > input[type=checkbox] {
+    display: none;
+
+    & + label {
+      padding: 2px 5px 1px;
+      margin: 0 2px;
+      border-radius: 5px;
+      background-color: @attribution-grey3;
+      color: if(boolean(luma(@attribution-grey3) < 50%), #FFF, #000);
+      font-weight: normal;
+      font-size: 0.9em;
+      transition: all 0.4s ease;
+
+      &::after {
+        margin-left: 0.5em;
+        font-family: "Font Awesome 5 Free", serif;
+        content: '\f00d';
+        font-weight: bold;
+      }
+    }
+
+    &:checked + label {
+      background-color: @attribution-soft;
+      color: if(boolean(luma(@attribution-soft) < 50%), #FFF, #000);
+
+      &::after {
+        content: '\f00c';
+      }
+    }
+  }
+}
+
 .toggle-wrapper {
   display: flex;
   align-items: center;

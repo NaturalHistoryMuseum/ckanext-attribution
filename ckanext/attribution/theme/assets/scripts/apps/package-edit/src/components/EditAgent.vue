@@ -196,7 +196,7 @@ export default {
                 this.userOptions = [];
                 return;
             }
-            get('user_list?q=' + input).then(users => {
+            get('user_list', {q: input}).then(users => {
                     this.userOptions = users.map(user => {
                         return {label: user.display_name, value: user.id};
                     });
@@ -257,7 +257,7 @@ export default {
 
             // get user info
             if (this.edits.user_id) {
-                get('user_show?id=' + this.edits.user_id).then(d => {
+                get('user_show', {'id': this.edits.user_id}).then(d => {
                     this.userOptions = [{label: d.display_name, value: this.edits.user_id}];
                 });
             }

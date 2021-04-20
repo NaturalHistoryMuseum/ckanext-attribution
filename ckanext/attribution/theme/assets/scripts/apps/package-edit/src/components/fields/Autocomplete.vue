@@ -21,7 +21,7 @@
         <span class="expand-bar" @click="hideOptions" v-if="optionsShown && optionCount > 0">
             <i class="fas fa-caret-up"></i>
         </span>
-        <i class="fas" :class="boxIcon" :title="failed"></i>
+        <i class="fas" :class="boxIcon" :title="failed" @click="$emit('cancel')"></i>
     </div>
 </template>
 

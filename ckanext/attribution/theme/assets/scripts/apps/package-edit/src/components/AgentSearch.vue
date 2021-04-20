@@ -2,26 +2,25 @@
     <div class="contribution-block-new">
         <div class="new-contribution-header">
             <label for="autocomplete-text-new-agent">
-                Add new contributor:
+                Add new contributor
             </label>
-            <div class="toggle-wrapper">
-                <span class="toggle-label">Include external results?</span>
-                <input id="external-search-toggle" v-model="useExternalSearch" type="checkbox" class="toggle-switch"
-                       @change="redoSearch" aria-labelledby="external-search-toggle-help">
-                <label for="external-search-toggle">
-                    <span class="screenreader">Enable/disable searching external services</span>
-                </label>
+            <div class="checkboxes">
+                <template v-for="source in external">
+                    <input type="checkbox" v-model="source.enabled" :id="`${source.name}-chk`" @change="redoSearch">
+                    <label :for="`${source.name}-chk`" :title="`Include results from ${source.label}`">{{
+                            source.label
+                        }}</label>
+                </template>
                 <div class="help-icon">
                     <i class="fas fa-question-circle"></i>
-                    <div class="help-tooltip" role="tooltip" id="external-search-toggle-help">
-                        Search external APIs (e.g. ORCID and ROR) for contributors that have not yet
-                        been imported. This may take several seconds.
+                    <div class="help-tooltip" role="tooltip" id="orcid-search-toggle-help">
+                        Search external sources for contributors that have not yet been imported.
+                        This may take several seconds.
                     </div>
                 </div>
             </div>
-
             <autocomplete-field v-model="newAgent" @typing="updateAgentOptions" @input="setAgent"
-                                :options="agentOptions"
+                                :options="agentOptions" @cancel="cancelSearches"
                                 item-id="new-agent" :delay="1000" :loading="searchLoading" :failed="searchFailed">
             </autocomplete-field>
         </div>
@@ -33,9 +32,10 @@
 <script>
 import {mapState} from 'vuex';
 import {cancelAll, get} from '../api';
-const ShowAgent = () => import(/* webpackChunkName: 'show-agent' */ './ShowAgent.vue');
 import axios from 'axios';
 import {Activity, Agent, Citation} from '../models/main';
+
+const ShowAgent = () => import(/* webpackChunkName: 'show-agent' */ './ShowAgent.vue');
 const EditActivity = () => import(/* webpackChunkName: 'edit-activity' */ './EditActivity.vue');
 
 export default {
@@ -47,7 +47,18 @@ export default {
             agentOptions     : {},
             optionSearchInput: null,
             searchFailed     : null,
-            useExternalSearch: false,
+            external         : [
+                {
+                    name   : 'orcid',
+                    label  : 'ORCID',
+                    enabled: false
+                },
+                {
+                    name   : 'ror',
+                    label  : 'ROR',
+                    enabled: false
+                }
+            ],
             queuedSearches   : 0  // handles cancelled/overwritten requests
         };
     },
@@ -62,9 +73,16 @@ export default {
             } else {
                 return null;
             }
+        },
+        useExternalSearch() {
+            return this.external.some(x => x.enabled);
         }
     },
     methods   : {
+        cancelSearches() {
+            cancelAll();
+            this.searchFailed = new Error('Search cancelled.');
+        },
         updateAgentOptions(input) {
             if (input === '' || input === null) {
                 this.optionSearchInput = null;
@@ -79,7 +97,7 @@ export default {
 
             this.searchFailed = null;
             this.queuedSearches++;
-            get('agent_list?q=' + input, 'internalSearch').then(agents => {
+            get('agent_list', {q: input}, 'internalSearch').then(agents => {
                     this.$set(this.agentOptions, 'default', agents.map(agent => {
                         let label = agent.display_name;
                         if (agent.external_id) {
@@ -108,7 +126,9 @@ export default {
 
             if (this.useExternalSearch) {
                 this.queuedSearches++;
-                get('agent_external_search?q=' + input, 'externalSearch').then(agents => {
+                let sources = this.external.filter(x => x.enabled).map(x => x.name);
+                console.log(sources);
+                get('agent_external_search', {q: input, sources: sources}, 'externalSearch').then(agents => {
                     if (!agents) {
                         return;
                     }

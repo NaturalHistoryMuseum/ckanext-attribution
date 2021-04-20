@@ -63,53 +63,54 @@ const store = new Vuex.Store(
                 if ((!context.state.packageId) || context.state.packageId === '') {
                     return;
                 }
-                return get(`package_contributions_show?id=${context.state.packageId}`).then(res => {
-                    if (res === undefined) {
-                        return;
-                    }
-                    let agentIds = res.map(r => r.agent.id);
-                    // there seems to be some kind of bug in .create() where it will sometimes
-                    // create everything and then delete it - manually clearing first then
-                    // using .insert() instead avoids that
-                    context.dispatch('entities/deleteAll').then(() => {
-                        Agent.insert({
-                            data: res.map(r => {
-                                let agent = r.agent;
-                                agent.affiliations = r.affiliations.map(a => {
-                                    a.db_id = a.id;
-                                    a.id = null;
-                                    if (!agentIds.includes(a.other_agent.id)) {
-                                        a.other_agent.meta = {is_hidden: true};
-                                    }
-                                    return a;
-                                });
-                                agent._activities = r.activities.filter(a => a.activity !== '[citation]')
-                                                     .map(a => {
-                                                         if (!a.package_id) {
-                                                             a.package_id = context.state.packageId;
-                                                         }
-                                                         return a;
-                                                     });
-                                agent._citation = r.activities.filter(a => a.activity === '[citation]')
-                                                   .map(a => {
-                                                       if (!a.package_id) {
-                                                           a.package_id = context.state.packageId;
-                                                       }
-                                                       return a;
-                                                   })
-                                                   .slice(-1)[0];
-                                return agent;
-                            })
+                return get('package_contributions_show', {id: context.state.packageId})
+                    .then(res => {
+                        if (res === undefined) {
+                            return;
+                        }
+                        let agentIds = res.map(r => r.agent.id);
+                        // there seems to be some kind of bug in .create() where it will sometimes
+                        // create everything and then delete it - manually clearing first then
+                        // using .insert() instead avoids that
+                        context.dispatch('entities/deleteAll').then(() => {
+                            Agent.insert({
+                                data: res.map(r => {
+                                    let agent = r.agent;
+                                    agent.affiliations = r.affiliations.map(a => {
+                                        a.db_id = a.id;
+                                        a.id = null;
+                                        if (!agentIds.includes(a.other_agent.id)) {
+                                            a.other_agent.meta = {is_hidden: true};
+                                        }
+                                        return a;
+                                    });
+                                    agent._activities = r.activities.filter(a => a.activity !== '[citation]')
+                                                         .map(a => {
+                                                             if (!a.package_id) {
+                                                                 a.package_id = context.state.packageId;
+                                                             }
+                                                             return a;
+                                                         });
+                                    agent._citation = r.activities.filter(a => a.activity === '[citation]')
+                                                       .map(a => {
+                                                           if (!a.package_id) {
+                                                               a.package_id = context.state.packageId;
+                                                           }
+                                                           return a;
+                                                       })
+                                                       .slice(-1)[0];
+                                    return agent;
+                                })
+                            });
                         });
                     });
-                });
             },
             getPackage(context, packageId) {
                 context.commit('setPackageId', packageId);
                 if ((!context.state.packageId) || context.state.packageId === '') {
                     return;
                 }
-                return get(`package_show?id=${packageId}`).then(res => {
+                return get('package_show', {id: packageId}).then(res => {
                     context.state.packageDetail = res;
                 });
             },
@@ -131,7 +132,7 @@ const store = new Vuex.Store(
             syncAgent(context, contributorId) {
                 // download details from external source
                 Agent.updateMeta(contributorId, {syncing: true});
-                return get(`agent_external_read?id=${contributorId}&diff=True`).then(res => {
+                return get('agent_external_read', {id: contributorId, diff: true}).then(res => {
                     Agent.update({where: contributorId, data: res});
                     Agent.updateMeta(contributorId, {is_dirty: true});
                 }).finally(() => Agent.updateMeta(contributorId, {syncing: false}));
