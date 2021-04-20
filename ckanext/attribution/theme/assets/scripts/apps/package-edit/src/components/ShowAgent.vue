@@ -10,7 +10,7 @@
                       v-if="contributor.external_id" @click="syncAgent(contributorId)">
                     <i class="fas" :class="contributor.meta.syncing ? 'fa-spinner fa-spin' : 'fa-arrow-alt-circle-down'"></i>
                 </span>
-                <span class="edit-icon" title="Edit" v-if="canEdit" @click="$emit('toggle-edit')">
+                <span class="edit-icon" title="Edit" v-if="canEdit" @click="startEdit">
                     <i class="fas fa-edit"></i>
                 </span>
                 <span class="edit-icon" title="Remove this contributor"
@@ -74,7 +74,10 @@ export default {
         }
     },
     methods : {
-        ...mapActions(['syncAgent'])
+        ...mapActions(['syncAgent']),
+        startEdit() {
+            Agent.updateMeta(this.contributorId, {is_editing: true})
+        }
     }
 }
 </script>

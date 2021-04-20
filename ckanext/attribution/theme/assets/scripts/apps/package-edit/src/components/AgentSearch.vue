@@ -1,6 +1,6 @@
 <template>
     <div class="contribution-block-new">
-        <div class="new-contribution-header">
+        <div class="new-contribution-search">
             <label for="autocomplete-text-new-agent">
                 Add new contributor
             </label>
@@ -19,12 +19,17 @@
                     </div>
                 </div>
             </div>
-            <autocomplete-field v-model="newAgent" @typing="updateAgentOptions" @input="setAgent"
-                                :options="agentOptions" @cancel="cancelSearches"
+            <autocomplete-field v-model="selectedAgent" @typing="updateSearchResults" @input="setAgent"
+                                :options="searchResults" @cancel="cancelSearches"
                                 item-id="new-agent" :delay="1000" :loading="searchLoading" :failed="searchFailed">
             </autocomplete-field>
         </div>
-        <ShowAgent :contributor-id="newAgent.id" v-if="newAgent && newAgent.id"/>
+        <div class="new-contribution-manual">
+            <span @click="setAgent({})">or add manually</span>
+            <i class="fas fa-pencil-alt"></i>
+        </div>
+        <ShowAgent :contributor-id="newAgentId" v-if="newAgent && !newAgent.meta.is_editing"/>
+        <EditAgent :contributor-id="newAgentId" v-if="newAgent && newAgent.meta.is_editing" :from-search="true"/>
         <EditActivity :activity-id="activity.id" v-if="activity" v-on:toggle-edit="finish"/>
     </div>
 </template>
@@ -36,18 +41,20 @@ import axios from 'axios';
 import {Activity, Agent, Citation} from '../models/main';
 
 const ShowAgent = () => import(/* webpackChunkName: 'show-agent' */ './ShowAgent.vue');
+const EditAgent = () => import(/* webpackChunkName: 'edit-agent' */ './EditAgent.vue');
 const EditActivity = () => import(/* webpackChunkName: 'edit-activity' */ './EditActivity.vue');
 
 export default {
     name      : 'AgentSearch',
-    components: {EditActivity, ShowAgent},
+    components: {EditAgent, EditActivity, ShowAgent},
     data      : function () {
         return {
-            newAgent         : null,
-            agentOptions     : {},
-            optionSearchInput: null,
-            searchFailed     : null,
-            external         : [
+            selectedAgent: null,  // result from the search box
+            newAgentId: null,  // agent currently being edited
+            searchResults : {},
+            searchString : null,
+            searchFailed  : null,
+            external      : [
                 {
                     name   : 'orcid',
                     label  : 'ORCID',
@@ -59,7 +66,7 @@ export default {
                     enabled: false
                 }
             ],
-            queuedSearches   : 0  // handles cancelled/overwritten requests
+            queuedSearches: 0  // handles cancelled/overwritten requests
         };
     },
     computed  : {
@@ -76,6 +83,11 @@ export default {
         },
         useExternalSearch() {
             return this.external.some(x => x.enabled);
+        },
+        newAgent() {
+            if (this.newAgentId) {
+                return Agent.query().with('meta').find(this.newAgentId);
+            }
         }
     },
     methods   : {
@@ -83,22 +95,22 @@ export default {
             cancelAll();
             this.searchFailed = new Error('Search cancelled.');
         },
-        updateAgentOptions(input) {
+        updateSearchResults(input) {
             if (input === '' || input === null) {
-                this.optionSearchInput = null;
-                this.agentOptions = [];
+                this.searchString = null;
+                this.searchResults = [];
                 return;
             }
-            if (input === this.optionSearchInput) {
+            if (input === this.searchString) {
                 return;
             }
-            this.optionSearchInput = input;
-            this.agentOptions = {};
+            this.searchString = input;
+            this.searchResults = {};
 
             this.searchFailed = null;
             this.queuedSearches++;
             get('agent_list', {q: input}, 'internalSearch').then(agents => {
-                    this.$set(this.agentOptions, 'default', agents.map(agent => {
+                    this.$set(this.searchResults, 'default', agents.map(agent => {
                         let label = agent.display_name;
                         if (agent.external_id) {
                             label += ` (${agent.external_id})`;
@@ -134,7 +146,7 @@ export default {
                     }
                     Object.entries(agents).forEach(source => {
                         let idType = this.controlledLists.agentIdSchemes[source[0]];
-                        this.$set(this.agentOptions, idType.label, source[1].records.map(agent => {
+                        this.$set(this.searchResults, idType.label, source[1].records.map(agent => {
                             let label = agent.name;
                             if (agent.family_name) {
                                 label = agent.family_name + ', ' + agent.given_names;
@@ -156,18 +168,30 @@ export default {
             }
         },
         redoSearch() {
-            let input = this.optionSearchInput;
-            this.optionSearchInput = null;
-            this.updateAgentOptions(input);
+            let input = this.searchString;
+            this.searchString = null;
+            this.updateSearchResults(input);
         },
-        finish() {
-            Agent.updateMeta(this.newAgent.id, {'is_hidden': false});
-            this.newAgent = null;
-            this.optionSearchInput = null;
+        finish(event) {
+            if (event === 'save') {
+                Agent.updateMeta(this.newAgentId, {is_hidden: false, is_temporary: false});
+            }
+            else if (event === 'cancel' && this.newAgent.meta.is_temporary) {
+                Activity.delete((activity) => {
+                    return activity.agent_id === this.newAgentId;
+                })
+                Citation.delete(citation => {
+                    return citation.agent_id === this.newAgentId;
+                });
+                Agent.delete(this.newAgentId);
+            }
+            this.selectedAgent = null;
+            this.newAgentId = null;
+            this.searchString = null;
         },
         setAgent(input) {
             if (!input) {
-                this.newAgent = null;
+                this.selectedAgent = null;
                 return;
             }
             let alreadyImported = null;
@@ -186,7 +210,7 @@ export default {
                 newId = alreadyImported[0].id;
                 updateAgent = () => Agent.updateMeta(newId, {is_hidden: true, to_delete: false, is_new: true});
             } else {
-                input.meta = {is_hidden: true, to_delete: false, is_new: true};
+                input.meta = {is_hidden: true, to_delete: false, is_new: true, is_editing: Object.keys(input).length === 0, is_temporary: true};
                 updateAgent = () => Agent.insert({data: input}).then(records => {
                     newId = records.agents[0].id;
                 });
@@ -214,7 +238,7 @@ export default {
                         }
                     });
                 }).then(() => {
-                    this.newAgent = Agent.find(newId);
+                    this.newAgentId = newId;
                 });
             });
         }

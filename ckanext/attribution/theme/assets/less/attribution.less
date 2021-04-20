@@ -120,7 +120,7 @@
 
 .agent-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 0.2em;
 }
 
@@ -157,12 +157,6 @@
 
 & .display-name {
   flex-grow: 1;
-}
-
-.agent-edit-block {
-  & .agent-header {
-    margin-bottom: 1em;
-  }
 }
 
 .agent-activities {
@@ -208,13 +202,15 @@
 }
 
 .agent-type-edit {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   align-items: end;
   margin-right: 1em;
+  padding: 0.5em 0.5em 0.7em;
+  border-radius: 5px;
+  background: @attribution-grey3;
 
   & .agent-type-option {
-    padding-right: 0.5em;
-
     & > input {
       display: none;
 
@@ -667,7 +663,7 @@
   margin-left: 1.5em;
 }
 
-.new-contribution-header {
+.new-contribution-search {
   display: grid;
   align-items: center;
   grid-gap: 0.5em;
@@ -676,6 +672,19 @@
 
   & .autocomplete {
     grid-column: span 2;
+  }
+}
+
+.new-contribution-manual {
+  display: flex;
+  justify-content: end;
+  align-items: baseline;
+  font-style: italic;
+  margin-bottom: 1em;
+
+  & > * {
+    margin-left: 0.5em;
+    cursor: pointer;
   }
 }
 

@@ -5,13 +5,13 @@
             <span class="display-name">
                 <em>{{ displayName }}</em>
             </span>
-            <div class="edit-icons">
+            <div class="edit-icons" v-if="!fromSearch">
                 <span class="edit-icon" title="Download contributor details from external source"
                       v-if="contributor.external_id" @click="syncAgent">
                     <i class="fas"
                        :class="contributor.meta.syncing ? 'fa-spinner fa-spin' : 'fa-arrow-alt-circle-down'"></i>
                 </span>
-                <span class="edit-icon" title="Edit" v-if="canEdit" @click="$emit('toggle-edit')">
+                <span class="edit-icon" title="Edit" v-if="canEdit" @click="stopEdit">
                     <i class="fas fa-edit"></i>
                 </span>
                 <span class="edit-icon" title="Remove this contributor"
@@ -33,6 +33,7 @@
             </text-field>
         </div>
         <div class="expand-bar" title="Expand" @click="expand = !expand">
+            <i class="fas" :class="expand ? 'fa-caret-up' : 'fa-caret-down'"></i>
             <small>Show all edit options</small>
             <i class="fas" :class="expand ? 'fa-caret-up' : 'fa-caret-down'"></i>
         </div>
@@ -85,12 +86,12 @@
                 </help-tooltip>
             </div>
         </template>
-        <div class="attribution-save">
+        <div class="attribution-save" v-if="!fromSearch">
             <span class="btn btn-primary" @click="saveChanges">
                 <i class="fas fa-save"></i>
                 Save changes
             </span>
-            <span class="btn btn-primary" @click="$emit('toggle-edit')">
+            <span class="btn btn-primary" @click="stopEdit">
                 <i class="fas fa-times"></i>
                 Cancel
             </span>
@@ -111,6 +112,11 @@ export default {
     extends   : Common,
     components: {
         AgentTypeField
+    },
+    props: {
+        fromSearch: {
+            default: () => false
+        }
     },
     data      : function () {
         return {
@@ -147,6 +153,9 @@ export default {
     },
     methods   : {
         ...mapActions(['removeContributor']),
+        stopEdit() {
+            Agent.updateMeta(this.contributorId, {is_editing: false})
+        },
         saveChanges() {
             let promises = [];
 
@@ -187,7 +196,7 @@ export default {
             return Promise.all(promises).then(() => {
                 return Agent.updateMeta(this.contributorId, {is_dirty: true});
             }).then(() => {
-                    this.$emit('toggle-edit');
+                    this.stopEdit();
                 }
             ).catch(e => console.error(e));
         },
@@ -265,6 +274,7 @@ export default {
     },
     created   : function () {
         this.refresh();
+        this.expand = this.contributor.displayName.trim() === '';
     }
 };
 </script>

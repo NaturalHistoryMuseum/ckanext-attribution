@@ -14,10 +14,8 @@
 
         </div>
         <div>
-            <ShowAgent :contributor-id="contributorId" v-if="!contributor.meta.is_editing"
-                       v-on:toggle-edit="toggleAgentEdit"/>
-            <EditAgent :contributor-id="contributorId" v-if="contributor.meta.is_editing"
-                       v-on:toggle-edit="toggleAgentEdit"/>
+            <ShowAgent :contributor-id="contributorId" v-if="!contributor.meta.is_editing"/>
+            <EditAgent :contributor-id="contributorId" v-if="contributor.meta.is_editing"/>
             <div class="agent-activities">
                 <ShowActivity v-for="activity in contributor.activities" :key="activity.id" :activity-id="activity.id"
                               v-on:toggle-edit="toggleActivityEdit(activity.id)"/>
@@ -70,9 +68,6 @@ export default {
         }
     },
     methods   : {
-        toggleAgentEdit() {
-            Agent.updateMeta(this.contributorId, {'is_editing': !this.contributor.meta.is_editing});
-        },
         toggleActivityEdit(activityId) {
             if (activityId && this.activityEditing !== activityId) {
                 this.activityEditing = activityId;

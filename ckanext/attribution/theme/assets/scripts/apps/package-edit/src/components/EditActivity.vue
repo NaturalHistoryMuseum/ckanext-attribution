@@ -63,11 +63,11 @@
             </div>
         </template>
         <div class="attribution-save">
-            <span class="btn btn-primary" @click="saveChanges">
+            <span class="btn" :class="edits.activity ? 'btn-primary' : 'btn-disabled'" @click="saveChanges">
                 <i class="fas fa-save"></i>
                 Save changes
             </span>
-            <span class="btn btn-primary" @click="$emit('toggle-edit')">
+            <span class="btn btn-primary" @click="$emit('toggle-edit', 'cancel')">
                 <i class="fas fa-times"></i>
                 Cancel
             </span>
@@ -168,6 +168,10 @@ export default {
             });
         },
         saveChanges() {
+            if (!this.edits.activity) {
+                return;
+            }
+
             // save the edits for this activity first
             let promises = [
                 Activity.update({where: this.activityId, data: this.edits}).then(() => {
@@ -187,7 +191,7 @@ export default {
             });
 
             return Promise.all(promises).then(() => {
-                    this.$emit('toggle-edit');
+                    this.$emit('toggle-edit', 'save');
                 }
             ).catch(e => console.error(e));
         },
