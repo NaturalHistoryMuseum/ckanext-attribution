@@ -3,7 +3,7 @@
         <label :for="fieldId">
             <slot></slot>
         </label>
-        <input :type="inputType" :value="value" :id="fieldId" @change="setValue">
+        <input class="form-control" :type="inputType" :value="value" :id="fieldId" @change="setValue">
     </div>
 </template>
 

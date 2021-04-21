@@ -245,12 +245,25 @@
   & > label {
     margin: 0;
   }
+}
 
-  & > i:last-child {
-    position: absolute;
-    right: 10px;
-    top: 10px;
+.attribution-field-validated {
+  position: relative;
+
+  .box-status-icon {
+    bottom: 10px;
+    top: unset;
   }
+}
+
+.form-control-invalid {
+  border-color: darkred;
+}
+
+.box-status-icon {
+  position: absolute;
+  right: 10px;
+  top: 10px;
 }
 
 .autocomplete-options {
@@ -417,76 +430,6 @@
   }
 }
 
-.toggle-wrapper {
-  display: flex;
-  align-items: center;
-
-  & .toggle-label {
-    font-size: 0.8em;
-  }
-
-  .toggle-switch {
-    display: none;
-
-    & + label {
-      margin: 0 0.5em;
-      display: block;
-      position: relative;
-      cursor: pointer;
-      outline: none;
-      user-select: none;
-      padding: 2px;
-      width: 50px;
-      height: 30px;
-      border-radius: 30px;
-      transition: all 0.4s ease;
-    }
-
-    & + label:before {
-      display: block;
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      bottom: 2px;
-      right: 2px;
-      background-color: @attribution-grey4;
-      border-radius: 30px;
-      padding: 4px;
-      content: '';
-      transition: all 0.4s ease;
-    }
-
-    &:checked + label:before {
-      background-color: @attribution-grey3;
-    }
-
-    & + label:after {
-      display: block;
-      position: absolute;
-      top: 4px;
-      left: 4px;
-      right: 4px;
-      bottom: 4px;
-      width: 22px;
-      background-color: @attribution-grey1;
-      color: if(boolean(luma(@attribution-grey1) < 50%), #FFF, #000);
-      border-radius: 26px;
-      transition: all 0.4s ease;
-      text-align: center;
-      font-family: "Font Awesome 5 Free", serif;
-      content: '\f00d';
-      padding-top: 2px;
-    }
-
-    &:checked + label:after {
-      margin-left: 20px;
-      background-color: @attribution-bold;
-      color: if(boolean(luma(@attribution-bold) < 50%), #FFF, #000);
-      content: '\f00c';
-    }
-  }
-}
-
 .expand-bar {
   background-color: @attribution-grey2;
   text-align: center;
@@ -514,10 +457,6 @@
     font-weight: bold;
     font-style: italic;
   }
-}
-
-.mx-datepicker {
-  width: 100%;
 }
 
 .is-deleted {
@@ -552,6 +491,10 @@
 
 .screenreader {
   visibility: hidden;
+}
+
+input.form-control[type=date] {
+  padding: 0 12px;
 }
 
 // ACTIVITY ========================================================================================

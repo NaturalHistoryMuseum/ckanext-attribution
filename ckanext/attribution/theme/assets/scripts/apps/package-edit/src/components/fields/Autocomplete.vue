@@ -1,7 +1,7 @@
 <template>
     <div class="autocomplete" :class="hasLabel ? 'autocomplete-label' : 'autocomplete-no-label'">
         <label :for="'autocomplete-text-' + itemId" v-if="hasLabel">{{ label }}</label>
-        <input class="autocomplete-text" type="text" @input="debounced" :id="'autocomplete-text-' + itemId"
+        <input class="autocomplete-text form-control" type="text" @input="debounced" :id="'autocomplete-text-' + itemId"
                autocomplete="off" v-model="textInput" @focusin="showOptions"
                placeholder="Type to search">
         <div class="autocomplete-options" :id="'autocomplete-list-' + itemId" v-if="optionsShown && optionCount > 0">
@@ -21,7 +21,7 @@
         <span class="expand-bar" @click="hideOptions" v-if="optionsShown && optionCount > 0">
             <i class="fas fa-caret-up"></i>
         </span>
-        <i class="fas" :class="boxIcon" :title="failed" @click="$emit('cancel')"></i>
+        <i class="box-status-icon fas" :class="boxIcon" :title="failed" @click="$emit('cancel')"></i>
     </div>
 </template>
 

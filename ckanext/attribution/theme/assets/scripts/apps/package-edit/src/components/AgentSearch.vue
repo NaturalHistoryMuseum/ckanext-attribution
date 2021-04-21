@@ -139,7 +139,6 @@ export default {
             if (this.useExternalSearch) {
                 this.queuedSearches++;
                 let sources = this.external.filter(x => x.enabled).map(x => x.name);
-                console.log(sources);
                 get('agent_external_search', {q: input, sources: sources}, 'externalSearch').then(agents => {
                     if (!agents) {
                         return;

@@ -3,7 +3,7 @@
         <label :for="fieldId">
             <slot></slot>
         </label>
-        <select :value="value" :id="fieldId" @change="setValue">
+        <select class="form-control form-select" :value="value" :id="fieldId" @change="setValue">
             <option v-for="opt in options" :value="optValue(opt)">{{ optLabel(opt) }}</option>
         </select>
     </div>

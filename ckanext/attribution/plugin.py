@@ -56,7 +56,8 @@ class AttributionPlugin(SingletonPlugin):
             'package_contribution_activity_delete': delete.package_contribution_activity_delete,
             'attribution_controlled_lists': extra.attribution_controlled_lists,
             'agent_external_search': extra.agent_external_search,
-            'agent_external_read': extra.agent_external_read
+            'agent_external_read': extra.agent_external_read,
+            'validate_external_id': extra.validate_external_id
         }
         return actions
 

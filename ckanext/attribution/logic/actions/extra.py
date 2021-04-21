@@ -3,6 +3,7 @@
 #
 # This file is part of ckanext-attribution
 # Created by the Natural History Museum in London, UK
+import re
 
 from ckan.plugins import toolkit
 from ckanext.attribution.lib.orcid_api import OrcidApi
@@ -74,14 +75,16 @@ def attribution_controlled_lists(context, data_dict):
                 'url': 'https://orcid.org/{0}',
                 'scheme_uri': 'https://orcid.org',
                 'label': 'ORCID',
-                'fa_icon': 'fab fa-orcid'
+                'fa_icon': 'fab fa-orcid',
+                'rgx': '(?:\d{4}-){3}\d{3}[\dX]'
 
             },
             'ror': {
                 'url': 'https://ror.org/{0}',
                 'scheme_uri': 'https://ror.org',
                 'label': 'ROR',
-                'fa_icon': 'fas fa-university'
+                'fa_icon': 'fas fa-university',
+                'rgx': '0[0-9a-hjkmnp-z]{6}\d{2}'
             }
         }
     }
@@ -155,28 +158,78 @@ def agent_external_search(context, data_dict):
 @toolkit.side_effect_free
 def agent_external_read(context, data_dict):
     '''
-    Read data for a record from an external source like ORCID or ROR.
+    Read data from an external source like ORCID or ROR.
 
     :param id: ID of the record to read
-    :type id: str
-    :param diff: only show values that differ from the record's current values (default False)
+    :type id: str, optional
+    :param external_id: ID from external service
+    :type external_id: str, optional
+    :param external_id_scheme: external scheme, e.g. orcid
+    :type external_id_scheme: str, optional
+    :param diff: only show values that differ from the record's current values; only valid if record
+                 already exists (default False)
     :type diff: bool, optional
     :returns: The details pulled from the external source, formatted as a record dict
     :rtype: dict
 
     '''
     toolkit.check_access('agent_show', context, data_dict)
-    try:
-        item_id = data_dict.pop('id')
-    except KeyError:
-        raise toolkit.ValidationError('Record ID must be provided.')
-    diff = toolkit.asbool(data_dict.get('diff', False))
-    updated_dict = AgentQuery.read_from_external_api(item_id)
-    updated_dict['id'] = item_id
-    del updated_dict['user_id']  # this is internal only so it's always going to be None
-    if diff:
-        item_dict = AgentQuery.read(item_id).as_dict()
-        for k, v in item_dict.items():
-            if k in updated_dict and updated_dict.get(k) == v:
-                del updated_dict[k]
-    return updated_dict
+    item_id = data_dict.get('id')
+    external_id = data_dict.get('external_id')
+    external_id_scheme = data_dict.get('external_id_scheme')
+    if item_id is None and (external_id is None or external_id_scheme is None):
+        raise toolkit.Invalid('Either record ID or external ID + scheme must be provided.')
+    if item_id is not None:
+        diff = toolkit.asbool(data_dict.get('diff', False))
+        updated_dict = AgentQuery.read_from_external_api(item_id)
+        updated_dict['id'] = item_id
+        del updated_dict['user_id']  # this is internal only so it's always going to be None
+        if diff:
+            item_dict = AgentQuery.read(item_id).as_dict()
+            for k, v in item_dict.items():
+                if k in updated_dict and updated_dict.get(k) == v:
+                    del updated_dict[k]
+        return updated_dict
+    else:
+        apis = {'orcid': OrcidApi,
+                'ror': RorApi}
+        api = apis[external_id_scheme.lower()]()
+        return api.as_agent_record(api.read(external_id))
+
+
+def validate_external_id(context, data_dict):
+    '''
+    Validate/format an external ID.
+
+    :param external_id: ID from external service
+    :type external_id: str
+    :param external_id_scheme: external scheme, e.g. orcid
+    :type external_id_scheme: str
+    :return:
+    '''
+    external_id = toolkit.get_or_bust(data_dict, 'external_id')
+    external_id_scheme = toolkit.get_or_bust(data_dict, 'external_id_scheme')
+
+    # extract via regex first
+    controlled_lists = toolkit.get_action('attribution_controlled_lists')(context, {})
+    scheme = controlled_lists['agent_external_id_schemes'][external_id_scheme.lower()]
+    rgx = re.compile(scheme['rgx'])
+    matches = rgx.findall(external_id)
+    if not matches:
+        return {
+            'id': None,
+            'error': 'No valid ID string found.'
+        }
+    api = {'orcid': OrcidApi,
+           'ror': RorApi}[external_id_scheme.lower()]()
+    for match in matches:
+        try:
+            record = api.read(match)
+            if record:
+                return {
+                    'id': match,
+                    'error': None
+                }
+        except:
+            continue
+    return {'id': None, 'error': 'ID could not be read from {0}.'.format(external_id_scheme)}

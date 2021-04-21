@@ -1,7 +1,7 @@
 <template>
     <div class="autocomplete" :class="hasLabel ? 'autocomplete-label' : 'autocomplete-no-label'">
         <label :for="'autocomplete-text-list-' + itemId" v-if="hasLabel">{{ label }}</label>
-        <input class="autocomplete-text" type="text" @input="debounced" :id="'autocomplete-text-list-' + itemId"
+        <input class="autocomplete-text form-control" type="text" @input="debounced" :id="'autocomplete-text-list-' + itemId"
            autocomplete="off" v-model="textInput" @focusin="showOptions" placeholder="Type to search">
         <div class="autocomplete-options" :id="'autocomplete-list-' + itemId" v-if="optionsShown && optionCount > 0">
             <template v-for="(optBlock, optTitle) in optionBlocks">
@@ -26,7 +26,7 @@
                 <i class="fas fa-times" @click="removeItem(item)"></i>
             </div>
         </div>
-        <i class="fas" :class="loading ? 'fa-spinner fa-spin' : 'fa-check'"></i>
+        <i class="box-status-icon fas" :class="loading ? 'fa-spinner fa-spin' : 'fa-check'"></i>
     </div>
 </template>
 

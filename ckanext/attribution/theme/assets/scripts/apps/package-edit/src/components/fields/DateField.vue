@@ -3,7 +3,7 @@
         <label :for="fieldId">
             <slot></slot>
         </label>
-        <input type="date" :value="dateOnly" :id="fieldId" :placeholder="placeholder" @change="setValue">
+        <input type="date" class="form-control" :value="dateOnly" :id="fieldId" :placeholder="placeholder" @change="setValue">
     </div>
 </template>
 

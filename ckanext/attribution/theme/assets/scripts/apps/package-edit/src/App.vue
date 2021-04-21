@@ -38,8 +38,7 @@ export default {
     props     : ['packageId', 'canEdit'],
     data      : function () {
         return {
-            sortedAgents: [],
-            cl          : console.log
+            sortedAgents: []
         };
     },
     computed  : {
