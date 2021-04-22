@@ -11,10 +11,10 @@
                     <i class="fas"
                        :class="syncing ? 'fa-spinner fa-spin' : 'fa-arrow-alt-circle-down'"></i>
                 </span>
-                <span class="edit-icon" title="Edit" v-if="canEdit && !fromSearch" @click="stopEdit">
+                <span class="edit-icon" title="Edit" v-if="canEdit && !contributor.meta.is_temporary" @click="stopEdit">
                     <i class="fas fa-edit"></i>
                 </span>
-                <span class="edit-icon" title="Remove this contributor" v-if="!fromSearch"
+                <span class="edit-icon" title="Remove this contributor" v-if="!contributor.meta.is_temporary"
                       @click="eventBus.$emit(events.removeContributor, contributorId)">
                     <i class="fas fa-minus-circle"></i>
                 </span>
@@ -86,8 +86,8 @@
                 </help-tooltip>
             </div>
         </template>
-        <div class="attribution-save" v-if="!fromSearch">
-            <span class="btn btn-primary" @click="saveChanges">
+        <div class="attribution-save" v-if="!contributor.meta.is_temporary">
+            <span class="btn" :class="isValid ? 'btn-primary' : 'btn-disabled'" @click="saveChanges">
                 <i class="fas fa-save"></i>
                 Save changes
             </span>
@@ -116,8 +116,8 @@ export default {
         ValidatedField
     },
     props     : {
-        fromSearch: {
-            default: () => false
+        canSave: {
+            default: () => true
         }
     },
     data      : function () {
@@ -155,6 +155,17 @@ export default {
         },
         idGen() {
             return [nanoid(8)];
+        },
+        isValid() {
+            let nameValid = false;
+            let isEmpty = (v) => (v === null) || (v === undefined) || (v.trim() === '')
+            if (this.edits.agent_type !== 'person') {
+                nameValid = !isEmpty(this.edits.name);
+            }
+            else {
+                nameValid = !isEmpty(this.edits.family_name) && !isEmpty(this.edits.given_names);
+            }
+            return this.canSave && nameValid;
         }
     },
     methods   : {
@@ -192,6 +203,10 @@ export default {
             }
         },
         saveChanges() {
+            if (!this.isValid) {
+                return;
+            }
+
             let promises = [];
 
             if (this.$refs.externalId.failed) {
@@ -309,6 +324,11 @@ export default {
     created   : function () {
         this.refresh();
         this.expand = this.contributor.displayName.trim() === '';
+    },
+    watch: {
+        isValid(n) {
+            this.$emit('validated', n)
+        }
     }
 };
 </script>

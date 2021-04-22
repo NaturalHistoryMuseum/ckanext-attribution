@@ -63,7 +63,7 @@
             </div>
         </template>
         <div class="attribution-save">
-            <span class="btn" :class="edits.activity ? 'btn-primary' : 'btn-disabled'" @click="saveChanges">
+            <span class="btn" :class="isValid ? 'btn-primary' : 'btn-disabled'" @click="saveChanges">
                 <i class="fas fa-save"></i>
                 Save changes
             </span>
@@ -85,7 +85,12 @@ import Activity from '../models/activity';
 export default {
     name      : 'EditActivity',
     extends   : Common,
-    props     : ['activityId'],
+    props     : {
+        'activityId': String,
+        canSave: {
+            default: () => true
+        }
+    },
     components: {
         draggable,
         datefield: DateField
@@ -106,6 +111,9 @@ export default {
         },
         contributor() {
             return this.activity.agent;
+        },
+        isValid() {
+            return this.canSave && this.edits.activity !== null;
         }
     },
     methods   : {
@@ -168,7 +176,7 @@ export default {
             });
         },
         saveChanges() {
-            if (!this.edits.activity) {
+            if (!this.isValid) {
                 return;
             }
 
@@ -210,6 +218,9 @@ export default {
     watch     : {
         activityId() {
             this.refresh();
+        },
+        isValid(n) {
+            this.$emit('validated', n)
         }
     }
 };

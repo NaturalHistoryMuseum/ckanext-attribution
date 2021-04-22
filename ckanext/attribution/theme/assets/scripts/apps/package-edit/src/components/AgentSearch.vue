@@ -29,8 +29,10 @@
             <i class="fas fa-pencil-alt"></i>
         </div>
         <ShowAgent :contributor-id="newAgentId" v-if="newAgent && !newAgent.meta.is_editing"/>
-        <EditAgent :contributor-id="newAgentId" v-if="newAgent && newAgent.meta.is_editing" :from-search="true"/>
-        <EditActivity :activity-id="activity.id" v-if="activity" v-on:toggle-edit="finish"/>
+        <EditAgent :contributor-id="newAgentId" v-if="newAgent && newAgent.meta.is_editing"
+                   @validated="e => valid.agent = e"/>
+        <EditActivity :activity-id="activity.id" v-if="activity" @toggle-edit="finish"
+                      @validated="e => valid.activity = e" :can-save="valid.agent"/>
     </div>
 </template>
 
@@ -49,10 +51,10 @@ export default {
     components: {EditAgent, EditActivity, ShowAgent},
     data      : function () {
         return {
-            selectedAgent: null,  // result from the search box
-            newAgentId: null,  // agent currently being edited
+            selectedAgent : null,  // result from the search box
+            newAgentId    : null,  // agent currently being edited
             searchResults : {},
-            searchString : null,
+            searchString  : null,
             searchFailed  : null,
             external      : [
                 {
@@ -66,7 +68,11 @@ export default {
                     enabled: false
                 }
             ],
-            queuedSearches: 0  // handles cancelled/overwritten requests
+            queuedSearches: 0,  // handles cancelled/overwritten requests
+            valid         : {
+                agent   : false,
+                activity: false
+            }
         };
     },
     computed  : {
@@ -88,7 +94,7 @@ export default {
             if (this.newAgentId) {
                 return Agent.query().with('meta').find(this.newAgentId);
             }
-        }
+        },
     },
     methods   : {
         cancelSearches() {
@@ -174,11 +180,10 @@ export default {
         finish(event) {
             if (event === 'save') {
                 Agent.updateMeta(this.newAgentId, {is_hidden: false, is_temporary: false});
-            }
-            else if (event === 'cancel' && this.newAgent.meta.is_temporary) {
+            } else if (event === 'cancel' && this.newAgent.meta.is_temporary) {
                 Activity.delete((activity) => {
                     return activity.agent_id === this.newAgentId;
-                })
+                });
                 Citation.delete(citation => {
                     return citation.agent_id === this.newAgentId;
                 });
@@ -209,7 +214,13 @@ export default {
                 newId = alreadyImported[0].id;
                 updateAgent = () => Agent.updateMeta(newId, {is_hidden: true, to_delete: false, is_new: true});
             } else {
-                input.meta = {is_hidden: true, to_delete: false, is_new: true, is_editing: Object.keys(input).length === 0, is_temporary: true};
+                input.meta = {
+                    is_hidden   : true,
+                    to_delete   : false,
+                    is_new      : true,
+                    is_editing  : Object.keys(input).length === 0,
+                    is_temporary: true
+                };
                 updateAgent = () => Agent.insert({data: input}).then(records => {
                     newId = records.agents[0].id;
                 });

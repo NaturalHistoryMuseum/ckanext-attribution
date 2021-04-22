@@ -32,9 +32,6 @@ export default {
         }
     },
     methods : {
-        debouncedSetValue(event) {
-            this._debounced(event);
-        },
         validate(event) {
             this.loading = true;
             this.failed = null;
@@ -51,7 +48,7 @@ export default {
         }
     },
     created() {
-        this._debounced = debounce(this.validate, 500);
+        this.debouncedSetValue = debounce(this.validate, 500);
         this.textValue = this.value;
     },
     watch: {
