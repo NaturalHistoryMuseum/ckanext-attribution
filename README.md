@@ -110,6 +110,25 @@ Path variables used below:
   {% endblock %}
   ```
 
+## Additional steps
+
+### SOLR Faceting
+You will need to change the `authors` field in your `schema.xml` for faceting to work.
+
+```xml
+<schema>
+    <fields>
+        <...>
+        <field name="author" type="string" indexed="true" stored="true" multiValued="true"/>
+        <...>
+    </fields>
+<...>
+<copyField source="author" dest="text"/>
+</schema>
+```
+
+After making the changes, restart SOLR and reindex (`ckan -c $CONFIG_FILE search-index rebuild-fast`). You will also have to enable the config option to see this in the UI (see below).
+
 # Configuration
 
 These are the options that can be specified in your .ini config file.
@@ -127,6 +146,7 @@ Name|Description|Options
 Name|Description|Options|Default
 ----|-----------|-------|-------
 `ckanext.attribution.debug`|If true, use sandbox.orcid.org (for testing)|True/False|True
+`ckanext.attribution.enable_faceting`|Enable filtering by contributor name (requires change to SOLR schema)|True/False|False
 
 # Usage
 
@@ -250,12 +270,19 @@ Results are returned formatted as such:
 ```
 
 ### `agent_external_read`
-Read data for an existing record from an external source like ORCID or ROR.
+Read data from an external source like ORCID or ROR, either from an existing record or a new external ID.
 
 ```python
-data_dict = {
+# EITHER
+data_dict_existing = {
     'id': 'AGENT_ID',
     'diff': False  # optional; only show values that differ from the record's current values (default False)
+}
+
+# OR
+data_dict_new = {
+    'external_id': 'EXTERNAL_ID',
+    'external_id_scheme': 'orcid'  # or 'ror', etc.
 }
 
 toolkit.get_action('agent_external_read')({}, data_dict)

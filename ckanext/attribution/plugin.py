@@ -25,6 +25,8 @@ class AttributionPlugin(SingletonPlugin):
     implements(interfaces.IAuthFunctions, inherit=True)
     implements(interfaces.IConfigurable)
     implements(interfaces.IConfigurer)
+    implements(interfaces.IFacets, inherit=True)
+    implements(interfaces.IPackageController, inherit=True)
     implements(interfaces.ITemplateHelpers)
     if doi_available:
         implements(IDoi, inherit=True)
@@ -99,6 +101,24 @@ class AttributionPlugin(SingletonPlugin):
     def update_config(self, config):
         toolkit.add_template_directory(config, 'theme/templates')
         toolkit.add_resource('theme/assets', 'ckanext-attribution')
+
+    # IFacets
+    def dataset_facets(self, facets_dict, package_type):
+        enable_faceting = toolkit.asbool(
+            toolkit.config.get('ckanext.attribution.enable_faceting', False))
+        if enable_faceting:
+            facets_dict['author'] = toolkit._('Contributors')
+        return facets_dict
+
+    # IPackageController
+    def before_index(self, pkg_dict):
+        enable_faceting = toolkit.asbool(
+            toolkit.config.get('ckanext.attribution.enable_faceting', False))
+        if enable_faceting:
+            contributions = toolkit.get_action('package_contributions_show')({}, {'id': pkg_dict['id']})
+            agents = [c['agent'] for c in contributions]
+            pkg_dict['author'] = [a['display_name'] for a in agents]
+        return pkg_dict
 
     # ITemplateHelpers
     def get_helpers(self):
