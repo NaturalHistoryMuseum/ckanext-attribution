@@ -6,10 +6,12 @@
             </label>
             <div class="checkboxes">
                 <template v-for="source in external">
-                    <input type="checkbox" v-model="source.enabled" :id="`${source.name}-chk`" @change="redoSearch">
-                    <label :for="`${source.name}-chk`" :title="`Include results from ${source.label}`">{{
-                            source.label
-                        }}</label>
+                    <div class="toggle-wrapper">
+                        <input type="checkbox" v-model="source.enabled" :id="`${source.name}-chk`" @change="redoSearch" class="toggle-switch">
+                        <label :for="`${source.name}-chk`" :title="`Include results from ${source.label}`">{{
+                                source.label
+                            }}</label>
+                    </div>
                 </template>
                 <div class="help-icon">
                     <i class="fas fa-question-circle"></i>
