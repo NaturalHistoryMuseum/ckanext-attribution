@@ -3,6 +3,7 @@ import store from './store/main';
 
 const events = {
     saveActivity: 'save-activity',
+    saveAgent: 'save-agent',
     closeActivity: 'close-activity',
     removeContributor: 'remove-contributor'
 }

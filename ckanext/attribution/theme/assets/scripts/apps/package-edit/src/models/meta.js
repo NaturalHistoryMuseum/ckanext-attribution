@@ -15,7 +15,8 @@ export default class Meta extends Model {
             is_dirty    : this.boolean(false),
             syncing     : this.boolean(false),
             is_new      : this.boolean(false),
-            is_temporary: this.boolean(false)
+            is_temporary: this.boolean(false),
+            item: this.morphTo('item_id', 'item_type')
         };
     }
 }

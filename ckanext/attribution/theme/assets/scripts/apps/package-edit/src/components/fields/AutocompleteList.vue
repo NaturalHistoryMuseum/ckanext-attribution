@@ -3,7 +3,7 @@
         <label :for="'autocomplete-text-list-' + itemId" v-if="hasLabel">{{ label }}</label>
         <input class="autocomplete-text form-control" type="text" @input="debounced" :id="'autocomplete-text-list-' + itemId"
            autocomplete="off" v-model="textInput" @focusin="showOptions" placeholder="Type to search">
-        <div class="autocomplete-options" :id="'autocomplete-list-' + itemId" v-if="optionsShown && optionCount > 0">
+        <div class="autocomplete-options" :id="'autocomplete-list-' + itemId" v-if="optionsShown && textInput">
             <template v-for="(optBlock, optTitle) in optionBlocks">
                 <div class="autocomplete-option autocomplete-block-title" v-if="optBlock.length > 0 && optTitle !== 'default'">
                     {{ optTitle }}
@@ -12,12 +12,14 @@
                     {{ opt.label }}
                 </div>
             </template>
-            <slot></slot>
+            <div class="autocomplete-option autocomplete-block-title" v-if="optionCount === 0 && !typing && !loading">
+                <slot>No results found</slot>
+            </div>
             <div class="autocomplete-option null-option" @click="optionChange({label: null, value: null})">
-                -- none --
+                -- cancel --
             </div>
         </div>
-        <span class="expand-bar" @click="hideOptions" v-if="optionsShown && optionCount > 0">
+        <span class="expand-bar" @click="hideOptions" v-if="optionsShown && textInput">
             <i class="fas fa-caret-up"></i>
         </span>
         <div class="autocomplete-list-items">

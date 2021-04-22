@@ -222,7 +222,8 @@ export default {
                     other_agent_id: a.value,
                     package_id    : this.packageId,
                     meta          : {
-                        is_new: true
+                        is_new: true,
+                        is_temporary: this.contributor.is_temporary
                     }
                 };
 
@@ -323,7 +324,12 @@ export default {
     },
     created   : function () {
         this.refresh();
-        this.expand = this.contributor.displayName.trim() === '';
+        this.expand = !this.isValid;
+        this.eventBus.$on(this.events.saveAgent, (agentId) => {
+            if (agentId === this.contributorId) {
+                this.saveChanges();
+            }
+        })
     },
     watch: {
         isValid(n) {

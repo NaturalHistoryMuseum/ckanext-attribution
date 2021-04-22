@@ -140,6 +140,11 @@ const store = new Vuex.Store(
             toggleActivity(context, activityId) {
                 let activity = Activity.query().with('meta').find(activityId);
                 Activity.updateMeta(activityId, {'to_delete': !activity.meta.to_delete});
+            },
+            purgeTemporary(context) {
+                Meta.query().where('is_temporary', true).with('item').get().forEach(m => {
+                    m.item.$delete();
+                })
             }
         }
     }

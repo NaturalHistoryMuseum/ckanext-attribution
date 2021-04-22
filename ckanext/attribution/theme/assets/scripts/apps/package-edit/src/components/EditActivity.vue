@@ -62,7 +62,7 @@
                 </draggable>
             </div>
         </template>
-        <div class="attribution-save">
+        <div class="attribution-save" v-if="!activity.meta.is_temporary">
             <span class="btn" :class="isValid ? 'btn-primary' : 'btn-disabled'" @click="saveChanges">
                 <i class="fas fa-save"></i>
                 Save changes
@@ -214,6 +214,11 @@ export default {
     },
     created   : function () {
         this.refresh();
+        this.eventBus.$on(this.events.saveActivity, (activityId) => {
+            if (activityId === this.activityId) {
+                this.saveChanges();
+            }
+        })
     },
     watch     : {
         activityId() {

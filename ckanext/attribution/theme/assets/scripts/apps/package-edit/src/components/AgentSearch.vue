@@ -22,6 +22,7 @@
             <autocomplete-field v-model="selectedAgent" @typing="updateSearchResults" @input="setAgent"
                                 :options="searchResults" @cancel="cancelSearches"
                                 item-id="new-agent" :delay="1000" :loading="searchLoading" :failed="searchFailed">
+                No results found; try adding manually (below)
             </autocomplete-field>
         </div>
         <div class="new-contribution-manual">
@@ -31,16 +32,27 @@
         <ShowAgent :contributor-id="newAgentId" v-if="newAgent && !newAgent.meta.is_editing"/>
         <EditAgent :contributor-id="newAgentId" v-if="newAgent && newAgent.meta.is_editing"
                    @validated="e => valid.agent = e"/>
-        <EditActivity :activity-id="activity.id" v-if="activity" @toggle-edit="finish"
-                      @validated="e => valid.activity = e" :can-save="valid.agent"/>
+        <EditActivity :activity-id="activity.id" v-if="activity"
+                      @validated="e => valid.activity = e"/>
+        <div class="attribution-save" v-if="newAgentId">
+            <span class="btn" :class="valid.agent && valid.activity ? 'btn-primary' : 'btn-disabled'" @click="saveChanges">
+                <i class="fas fa-save"></i>
+                Add
+            </span>
+            <span class="btn btn-primary" @click="cancelChanges">
+                <i class="fas fa-times"></i>
+                Cancel
+            </span>
+        </div>
     </div>
 </template>
 
 <script>
-import {mapState} from 'vuex';
+import {mapActions, mapState} from 'vuex';
 import {cancelAll, get} from '../api';
 import axios from 'axios';
 import {Activity, Agent, Citation} from '../models/main';
+import {eventBus, events} from '../eventbus';
 
 const ShowAgent = () => import(/* webpackChunkName: 'show-agent' */ './ShowAgent.vue');
 const EditAgent = () => import(/* webpackChunkName: 'edit-agent' */ './EditAgent.vue');
@@ -97,6 +109,7 @@ export default {
         },
     },
     methods   : {
+        ...mapActions(['purgeTemporary']),
         cancelSearches() {
             cancelAll();
             this.searchFailed = new Error('Search cancelled.');
@@ -177,18 +190,17 @@ export default {
             this.searchString = null;
             this.updateSearchResults(input);
         },
-        finish(event) {
-            if (event === 'save') {
-                Agent.updateMeta(this.newAgentId, {is_hidden: false, is_temporary: false});
-            } else if (event === 'cancel' && this.newAgent.meta.is_temporary) {
-                Activity.delete((activity) => {
-                    return activity.agent_id === this.newAgentId;
-                });
-                Citation.delete(citation => {
-                    return citation.agent_id === this.newAgentId;
-                });
-                Agent.delete(this.newAgentId);
-            }
+        saveChanges() {
+            eventBus.$emit(events.saveAgent, this.newAgentId);
+            eventBus.$emit(events.saveActivity, this.activity.id);
+            Agent.updateMeta(this.newAgentId, {is_hidden: false, is_temporary: false});
+            Activity.updateMeta(this.activity.id, {is_hidden: false, is_temporary: false})
+            this.selectedAgent = null;
+            this.newAgentId = null;
+            this.searchString = null;
+        },
+        cancelChanges() {
+            this.purgeTemporary();
             this.selectedAgent = null;
             this.newAgentId = null;
             this.searchString = null;
@@ -232,7 +244,7 @@ export default {
                         {
                             agent_id  : newId,
                             package_id: this.packageId,
-                            meta      : {is_new: true, is_editing: true}
+                            meta      : {is_new: true, is_editing: true, is_temporary: true}
                         }
                 }).then(() => {
                     let citationCount = Agent.query()
