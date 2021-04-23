@@ -25,7 +25,7 @@
             </select-field>
             <ValidatedField v-model="edits.external_id" :validator="validateExternalId" ref="externalId"
                             :placeholder="controlledLists.agentIdSchemes[edits.external_id_scheme].label"
-                            :class="['wrap-small']" @validated="x => valid.externalId = x">
+                            :class="['wrap-small']" @validated="x => $set(valid, 'externalId', x)">
                 <i :class="controlledLists.agentIdSchemes[edits.external_id_scheme].fa_icon"></i>
                 {{ controlledLists.agentIdSchemes[edits.external_id_scheme].label }}
             </ValidatedField>

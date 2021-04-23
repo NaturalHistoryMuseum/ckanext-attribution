@@ -33,7 +33,7 @@ export default {
         }
     },
     methods : {
-        validate(event) {
+        validate() {
             this.loading = true;
             this.failed = null;
             this.validator(this.textValue).then(res => {
@@ -51,6 +51,7 @@ export default {
     created() {
         this.debouncedSetValue = debounce(this.validate, 500);
         this.textValue = this.value;
+        this.validate();
     },
     watch: {
         value(n, o) {
