@@ -13,7 +13,7 @@
                 <span class="edit-icon" title="Edit" v-if="canEdit" @click="startEdit">
                     <i class="fas fa-edit"></i>
                 </span>
-                <span class="edit-icon" title="Remove this contributor"
+                <span class="edit-icon" title="Remove this contributor" v-if="!contributor.meta.is_temporary"
                       @click="eventBus.$emit(events.removeContributor, contributorId)">
                     <i class="fas fa-minus-circle"></i>
                 </span>
@@ -42,19 +42,18 @@
 
 <script>
 import {mapActions, mapGetters, mapState} from 'vuex';
-import Common from './Common.vue';
+import Base from './bases/Base.vue';
 import Agent from '../models/agent';
 
 export default {
     name    : 'ShowAgent',
-    extends : Common,
+    extends : Base,
     data    : function () {
         return {
             affiliationLimit: 5
         }
     },
     computed: {
-        ...mapState(['canEdit', 'controlledLists']),
         ...mapGetters(['agentIdIcon', 'agentTypeIcon']),
         affiliations() {
             return Agent.query()

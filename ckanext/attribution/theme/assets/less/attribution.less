@@ -490,7 +490,7 @@
       text-align: center;
       font-family: "Font Awesome 5 Free", serif;
       content: '\f00d';
-      padding-top: 2px;
+      padding-top: 1px;
     }
 
     &:checked + label:after {
@@ -731,5 +731,17 @@ input.form-control[type=date] {
       font-style: italic;
       font-size: 0.9em;
     }
+  }
+}
+
+.attribution-errors-block {
+  background-color: #ffaaaa;
+  border: 1px solid darkred;
+  border-radius: 5px;
+  padding: 0.5em;
+  margin: 1em;
+  font-size: 0.9em;
+  & > ul {
+    margin: 0;
   }
 }

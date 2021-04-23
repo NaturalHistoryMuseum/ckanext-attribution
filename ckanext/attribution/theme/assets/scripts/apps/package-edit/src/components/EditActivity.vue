@@ -1,5 +1,6 @@
 <template>
     <div class="activity-edit-block">
+        <Errors v-if="showErrors" :errors="errors"></Errors>
         <div class="activity-edit-fields attribution-row">
             <select-field v-model="edits.scheme" :options="Object.keys(controlledLists.activityTypes)"
                           @input="getOptions(edits.scheme)">
@@ -63,11 +64,11 @@
             </div>
         </template>
         <div class="attribution-save" v-if="!activity.meta.is_temporary">
-            <span class="btn" :class="isValid ? 'btn-primary' : 'btn-disabled'" @click="saveChanges">
+            <span class="btn" :class="isValid ? 'btn-primary' : 'btn-disabled'" @click="saveEdit">
                 <i class="fas fa-save"></i>
                 Save changes
             </span>
-            <span class="btn btn-primary" @click="$emit('toggle-edit', 'cancel')">
+            <span class="btn btn-primary" @click="stopEdit">
                 <i class="fas fa-times"></i>
                 Cancel
             </span>
@@ -76,36 +77,32 @@
 </template>
 
 <script>
-import {mapState} from 'vuex';
 import draggable from 'vuedraggable';
 import DateField from './fields/DateField.vue';
-import Common from './Common.vue';
+import EditBase from './bases/EditBase.vue';
 import Activity from '../models/activity';
+
+const Errors = () => import(/* webpackChunkName: 'errors' */ './Errors.vue');
 
 export default {
     name      : 'EditActivity',
-    extends   : Common,
+    extends   : EditBase,
     props     : {
         'activityId': String,
-        canSave: {
-            default: () => true
-        }
     },
     components: {
         draggable,
-        datefield: DateField
+        datefield: DateField,
+        Errors
     },
     data      : function () {
         return {
-            edits          : {},
             activityOptions: [],
             sortedAgents   : [],
             unsortedAgents : [],
-            expand         : false
         };
     },
     computed  : {
-        ...mapState(['controlledLists', 'packageId']),
         activity() {
             return Activity.query().with('meta').with('agent').find(this.activityId);
         },
@@ -113,10 +110,58 @@ export default {
             return this.activity.agent;
         },
         isValid() {
-            return this.canSave && this.edits.activity !== null;
+            this.errors = [];
+            if (!this.edits.activity) {
+                this.errors.push('Activity not provided.');
+            }
+            return this.edits.activity !== null;
         }
     },
     methods   : {
+        refresh() {
+            this.getOptions(this.activity.scheme).then(() => {
+                this.edits = this.activity.getCopy();
+                if (this.edits.activity) {
+                    this.getAgents(this.edits.activity);
+                }
+            });
+            this.$emit('validated', this.isValid);
+        },
+        saveEdit() {
+            let ableToSave = this.isValid && this.canSave;
+            this.showErrors = !ableToSave;
+            if (!ableToSave) {
+                return;
+            }
+
+            // save the edits for this activity first
+            let promises = [
+                Activity.update({where: this.activityId, data: this.edits}).then(() => {
+                    return Activity.updateMeta(this.activityId, {is_dirty: true, is_editing: false});
+                })
+            ];
+
+            // then update the order for the others
+            this.sortedAgents.concat(this.unsortedAgents).forEach(a => {
+                if (!a.id) {
+                    return;
+                }
+                promises.push(Activity.update({where: a.id, data: {order: a.order}})
+                                      .then(() => {
+                                          return Activity.updateMeta(a.id, {is_dirty: true});
+                                      }));
+            });
+
+            return Promise.all(promises)
+                          .then(() => {
+                                  this.$emit(this.events.editsSaved);
+                              }
+                          )
+                          .catch(e => console.error(e))
+                          .finally(() => {
+                              this.stopEdit();
+                          });
+        },
         getAgents(input) {
             this.$set(this.edits, 'activity', input);
             let allAgents = Activity.query()
@@ -175,57 +220,18 @@ export default {
                 return a;
             });
         },
-        saveChanges() {
-            if (!this.isValid) {
-                return;
-            }
-
-            // save the edits for this activity first
-            let promises = [
-                Activity.update({where: this.activityId, data: this.edits}).then(() => {
-                    return Activity.updateMeta(this.activityId, {is_dirty: true, is_editing: false});
-                })
-            ];
-
-            // then update the order for the others
-            this.sortedAgents.concat(this.unsortedAgents).forEach(a => {
-                if (!a.id) {
-                    return;
-                }
-                promises.push(Activity.update({where: a.id, data: {order: a.order}})
-                                      .then(() => {
-                                          return Activity.updateMeta(a.id, {is_dirty: true});
-                                      }));
-            });
-
-            return Promise.all(promises).then(() => {
-                    this.$emit('toggle-edit', 'save');
-                }
-            ).catch(e => console.error(e));
-        },
-        refresh() {
-            this.getOptions(this.activity.scheme).then(() => {
-                this.edits = this.activity.getCopy();
-                if (this.edits.activity) {
-                    this.getAgents(this.edits.activity);
-                }
-            });
-        }
     },
     created   : function () {
         this.refresh();
         this.eventBus.$on(this.events.saveActivity, (activityId) => {
             if (activityId === this.activityId) {
-                this.saveChanges();
+                this.saveEdit();
             }
-        })
+        });
     },
     watch     : {
         activityId() {
             this.refresh();
-        },
-        isValid(n) {
-            this.$emit('validated', n)
         }
     }
 };

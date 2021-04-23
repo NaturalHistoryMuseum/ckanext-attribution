@@ -23,7 +23,7 @@
                 <i class="fas fa-lg" :class="activityCreating ? 'fa-times-circle' : 'fa-plus-circle'"></i>
             </span>
             </div>
-            <EditActivity v-if="activityEditing" :activity-id="activityEditing" v-on:toggle-edit="saveActivityEdit"/>
+            <EditActivity v-if="activityEditing" :activity-id="activityEditing" @done="stopEdit"/>
         </div>
     </div>
 </template>
@@ -34,12 +34,12 @@ const ShowActivity = () => import(/* webpackChunkName: 'show-activity' */ './Sho
 const EditAgent = () => import(/* webpackChunkName: 'edit-agent' */ './EditAgent.vue');
 const EditActivity = () => import(/* webpackChunkName: 'edit-activity' */ './EditActivity.vue');
 import {mapState} from 'vuex';
-import Common from './Common.vue';
+import Base from './bases/Base.vue';
 import {Activity, Agent, Citation} from '../models/main';
 
 export default {
     name      : 'ContributionBlock',
-    extends   : Common,
+    extends   : Base,
     components: {
         EditAgent,
         EditActivity,
@@ -75,7 +75,7 @@ export default {
                 this.activityEditing = null;
             }
         },
-        saveActivityEdit() {
+        stopEdit() {
             this.activityEditing = null;
         },
         newActivity() {

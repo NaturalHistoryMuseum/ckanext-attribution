@@ -3,7 +3,8 @@
         <label :for="fieldId">
             <slot></slot>
         </label>
-        <input class="form-control" :class="{'form-control-invalid': failed}" type="text" v-model="textValue" :id="fieldId" :placeholder="placeholder" @input="debouncedSetValue">
+        <input class="form-control" :class="{'form-control-invalid': failed}" type="text" v-model="textValue"
+               :id="fieldId" :placeholder="placeholder" @input="debouncedSetValue">
         <i class="box-status-icon fas" :class="boxIcon" :title="failed" @click="$emit('cancel')"></i>
     </div>
 </template>
@@ -13,18 +14,18 @@ import TextField from './TextField.vue';
 import debounce from 'lodash.debounce';
 
 export default {
-    name: 'ValidatedField',
-    extends: TextField,
-    props: {
+    name    : 'ValidatedField',
+    extends : TextField,
+    props   : {
         validator: Function
     },
-    data: function () {
-      return {
-          failed: false,
-          loading: false,
-          typing: false,
-          textValue: null
-      }
+    data    : function () {
+        return {
+            failed   : false,
+            loading  : false,
+            typing   : false,
+            textValue: null
+        };
     },
     computed: {
         boxIcon() {
@@ -40,11 +41,11 @@ export default {
                 this.textValue = res;
             }).catch(e => {
                 this.failed = e;
-                this.$emit('input', null)
+                this.$emit('input', this.textValue);
             }).finally(() => {
                 this.loading = false;
+                this.$emit('validated', !this.failed);
             });
-
         }
     },
     created() {
@@ -65,5 +66,5 @@ export default {
             }
         }
     }
-}
+};
 </script>

@@ -7,7 +7,8 @@
             <div class="checkboxes">
                 <template v-for="source in external">
                     <div class="toggle-wrapper">
-                        <input type="checkbox" v-model="source.enabled" :id="`${source.name}-chk`" @change="redoSearch" class="toggle-switch">
+                        <input type="checkbox" v-model="source.enabled" :id="`${source.name}-chk`" @change="redoSearch"
+                               class="toggle-switch">
                         <label :for="`${source.name}-chk`" :title="`Include results from ${source.label}`">{{
                                 source.label
                             }}</label>
@@ -31,17 +32,18 @@
             <span @click="setAgent({})">or add manually</span>
             <i class="fas fa-pencil-alt"></i>
         </div>
-        <ShowAgent :contributor-id="newAgentId" v-if="newAgent && !newAgent.meta.is_editing"/>
-        <EditAgent :contributor-id="newAgentId" v-if="newAgent && newAgent.meta.is_editing"
+        <ShowAgent :contributor-id="newAgentId" v-if="newAgent && !newAgent.meta.is_editing"
                    @validated="e => valid.agent = e"/>
+        <EditAgent :contributor-id="newAgentId" v-if="newAgent && newAgent.meta.is_editing"
+                   @validated="e => valid.agent = e" can-save="valid.activity"/>
         <EditActivity :activity-id="activity.id" v-if="activity"
-                      @validated="e => valid.activity = e"/>
+                      @validated="e => valid.activity = e" can-save="valid.agent"/>
         <div class="attribution-save" v-if="newAgentId">
-            <span class="btn" :class="valid.agent && valid.activity ? 'btn-primary' : 'btn-disabled'" @click="saveChanges">
+            <span class="btn" :class="valid.agent && valid.activity ? 'btn-primary' : 'btn-disabled'" @click="saveEdit">
                 <i class="fas fa-save"></i>
                 Add
             </span>
-            <span class="btn btn-primary" @click="cancelChanges">
+            <span class="btn btn-primary" @click="stopEdit">
                 <i class="fas fa-times"></i>
                 Cancel
             </span>
@@ -192,16 +194,19 @@ export default {
             this.searchString = null;
             this.updateSearchResults(input);
         },
-        saveChanges() {
+        saveEdit() {
+            // trigger saves just to show errors - nothing should save if either is invalid
             eventBus.$emit(events.saveAgent, this.newAgentId);
             eventBus.$emit(events.saveActivity, this.activity.id);
-            Agent.updateMeta(this.newAgentId, {is_hidden: false, is_temporary: false});
-            Activity.updateMeta(this.activity.id, {is_hidden: false, is_temporary: false})
-            this.selectedAgent = null;
-            this.newAgentId = null;
-            this.searchString = null;
+            if (this.valid.agent && this.valid.activity) {
+                Agent.updateMeta(this.newAgentId, {is_hidden: false, is_temporary: false});
+                Activity.updateMeta(this.activity.id, {is_hidden: false, is_temporary: false});
+                this.selectedAgent = null;
+                this.newAgentId = null;
+                this.searchString = null;
+            }
         },
-        cancelChanges() {
+        stopEdit() {
             this.purgeTemporary();
             this.selectedAgent = null;
             this.newAgentId = null;

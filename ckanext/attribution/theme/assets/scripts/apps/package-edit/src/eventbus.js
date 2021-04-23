@@ -5,7 +5,9 @@ const events = {
     saveActivity: 'save-activity',
     saveAgent: 'save-agent',
     closeActivity: 'close-activity',
-    removeContributor: 'remove-contributor'
+    removeContributor: 'remove-contributor',
+    editsSaved: 'saved',
+    editsDone: 'done'
 }
 
 const eventBus = new Vue();

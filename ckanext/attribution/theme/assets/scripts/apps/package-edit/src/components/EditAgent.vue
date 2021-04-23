@@ -1,5 +1,6 @@
 <template>
     <div class="agent-edit-block agent-detail" :class="'agent-'+edits.agent_type.toLowerCase()">
+        <Errors v-if="showErrors" :errors="errors"></Errors>
         <div class="agent-header">
             <AgentTypeField v-model="edits.agent_type"/>
             <span class="display-name">
@@ -9,10 +10,7 @@
                 <span class="edit-icon" title="Download contributor details from external source"
                       v-if="edits.external_id" @click="syncAgent">
                     <i class="fas"
-                       :class="syncing ? 'fa-spinner fa-spin' : 'fa-arrow-alt-circle-down'"></i>
-                </span>
-                <span class="edit-icon" title="Edit" v-if="canEdit && !contributor.meta.is_temporary" @click="stopEdit">
-                    <i class="fas fa-edit"></i>
+                       :class="loading.externalId ? 'fa-spinner fa-spin' : 'fa-arrow-alt-circle-down'"></i>
                 </span>
                 <span class="edit-icon" title="Remove this contributor" v-if="!contributor.meta.is_temporary"
                       @click="eventBus.$emit(events.removeContributor, contributorId)">
@@ -27,7 +25,7 @@
             </select-field>
             <ValidatedField v-model="edits.external_id" :validator="validateExternalId" ref="externalId"
                             :placeholder="controlledLists.agentIdSchemes[edits.external_id_scheme].label"
-                            :class="['wrap-small']">
+                            :class="['wrap-small']" @validated="x => valid.externalId = x">
                 <i :class="controlledLists.agentIdSchemes[edits.external_id_scheme].fa_icon"></i>
                 {{ controlledLists.agentIdSchemes[edits.external_id_scheme].label }}
             </ValidatedField>
@@ -87,7 +85,7 @@
             </div>
         </template>
         <div class="attribution-save" v-if="!contributor.meta.is_temporary">
-            <span class="btn" :class="isValid ? 'btn-primary' : 'btn-disabled'" @click="saveChanges">
+            <span class="btn" :class="isValid ? 'btn-primary' : 'btn-disabled'" @click="saveEdit">
                 <i class="fas fa-save"></i>
                 Save changes
             </span>
@@ -100,42 +98,32 @@
 </template>
 
 <script>
-import {mapActions, mapState} from 'vuex';
+import {mapActions} from 'vuex';
 import {get, post} from '../api';
-import {nanoid} from 'nanoid';
-import Common from './Common.vue';
+import EditBase from './bases/EditBase.vue';
 import {Affiliation, Agent} from '../models/main';
 import AgentTypeField from './fields/AgentTypeField.vue';
 import ValidatedField from './fields/ValidatedField.vue';
 
+const Errors = () => import(/* webpackChunkName: 'errors' */ './Errors.vue');
+
+
 export default {
     name      : 'EditAgent',
-    extends   : Common,
+    extends   : EditBase,
     components: {
         AgentTypeField,
-        ValidatedField
-    },
-    props     : {
-        canSave: {
-            default: () => true
-        }
+        ValidatedField,
+        Errors
     },
     data      : function () {
         return {
-            edits             : {},
             affiliations      : [],
-            expand            : false,
             userOptions       : [],
-            affiliationOptions: [],
-            syncing           : false,
-            idValidation      : {
-                failed : null,
-                loading: false
-            }
+            affiliationOptions: []
         };
     },
     computed  : {
-        ...mapState(['canEdit', 'packageId', 'controlledLists']),
         contributor() {
             return Agent.query()
                         .with('meta')
@@ -153,19 +141,37 @@ export default {
                 return [this.edits.family_name, this.edits.given_names].join(' ');
             }
         },
-        idGen() {
-            return [nanoid(8)];
-        },
         isValid() {
+            this.errors = [];
             let nameValid = false;
-            let isEmpty = (v) => (v === null) || (v === undefined) || (v.trim() === '')
+            let isEmpty = (v) => (v === null) || (v === undefined) || (v.trim() === '');
             if (this.edits.agent_type !== 'person') {
                 nameValid = !isEmpty(this.edits.name);
+                if (!nameValid) {
+                    this.errors.push('Name not provided.');
+                }
+            } else {
+                let familyName = !isEmpty(this.edits.family_name);
+                if (!familyName) {
+                    this.errors.push('Family name not provided.');
+                }
+                let givenNames = !isEmpty(this.edits.given_names);
+                if (!givenNames) {
+                    this.errors.push('Given names not provided.');
+                }
+                nameValid = givenNames && familyName;
             }
-            else {
-                nameValid = !isEmpty(this.edits.family_name) && !isEmpty(this.edits.given_names);
+            let externalIdValid = this.valid.externalId || isEmpty(this.edits.external_id);
+            let schemeLabel;
+            if (!externalIdValid) {
+                try {
+                    schemeLabel = this.controlledLists.agentIdSchemes[this.edits.external_id_scheme].label;
+                } catch (e) {
+                    schemeLabel = this.edits.external_id_scheme;
+                }
+                this.errors.push(`${schemeLabel} is not valid.`);
             }
-            return this.canSave && nameValid;
+            return nameValid && externalIdValid;
         }
     },
     methods   : {
@@ -201,17 +207,16 @@ export default {
                     this.userOptions = [{label: d.display_name, value: this.edits.user_id}];
                 });
             }
+            this.$emit('validated', this.isValid);
         },
-        saveChanges() {
-            if (!this.isValid) {
+        saveEdit() {
+            let ableToSave = this.isValid && this.canSave;
+            this.showErrors = !ableToSave;
+            if (!ableToSave) {
                 return;
             }
 
             let promises = [];
-
-            if (this.$refs.externalId.failed) {
-                this.edits.external_id = null;
-            }
 
             // add new affiliations
             let newAffiliations = this.affiliations.filter((a) => {
@@ -222,7 +227,7 @@ export default {
                     other_agent_id: a.value,
                     package_id    : this.packageId,
                     meta          : {
-                        is_new: true,
+                        is_new      : true,
                         is_temporary: this.contributor.is_temporary
                     }
                 };
@@ -248,17 +253,26 @@ export default {
                 data : this.edits
             }));
 
-            return Promise.all(promises).then(() => {
-                return Agent.updateMeta(this.contributorId, {is_dirty: true});
-            }).then(() => {
-                    this.stopEdit();
-                }
-            ).catch(e => console.error(e));
+            return Promise.all(promises)
+                          .then(() => {
+                              return Agent.updateMeta(this.contributorId, {is_dirty: true});
+                          })
+                          .then(() => {
+                              this.$emit(this.events.editsSaved);
+                          })
+                          .catch(e => console.error(e))
+                          .finally(() => {
+                              this.stopEdit();
+                          });
         },
         stopEdit() {
-            Agent.updateMeta(this.contributorId, {is_editing: false});
+            Agent.updateMeta(this.contributorId, {is_editing: false})
+                 .then(() => {
+                     this.$emit(this.events.editsDone);
+                 });
         },
         syncAgent() {
+            this.loading.externalId = true;
             get('agent_external_read', {
                 external_id       : this.edits.external_id,
                 external_id_scheme: this.edits.external_id_scheme
@@ -266,6 +280,8 @@ export default {
                 Object.entries(res).forEach((x) => {
                     this.edits[x[0]] = x[1];
                 });
+            }).finally(() => {
+                this.loading.externalId = false;
             });
         },
         updateAffiliationOptions: function (input) {
@@ -327,14 +343,9 @@ export default {
         this.expand = !this.isValid;
         this.eventBus.$on(this.events.saveAgent, (agentId) => {
             if (agentId === this.contributorId) {
-                this.saveChanges();
+                this.saveEdit();
             }
-        })
-    },
-    watch: {
-        isValid(n) {
-            this.$emit('validated', n)
-        }
+        });
     }
 };
 </script>
