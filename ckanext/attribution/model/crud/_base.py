@@ -87,6 +87,16 @@ class BaseQuery(object):
         return retrieved_item
 
     @classmethod
+    def exists(cls, item_id):
+        '''
+        Check if a record with the given ID exists.
+
+        :param item_id: the ID of the potential record
+        :return: bool
+        '''
+        return Session.query(cls.m).get(item_id) is not None
+
+    @classmethod
     def search(cls, query):
         '''
         Retrieve all records matching the search criteria.

@@ -9,6 +9,7 @@ from ckanext.attribution.lib import helpers
 from ckanext.attribution.model import (agent, agent_affiliation, agent_contribution_activity,
                                        contribution_activity, package_contribution_activity,
                                        relationships)
+from ckanext.attribution.commands import cli
 
 try:
     from ckanext.doi.interfaces import IDoi
@@ -23,6 +24,7 @@ class AttributionPlugin(SingletonPlugin):
 
     implements(interfaces.IActions, inherit=True)
     implements(interfaces.IAuthFunctions, inherit=True)
+    implements(interfaces.IClick)
     implements(interfaces.IConfigurable)
     implements(interfaces.IConfigurer)
     implements(interfaces.IFacets, inherit=True)
@@ -87,6 +89,10 @@ class AttributionPlugin(SingletonPlugin):
             'package_contribution_activity_delete': delete.package_contribution_activity_delete,
         }
         return auth
+
+    # IClick
+    def get_commands(self):
+        return cli.get_commands()
 
     # IConfigurable
     def configure(self, config):
