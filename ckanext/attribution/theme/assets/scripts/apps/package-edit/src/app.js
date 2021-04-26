@@ -9,6 +9,8 @@ import Autocomplete from './components/fields/Autocomplete.vue';
 import AutocompleteList from './components/fields/AutocompleteList.vue';
 
 Vue.component('app', App)
+
+// fields
 Vue.component('help-tooltip', Help)
 Vue.component('input-field', Field)
 Vue.component('text-field', TextField)
