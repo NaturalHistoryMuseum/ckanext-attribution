@@ -59,5 +59,6 @@ class RorApi(object):
             'name': ror_record.get('name', ''),
             'external_id': ror_record.get('id', '').split('/')[-1],
             'external_id_scheme': 'ror',
-            'location': location
+            'location': location,
+            'agent_type': 'org'  # default
         }

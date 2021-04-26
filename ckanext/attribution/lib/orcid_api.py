@@ -98,5 +98,6 @@ class OrcidApi(object):
             'family_name': names.get('family-name', {}).get('value', ''),
             'given_names': names.get('given-names', {}).get('value', ''),
             'external_id': orcid_record.get('orcid-identifier', {}).get('path', ''),
-            'external_id_scheme': 'orcid'
+            'external_id_scheme': 'orcid',
+            'agent_type': 'person'  # default
         }
