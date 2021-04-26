@@ -59,6 +59,10 @@ def get_cited_contributors(pkg_id):
     cited_agents = {'cited' if k else 'uncited': sorted(list(v), key=lambda x: x['order']) for k, v
                     in itertools.groupby(sorted(entries, key=lambda x: x['order']),
                                          key=lambda x: x['order'] != -1)}
+    if 'cited' not in cited_agents:
+        cited_agents['cited'] = []
+    if 'uncited' not in cited_agents:
+        cited_agents['uncited'] = []
     return cited_agents
 
 
