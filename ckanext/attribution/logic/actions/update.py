@@ -163,7 +163,7 @@ def package_update(next_func, context, data_dict):
                                  c.activity == '[citation]'], key=lambda x: x.order)
     author_string = '; '.join([c.agent.citation_name for c in cited_contributors])
 
-    if author_string is None or author_string == '':
+    if len(cited_contributors) == 0:
         author_string = toolkit.config.get('ckanext.doi.publisher',
                                            toolkit.config.get('ckan.site_title', 'Anonymous'))
 

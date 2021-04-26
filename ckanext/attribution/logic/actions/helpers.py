@@ -88,6 +88,7 @@ def parse_contributors(context, data_dict):
 
     # citations (specialised activities)
     citations = split_list_by_action(contributors.get('citations', []), ContributionActivityQuery)
+    citation_ids = []
     for citation in citations['new']:
         del citation['id']
         citation['activity'] = '[citation]'
@@ -96,9 +97,11 @@ def parse_contributors(context, data_dict):
         if new_agent_id:
             citation['agent_id'] = new_agent_id
         citation['package_id'] = citation.get('package_id', pkg_id)
-        activity_cre(context, citation)
+        new_citation = activity_cre(context, citation)
+        citation_ids.append(new_citation['id'])
     for citation in citations['updated']:
-        activity_upd(context, citation)
+        updated_citation = activity_upd(context, citation)
+        citation_ids.append(updated_citation['id'])
     for citation in citations['deleted']:
         activity_del(context, {'id': citation['id']})
 
@@ -122,7 +125,7 @@ def parse_contributors(context, data_dict):
         aff['agent_a_id'] = new_agent_id or aff['agent_id']
         new_other_agent_id = new_agents.get(aff['other_agent_id'])
         aff['agent_b_id'] = new_other_agent_id or aff['other_agent_id']
-        aff['package_id'] = aff.get('package_id', pkg_id)
+        aff['package_id'] = pkg_id
         affiliation_cre(context, aff)
 
     for aff in affiliations['updated']:
@@ -135,3 +138,5 @@ def parse_contributors(context, data_dict):
 
     for aff in affiliations['deleted']:
         affiliation_del(context, {'id': aff['db_id']})
+
+    return citation_ids

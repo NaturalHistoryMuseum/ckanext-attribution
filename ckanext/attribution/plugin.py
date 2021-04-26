@@ -40,6 +40,7 @@ class AttributionPlugin(SingletonPlugin):
             'agent_affiliation_create': create.agent_affiliation_create,
             'agent_create': create.agent_create,
             'contribution_activity_create': create.contribution_activity_create,
+            'package_create': create.package_create,
             'agent_affiliation_show': show.agent_affiliation_show,
             'agent_show': show.agent_show,
             'agent_list': show.agent_list,
