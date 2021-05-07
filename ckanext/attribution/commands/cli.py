@@ -43,7 +43,7 @@ def initdb():
 
 
 @attribution.command()
-@click.argument('ids', nargs=-1, help='Only update these ids (optional)')
+@click.argument('ids', nargs=-1)
 def sync(ids):
     '''
     Pull updated details for agents from external services like ORCID and ROR. Only applies when an
