@@ -31,6 +31,9 @@ def attribution():
 
 @attribution.command()
 def initdb():
+    '''
+    Create database tables required for this extension.
+    '''
     contribution_activity.check_for_table()
     agent.check_for_table()
     agent_affiliation.check_for_table()
@@ -40,8 +43,12 @@ def initdb():
 
 
 @attribution.command()
-@click.argument('ids', nargs=-1)
+@click.argument('ids', nargs=-1, help='Only update these ids (optional)')
 def sync(ids):
+    '''
+    Pull updated details for agents from external services like ORCID and ROR. Only applies when an
+    external_id has already been set.
+    '''
     agent_external_update = toolkit.get_action('agent_external_update')
     if not ids:
         ids = [a.id for a in AgentQuery.all() if a.external_id]
@@ -61,13 +68,19 @@ def sync(ids):
 
 
 @attribution.command()
-def migratedb():
+@click.option('--limit', help='Process n packages at a time (best for testing/debugging).')
+def migratedb(limit):
+    '''
+    Semi-manual migration script that attempts to extract individual contributors from 'author' and
+    'contributor' fields (if present) in order to create Agent and ContributionActivity records for
+    them.
+    '''
     click.secho(
         'Attempting to migrate contributors. It is HIGHLY recommended that you back up your '
         'database before running this.',
         fg='red')
-    # click.confirm('Continue?', default=False, abort=True)
-    # initdb()
+    click.confirm('Continue?', default=False, abort=True)
+    initdb()
     converted_packages = [r.package_id for r in PackageContributionActivityQuery.all()]
     unconverted_packages = PackageQuery.search(~PackageQuery.m.id.in_(converted_packages))
     contribution_extras = {
@@ -75,9 +88,10 @@ def migratedb():
                                                  PackageExtra.key == 'contributors').first() for p
         in unconverted_packages}
     total = len(unconverted_packages)
+    limit = limit or total
     parser = migration.Parser()
 
-    for i, pkg in enumerate(unconverted_packages):
+    for i, pkg in enumerate(unconverted_packages[:limit]):
         click.echo('Processing package {0} of {1}.\n'.format(i + 1, total))
         parser.run(pkg.author, pkg.id, 'author')
         extras = contribution_extras.get(pkg.id).value if pkg.id in contribution_extras else None
@@ -162,7 +176,7 @@ def migratedb():
     # finally finally, update the package author strings
     package_show = toolkit.get_action('package_show')  # pkg.as_dict() doesn't work (:
     package_update = toolkit.get_action('package_update')
-    for pkg in unconverted_packages:
+    for pkg in unconverted_packages[:limit]:
         try:
             pkg_dict = package_show({}, {'id': pkg.id})
             package_update({'ignore_auth': True, 'user': None}, pkg_dict)

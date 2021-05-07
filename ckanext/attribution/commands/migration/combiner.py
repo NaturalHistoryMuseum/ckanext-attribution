@@ -17,6 +17,9 @@ from .common import multi_choice
 
 
 class Combiner(object):
+    '''
+    Combines names extracted by a Parser.
+    '''
     def __init__(self, parser):
         self.contributors = parser.contributors
         self.affiliations = parser.affiliations
@@ -24,6 +27,11 @@ class Combiner(object):
                     'ROR': RorApi()}
 
     def separate(self, group):
+        '''
+        Ensure that the automated grouping is correct.
+        :param group: a list of ParsedSegment instances that are probably the same contributor
+        :return: a list of lists of ParsedSegments
+        '''
         all_names = sorted(list(set([str(x.name) for x in group])), key=lambda x: -len(x))
         if len(all_names) > 1:
             same = click.confirm(
@@ -71,7 +79,8 @@ class Combiner(object):
 
     def combine_person_names(self, names):
         '''
-        :return:
+        Uses a list of HumanNames to determine the longest possible name for a person.
+        :return: a dict of family_name, given_names (includes middle names), and key (i.e. a sort/display name)
         '''
 
         def _filter_diacritics(name_list):
@@ -109,6 +118,14 @@ class Combiner(object):
         return combined
 
     def _search_api(self, contrib, lookup_name, api_name, result_format):
+        '''
+        Search an API endpoint for a contributor.
+        :param contrib: the full contributor dict
+        :param lookup_name: the name to send to the endpoint
+        :param api_name: name of the API (see self.api)
+        :param result_format: display format of each result, e.g. "{name} ({location})"
+        :return: None if not found, dict for matching result if found/selected
+        '''
         aff = '; '.join(contrib['affiliations'])
         api = self.api[api_name]
         try:
@@ -139,6 +156,10 @@ class Combiner(object):
         return self._search_api(contrib, lookup_name, 'ROR', result_format)
 
     def update_affiliations(self, contributor):
+        '''
+        Update the self.affiliations dict to ensure the names are consistent.
+        :param contributor: contributor dict
+        '''
         no_affiliations = len(contributor.get('affiliations', [])) == 0
         is_not_affiliation = len(contributor['packages'].get('affiliations', [])) == 0
         if no_affiliations and is_not_affiliation:
@@ -159,6 +180,11 @@ class Combiner(object):
             self.affiliations[pkg[0]] = updated_items
 
     def run(self):
+        '''
+        Run the combiner over the whole parser list, including separating groups, combining names,
+        searching APIs, and updating the affiliations dict.
+        :return: a list of contributors
+        '''
         combined = {'person': [],
                     'org': [],
                     'other': []}

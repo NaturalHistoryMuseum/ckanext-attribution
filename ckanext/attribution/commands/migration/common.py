@@ -11,7 +11,11 @@ import click
 
 
 def multi_choice(question, options, default=0):
-    click.echo('\n' + question)
+    '''
+    Provide the user with a list of options.
+    :return: index of the chosen option
+    '''
+    click.echo(question)
     for i, o in enumerate(options):
         click.echo('\t({0}) {1}'.format(i + 1, o))
     answer = click.prompt('Choose an option', default=default + 1)

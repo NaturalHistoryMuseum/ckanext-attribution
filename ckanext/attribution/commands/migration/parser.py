@@ -24,6 +24,10 @@ class ParsedSegment:
 
 
 class Parser(object):
+    '''
+    Extracts names and affiliations from text.
+    '''
+
     def __init__(self):
         self.contributors = {
             'person': {},
@@ -39,6 +43,13 @@ class Parser(object):
             self.nlp = spacy.load(spacy_model)
 
     def run(self, txt, pkg_id, contrib_type):
+        '''
+        Run the whole process over a line of text.
+        :param txt: the chunk of text to process
+        :param pkg_id: associated package
+        :param contrib_type: author, contributor, or affiliation
+        :return: list of ParsedSegment instances extracted from the text
+        '''
         if not self.validate(txt):
             return
         segments = []
@@ -51,7 +62,8 @@ class Parser(object):
                 if contrib_type != 'affiliation':
                     name, affiliations = self.extract_affiliations(subline)
                     for a in affiliations:
-                        self.affiliations[pkg_id] = self.affiliations.get(pkg_id, []) + [(name.strip(), a)]
+                        self.affiliations[pkg_id] = self.affiliations.get(pkg_id, []) + [
+                            (name.strip(), a)]
                         parsed_affiliation = ParsedSegment(a.strip(), text=a, affiliations=[],
                                                            packages={'affiliation': (pkg_id, None)})
                         self.sort_contributor(parsed_affiliation)
@@ -67,6 +79,10 @@ class Parser(object):
         return segments
 
     def validate(self, txt):
+        '''
+        Check the text can/should actually be parsed.
+        :return: True/False
+        '''
         if txt is None:
             return False
         parsed = self.nlp(txt)
@@ -79,10 +95,15 @@ class Parser(object):
         if pc_proper_nouns < 0.5:
             click.echo('\nThis text doesn\'t look right:')
             click.echo(txt)
-            return click.confirm('Skip it?')
+            return not click.confirm('Skip it?')
         return True
 
     def split(self, txt):
+        '''
+        Uses multiple sub-methods to attempt to split the text into individual contributors.
+        :param txt:
+        :return:
+        '''
         lines = [ln.strip() for ln in txt.split('\n')]
         segments = [rgx.initials.sub('\\1 ', s).strip() for ln in lines for s in ln.split(';')]
         names = []
@@ -124,9 +145,8 @@ class Parser(object):
 
     def _split_by_nlp_sep(self, txt):
         '''
-
-        :param txt:
-        :return:
+        Finds entities using spacy, then attempts to identify the character(s) separating them and
+        splits by that.
         '''
         parsed = self.nlp(txt)
         if len(parsed.ents) > 2:
@@ -139,10 +159,17 @@ class Parser(object):
         return [txt]
 
     def _split_by_nlp_ents(self, txt):
+        '''
+        Extract all entities from the text using spacy.
+        '''
         parsed = self.nlp(txt)
         return [ent.text for ent in parsed.ents]
 
     def extract_affiliations(self, txt):
+        '''
+        Uses regexes to find probable affiliations in parentheses.
+        :return: contributor name, list of affiliations
+        '''
         has_affiliation = rgx.has_affiliation.match(txt)
         no_affiliation = rgx.no_affiliation.match(txt)
         if has_affiliation is not None:
@@ -153,6 +180,9 @@ class Parser(object):
             return txt, []
 
     def sort_contributor(self, c: ParsedSegment):
+        '''
+        Sort a contributor into lists based on agent type.
+        '''
         name = HumanName(c.name)
         _type = '?'
         if name.last in self.contributors['person']:
