@@ -97,7 +97,7 @@ def contribution_activity_create(context, data_dict):
     :param activity: short (one/two words) description for the activity
     :type activity: str
     :param scheme: name of the role/activity taxonomy, e.g. credit or datacite
-    :type scheme: str, optional
+    :type scheme: str
     :param level: lead, equal, or supporting
     :type level: str, optional
     :param time: time activity took place

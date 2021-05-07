@@ -34,7 +34,12 @@ setup(
         'orcid',
         'sqlalchemy',
         'requests',
-        'beautifulsoup4>=4.4.0'
+        'beautifulsoup4>=4.4.0',
+        'spacy[transformers]',
+        'unidecode',
+        'nameparser',
+        'prompt_toolkit',
+        'fuzzywuzzy[speedup]'
     ],
     entry_points= \
         '''

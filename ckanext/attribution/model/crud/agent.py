@@ -49,7 +49,7 @@ class AgentQuery(BaseQuery):
     @classmethod
     def validate(cls, data_dict):
         data_dict = super(AgentQuery, cls).validate(data_dict)
-        valid_agent_types = ['person', 'org']
+        valid_agent_types = ['person', 'org', 'other']
         agent_type = toolkit.get_or_bust(data_dict, 'agent_type')
         if agent_type not in valid_agent_types:
             raise toolkit.Invalid(
@@ -58,7 +58,8 @@ class AgentQuery(BaseQuery):
         valid_params = {
             'person': dict(required=['family_name', 'given_names'],
                            optional=['given_names_first']),
-            'org': dict(required=['name'], optional=['location'])
+            'org': dict(required=['name'], optional=['location']),
+            'other': dict(required=[], optional=[])
         }
         required = ['agent_type'] + valid_params[agent_type]['required']
         optional = ['user_id', 'external_id', 'external_id_scheme'] + valid_params[agent_type]['optional']
