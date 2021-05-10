@@ -69,7 +69,7 @@ def attribution_controlled_lists(context, data_dict):
                 {'name': 'WorkPackageLeader'},
             ],
             'internal': [
-                {'name': 'Unknown'}
+                {'name': 'Unspecified'}
             ]
         },
         'contribution_activity_levels': ['Lead', 'Supporting', 'Equal'],

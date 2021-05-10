@@ -80,7 +80,6 @@ def migratedb(limit):
         'database before running this.',
         fg='red')
     click.confirm('Continue?', default=False, abort=True)
-    initdb()
     converted_packages = [r.package_id for r in PackageContributionActivityQuery.all()]
     unconverted_packages = PackageQuery.search(~PackageQuery.m.id.in_(converted_packages))
     contribution_extras = {
@@ -88,14 +87,16 @@ def migratedb(limit):
                                                  PackageExtra.key == 'contributors').first() for p
         in unconverted_packages}
     total = len(unconverted_packages)
-    limit = limit or total
+    limit = int(limit or total)
     parser = migration.Parser()
 
     for i, pkg in enumerate(unconverted_packages[:limit]):
         click.echo('Processing package {0} of {1}.\n'.format(i + 1, total))
         parser.run(pkg.author, pkg.id, 'author')
-        extras = contribution_extras.get(pkg.id).value if pkg.id in contribution_extras else None
-        parser.run(extras, pkg.id, 'contributor')
+        if contribution_extras.get(pkg.id) is not None:
+            click.echo(contribution_extras)
+            extras = contribution_extras.get(pkg.id).value
+            parser.run(extras, pkg.id, 'contributor')
 
     combiner = migration.Combiner(parser)
     combined = combiner.run()
@@ -146,14 +147,14 @@ def migratedb(limit):
                                                   'agent_id': new_agent['id']})
                     # then the actual activity
                     contribution_activity_create({'ignore_auth': True},
-                                                 {'activity': 'Unknown',
+                                                 {'activity': 'Unspecified',
                                                   'scheme': 'internal',
                                                   'package_id': pkg,
                                                   'agent_id': new_agent['id']})
                 for pkg, _ in a['packages'].get('contributor', []):
                     # just the activity for this one
                     contribution_activity_create({'ignore_auth': True},
-                                                 {'activity': 'Unknown',
+                                                 {'activity': 'Unspecified',
                                                   'scheme': 'internal',
                                                   'package_id': pkg,
                                                   'agent_id': new_agent['id']})
