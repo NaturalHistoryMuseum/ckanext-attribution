@@ -139,7 +139,7 @@ def package_create(next_func, context, data_dict):
     # we need the package ID to create links, but that's not created yet - so run the other
     # functions first
     created_pkg = next_func(context, data_dict)
-    created_pkg['attribution'] = data_dict['attribution']
+    created_pkg['attribution'] = data_dict.get('attribution', '{}')
     citation_ids = parse_contributors(context, created_pkg)
 
     citations = sorted([ContributionActivityQuery.read(c) for c in citation_ids],

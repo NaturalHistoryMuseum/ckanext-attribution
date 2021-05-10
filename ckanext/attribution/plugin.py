@@ -167,6 +167,12 @@ class AttributionPlugin(SingletonPlugin):
             creator_dict = _make_contrib_dict(c)
             creators.append(creator_dict)
 
+        if len(creators) == 0:
+            default_author = toolkit.config.get('ckanext.doi.publisher',
+                                                toolkit.config.get('ckan.site_title', 'Anonymous'))
+            creators.append({'full_name': default_author,
+                             'is_org': True})
+
         contributors = []
         for c in all_contributors['uncited']:
             # Only one type can be sent to datacite, so use the datacite role/activity where the
