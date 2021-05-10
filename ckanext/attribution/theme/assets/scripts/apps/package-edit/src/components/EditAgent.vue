@@ -64,15 +64,15 @@
                     </text-field>
                 </template>
             </div>
-            <div class="agent-user-edit attribution-row">
+            <div class="agent-user-edit attribution-row" v-if="edits.agent_type === 'person'">
                 <autocomplete-field v-model="edits.user_id" @typing="updateUserOptions" :options="userOptions"
-                                    label="Associated user" :item-id="'agent-user-' + contributorId">
+                                    label="Linked user account" :item-id="'agent-user-' + contributorId">
                 </autocomplete-field>
                 <help-tooltip>
                     If this contributor has a user account registered on the portal, associate it here
                 </help-tooltip>
             </div>
-            <div class="agent-affiliations-edit attribution-row">
+            <div class="agent-affiliations-edit attribution-row" v-if="edits.agent_type === 'person'">
                 <autocomplete-list v-model="affiliations" @typing="updateAffiliationOptions"
                                    :options="affiliationOptions"
                                    label="Add affiliation" :item-id="'agent-affiliation-' + contributorId">
