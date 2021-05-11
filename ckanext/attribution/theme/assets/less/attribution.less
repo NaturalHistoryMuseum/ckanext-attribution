@@ -64,6 +64,7 @@
 
 .attribution-field {
   display: grid;
+  grid-template-columns: 1fr auto;
   grid-gap: 0.5em 1em;
 
   &.one-line {
@@ -75,13 +76,15 @@
     margin: 0;
   }
 
-  & input {
+  & input, select {
     margin: 0;
     width: 100%;
+    grid-column: span 2;
 
     &[type="checkbox"] {
       top: 0;
       width: unset;
+      grid-column: span 1;
     }
   }
 }
@@ -363,14 +366,10 @@
 
 .help-icon {
   padding-left: 0.5em;
-  cursor: help;
   position: relative;
 
-  & .help-tooltip {
-    display: none;
-  }
 
-  & i:hover + .help-tooltip {
+  & .help-tooltip {
     display: block;
     position: absolute;
     right: 0;

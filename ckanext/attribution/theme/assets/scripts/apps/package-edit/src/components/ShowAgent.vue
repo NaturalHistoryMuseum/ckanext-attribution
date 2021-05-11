@@ -10,7 +10,7 @@
                       v-if="contributor.external_id" @click="syncAgent(contributorId)">
                     <i class="fas" :class="contributor.meta.syncing ? 'fa-spinner fa-spin' : 'fa-arrow-alt-circle-down'"></i>
                 </span>
-                <span class="edit-icon" title="Edit" v-if="canEdit" @click="startEdit">
+                <span class="edit-icon" title="Edit" v-if="settings.canEdit" @click="startEdit">
                     <i class="fas fa-edit"></i>
                 </span>
                 <span class="edit-icon" title="Remove this contributor" v-if="!contributor.meta.is_temporary"

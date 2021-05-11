@@ -5,6 +5,14 @@
             <select-field v-model="edits.scheme" :options="Object.keys(controlledLists.activityTypes)"
                           @input="getOptions(edits.scheme)">
                 Role scheme
+                <template #help>
+                    Standardised role taxonomies like <a href="http://credit.niso.org" target="_blank">CRediT</a> and <a
+                    href="https://schema.datacite.org/meta/kernel-4/include/datacite-contributorType-v4.xsd" target="_blank">DataCite's
+                    contributor types</a> enables more accurate attribution of work.
+                    <div v-if="settings.doiPlugin">
+                        DataCite roles will be included in the DOI metadata as "contributor type".
+                    </div>
+                </template>
             </select-field>
             <select-field v-model="edits.activity" :options="activityOptions"
                           :opt-value="o => o.name"

@@ -7,7 +7,7 @@
 import itertools
 import re
 
-from ckan.plugins import toolkit
+from ckan.plugins import toolkit, plugin_loaded
 from ckanext.attribution.model.crud import PackageQuery
 
 
@@ -68,3 +68,7 @@ def get_cited_contributors(pkg_id):
 
 def controlled_list(list_name):
     return toolkit.get_action('attribution_controlled_lists')({}, {'lists': [list_name]})[list_name]
+
+
+def doi_plugin():
+    return plugin_loaded('doi')

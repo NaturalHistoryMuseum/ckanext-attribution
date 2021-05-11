@@ -225,7 +225,7 @@ export default {
                 let body = {
                     agent_id      : this.contributorId,
                     other_agent_id: a.value,
-                    package_id    : this.packageId,
+                    package_id    : this.settings.packageId,
                     meta          : {
                         is_new      : true,
                         is_temporary: this.contributor.is_temporary

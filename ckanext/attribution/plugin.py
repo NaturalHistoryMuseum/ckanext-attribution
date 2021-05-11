@@ -134,7 +134,8 @@ class AttributionPlugin(SingletonPlugin):
             'can_edit': helpers.can_edit,
             'split_caps': helpers.split_caps,
             'get_cited_contributors': helpers.get_cited_contributors,
-            'controlled_list': helpers.controlled_list
+            'controlled_list': helpers.controlled_list,
+            'doi_plugin': helpers.doi_plugin
         }
 
     # IDoi

@@ -3,6 +3,9 @@
         <label :for="fieldId">
             <slot></slot>
         </label>
+        <help-tooltip v-if="showHelpText">
+            <slot name="help"></slot>
+        </help-tooltip>
         <input type="date" class="form-control" :value="dateOnly" :id="fieldId" :placeholder="placeholder" @change="setValue">
     </div>
 </template>

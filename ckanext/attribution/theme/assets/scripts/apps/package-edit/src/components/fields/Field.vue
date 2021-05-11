@@ -3,6 +3,9 @@
         <label :for="fieldId">
             <slot></slot>
         </label>
+        <help-tooltip v-if="showHelpText">
+            <slot name="help"></slot>
+        </help-tooltip>
         <input class="form-control" :type="inputType" :value="value" :id="fieldId" @change="setValue">
     </div>
 </template>
@@ -25,6 +28,9 @@ export default {
                 classList = classList.concat(this.cls);
             }
             return classList;
+        },
+        showHelpText() {
+            return !!this.$slots.help;
         }
     },
     methods: {
