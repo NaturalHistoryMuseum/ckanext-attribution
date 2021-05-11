@@ -72,6 +72,11 @@
     justify-items: left;
   }
 
+  &.user-display {
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+  }
+
   & label {
     margin: 0;
   }
@@ -460,7 +465,7 @@
     & + label:before {
       display: block;
       position: absolute;
-      top: 1.3em;
+      top: 14px;
       left: 0;
       bottom: 0;
       right: 0;
@@ -478,7 +483,7 @@
     & + label:after {
       display: block;
       position: absolute;
-      top: 1.3em;
+      top: 16px;
       left: 1px;
       bottom: 0;
       width: 22px;
