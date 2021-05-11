@@ -9,6 +9,7 @@ from ckan.model import Session
 from ckan.model.package_extra import PackageExtra
 from ckan.plugins import toolkit
 from ckanext.attribution.commands import migration
+from ckanext.attribution.logic.actions.helpers import get_author_string
 from ckanext.attribution.model import (agent, agent_affiliation, agent_contribution_activity,
                                        contribution_activity, package_contribution_activity,
                                        relationships)
@@ -58,6 +59,27 @@ def sync(ids):
         for _id in bar:
             try:
                 agent_external_update({'ignore_auth': True}, {'id': _id})
+            except Exception as e:
+                errors.append('Error ({0}): {1}'.format(_id, e))
+    failed = len(errors)
+    total = len(ids)
+    click.echo('Updated {0}/{1} ({2} failed)'.format(total - failed, total, failed))
+    for e in errors:
+        click.echo(e, err=True)
+
+
+@attribution.command()
+@click.argument('ids', nargs=-1)
+def refresh_packages(ids):
+    if not ids:
+        ids = [r.package_id for r in PackageContributionActivityQuery.all()]
+    click.echo('Attempting to update the author field for {0} packages.'.format(len(ids)))
+    errors = []
+    with click.progressbar(ids) as bar:
+        for _id in bar:
+            try:
+                authors = get_author_string(package_id=_id)
+                PackageQuery.update(_id, author=authors)
             except Exception as e:
                 errors.append('Error ({0}): {1}'.format(_id, e))
     failed = len(errors)
@@ -175,12 +197,10 @@ def migratedb(limit):
                            err=True)
 
     # finally finally, update the package author strings
-    package_show = toolkit.get_action('package_show')  # pkg.as_dict() doesn't work (:
-    package_update = toolkit.get_action('package_update')
     for pkg in unconverted_packages[:limit]:
         try:
-            pkg_dict = package_show({}, {'id': pkg.id})
-            package_update({'ignore_auth': True, 'user': None}, pkg_dict)
+            authors = get_author_string(package_id=pkg.id)
+            PackageQuery.update(pkg.id, author=authors)
         except Exception as e:
             # very broad catch just so it doesn't ruin everything if one thing breaks
             click.echo(f'Skipping {pkg.id} due to error: {e}', err=True)

@@ -5,7 +5,7 @@
 # Created by the Natural History Museum in London, UK
 
 from ckan.plugins import toolkit
-from ckanext.attribution.logic.actions.helpers import parse_contributors
+from ckanext.attribution.logic.actions.helpers import parse_contributors, get_author_string
 from ckanext.attribution.model.crud import (AgentContributionActivityQuery, AgentQuery,
                                             ContributionActivityQuery,
                                             PackageContributionActivityQuery, AgentAffiliationQuery)
@@ -142,13 +142,5 @@ def package_create(next_func, context, data_dict):
     created_pkg['attribution'] = data_dict.get('attribution', '{}')
     citation_ids = parse_contributors(context, created_pkg)
 
-    citations = sorted([ContributionActivityQuery.read(c) for c in citation_ids],
-                       key=lambda x: x.order)
-    author_string = '; '.join([c.agent.citation_name for c in citations])
-
-    if len(citations) == 0:
-        author_string = toolkit.config.get('ckanext.doi.publisher',
-                                           toolkit.config.get('ckan.site_title', 'Anonymous'))
-
-    data_dict['author'] = author_string
+    data_dict['author'] = get_author_string(citation_ids=citation_ids)
     return data_dict

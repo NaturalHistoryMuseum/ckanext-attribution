@@ -140,3 +140,20 @@ def parse_contributors(context, data_dict):
         affiliation_del(context, {'id': aff['db_id']})
 
     return citation_ids
+
+
+def get_author_string(package_id=None, citation_ids=None):
+    if package_id is not None:
+        citations = sorted([c for c in PackageQuery.get_contributions(package_id) if
+                            c.activity == '[citation]'], key=lambda x: x.order)
+    elif citation_ids is not None:
+        citations = sorted([ContributionActivityQuery.read(c) for c in citation_ids],
+                           key=lambda x: x.order)
+    else:
+        citations = []
+
+    if len(citations) == 0:
+        return toolkit.config.get('ckanext.doi.publisher',
+                                  toolkit.config.get('ckan.site_title', 'Anonymous'))
+    else:
+        return '; '.join([c.agent.citation_name for c in citations])
