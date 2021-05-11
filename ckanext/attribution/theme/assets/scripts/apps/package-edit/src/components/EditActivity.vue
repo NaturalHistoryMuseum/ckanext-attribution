@@ -7,7 +7,8 @@
                 Role scheme
                 <template #help>
                     Standardised role taxonomies like <a href="http://credit.niso.org" target="_blank">CRediT</a> and <a
-                    href="https://schema.datacite.org/meta/kernel-4/include/datacite-contributorType-v4.xsd" target="_blank">DataCite's
+                    href="https://schema.datacite.org/meta/kernel-4/include/datacite-contributorType-v4.xsd"
+                    target="_blank">DataCite's
                     contributor types</a> enables more accurate attribution of work.
                     <div v-if="settings.doiPlugin">
                         DataCite roles will be included in the DOI metadata as "contributor type".
@@ -21,10 +22,17 @@
             </select-field>
             <select-field v-model="edits.level" :options="controlledLists.activityLevels">
                 Contribution level
+                <template #help>
+                    Optional; the status of this contributor within this particular role, as defined by <a
+                    href="http://credit.niso.org" target="_blank">CRediT</a>.
+                </template>
             </select-field>
             <div class="attribution">
                 <datefield v-model="edits.time" placeholder="Select date (optional)">
                     Contribution date
+                    <template #help>
+                        Optional; can be used as a start date, or if the work only took place on a single day, etc.
+                    </template>
                 </datefield>
             </div>
         </div>
