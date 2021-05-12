@@ -11,6 +11,7 @@ import click
 import spacy
 from nameparser import HumanName
 from prompt_toolkit import prompt
+from textwrap import shorten
 
 from .common import rgx, multi_choice
 
@@ -136,7 +137,7 @@ class Parser(object):
                 return options[ix]
 
         if len(segments) > 1:
-            click.echo(f'{len(segments)} found in "{txt[:50] + txt[50:] and "..."}". e.g.:')
+            click.echo(f'{len(segments)} found in "{shorten(txt, width=50, placeholder="...")}". e.g.:')
             for s in segments[:5]:
                 click.echo('\t' + s)
             if click.confirm('Skip individual processing of these segments?'):
