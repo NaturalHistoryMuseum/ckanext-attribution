@@ -11,8 +11,8 @@ import click
 from ckanext.attribution.lib.orcid_api import OrcidApi
 from ckanext.attribution.lib.ror_api import RorApi
 from fuzzywuzzy import process
-from unidecode import unidecode
 from prompt_toolkit import prompt
+from unidecode import unidecode
 
 from .common import multi_choice
 
@@ -21,6 +21,7 @@ class Combiner(object):
     '''
     Combines names extracted by a Parser.
     '''
+
     def __init__(self, parser):
         self.contributors = parser.contributors
         self.affiliations = parser.affiliations
@@ -68,8 +69,7 @@ class Combiner(object):
         }
         if name_func is None:
             longest_name = sorted(list(set(all_names)), key=lambda x: -len(x))[0].strip()
-            name = {'name': longest_name,
-                    'key': longest_name}
+            name = {'name': longest_name}
         else:
             name = name_func(all_names)
         contrib.update(name)
@@ -77,6 +77,7 @@ class Combiner(object):
             from_api = api_func(contrib)
             if from_api is not None:
                 contrib.update(from_api)
+        contrib['key'] = self._get_key(contrib)
         return contrib
 
     def combine_person_names(self, names):
@@ -114,8 +115,7 @@ class Combiner(object):
              given_parts.values()]).strip()
         combined = {
             'family_name': family_name,
-            'given_names': given_names,
-            'key': f'{family_name}, {given_names}'
+            'given_names': given_names
         }
         return combined
 
@@ -143,7 +143,7 @@ class Combiner(object):
                     if not click.confirm('Enter ID manually?'):
                         if not click.confirm('Edit names manually?'):
                             return
-                        elif contrib.get('agent_type', 'person') == 'person':
+                        elif contrib.get('agent_type') == 'person':
                             update_dict['given_names'] = prompt('Given names: ',
                                                                 default=contrib['given_names'])
                             update_dict['family_name'] = prompt('Family name: ',
@@ -151,10 +151,13 @@ class Combiner(object):
                         else:
                             update_dict['name'] = prompt('Name: ', default=contrib['name'])
                     else:
-                        _id = click.prompt(f'{api_name} ID', show_default=False)
-                        update_dict = api.read(_id)
+                        _id = click.prompt(f'{api_name} ID', show_default=False).strip()
+                        update_dict = api.as_agent_record(api.read(_id))
                 else:
                     update_dict = results[i]
+                update_dict['agent_type'] = contrib['agent_type']
+                new_name = self._get_key(update_dict)
+                click.echo(f'Setting name to {new_name}')
                 return update_dict
             else:
                 click.echo(f'No results found for "{lookup_name}".')
@@ -226,3 +229,9 @@ class Combiner(object):
                     combined['other'].append(c)
                     self.update_affiliations(c)
         return combined
+
+    def _get_key(self, contrib_dict):
+        if contrib_dict['agent_type'] == 'person':
+            return contrib_dict['family_name'] + ', ' + contrib_dict['given_names']
+        else:
+            return contrib_dict['name']

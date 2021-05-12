@@ -126,7 +126,6 @@ def migratedb(limit, dry_run):
     combined = combiner.run()
     click.echo('Found agents:')
     click.echo('\t' + '\n\t'.join([f'{k}: {len(v)}' for k, v in combined.items()]))
-    click.echo('; '.join([a['key'] for agents in combined.values() for a in agents]))
     if dry_run:
         click.echo('Exiting before saving to the database.')
         return
@@ -161,10 +160,13 @@ def migratedb(limit, dry_run):
                         del a['external_id']
                         del a['external_id_scheme']
                         new_agent = agent_create({'ignore_auth': True}, agent_dict)
+                        click.echo(f'CREATED "{a["key"]}"')
                     else:
                         new_agent = matches[choice_ix].as_dict()
+                        click.echo(f'MATCHED "{a["key"]}"')
                 else:
                     new_agent = agent_create({'ignore_auth': True}, agent_dict)
+                    click.echo(f'CREATED "{a["key"]}"')
                 agent_lookup[a['key']] = new_agent['id']
                 # then activities
                 for pkg, order in a['packages'].get('author', []):
