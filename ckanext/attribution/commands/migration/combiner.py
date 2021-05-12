@@ -130,9 +130,10 @@ class Combiner(object):
         '''
         aff = '; '.join(contrib['affiliations'])
         api = self.api[api_name]
+        display_name = lookup.pop('display_name')
         try:
-            question = f'Do any of these {api_name} results match "{lookup["display_name"]}" ({aff})?'
-            click.echo(f'\nSearching {api_name} for "{lookup["display_name"]}"...')
+            question = f'Do any of these {api_name} results match "{display_name}" ({aff})?'
+            click.echo(f'\nSearching {api_name} for "{display_name}"...')
             results = api.search(**lookup).get(u'records', [])
             if len(results) > 0:
                 i = multi_choice(question,
@@ -160,9 +161,9 @@ class Combiner(object):
                 click.echo(f'Setting name to {new_name}')
                 return update_dict
             else:
-                click.echo(f'No results found for "{lookup["display_name"]}".')
+                click.echo(f'No results found for "{display_name}".')
         except Exception as e:
-            click.echo(f'{api_name} search error for "{lookup["display_name"]}"', err=True)
+            click.echo(f'{api_name} search error for "{display_name}"', err=True)
             click.echo(e, err=True)
 
     def search_orcid(self, contrib):
