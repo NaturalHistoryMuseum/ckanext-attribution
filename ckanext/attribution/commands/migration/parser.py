@@ -135,6 +135,13 @@ class Parser(object):
                 ix = multi_choice('Which one looks right?', printable_options)
                 return options[ix]
 
+        if len(segments) > 1:
+            click.echo(f'{len(segments)} found in "{txt[:50] + txt[50:] and "..."}". e.g.:')
+            for s in segments[:5]:
+                click.echo('\t' + s)
+            if click.confirm('Skip individual processing of these segments?'):
+                return segments
+
         for t in segments:
             splits = None
             while not splits:
