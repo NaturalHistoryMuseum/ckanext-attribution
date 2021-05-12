@@ -119,7 +119,7 @@ class Combiner(object):
         }
         return combined
 
-    def _search_api(self, contrib, lookup_name, api_name, result_format):
+    def _search_api(self, contrib, lookup, api_name, result_format):
         '''
         Search an API endpoint for a contributor.
         :param contrib: the full contributor dict
@@ -131,9 +131,9 @@ class Combiner(object):
         aff = '; '.join(contrib['affiliations'])
         api = self.api[api_name]
         try:
-            question = f'Do any of these {api_name} results match "{lookup_name}" ({aff})?'
-            click.echo(f'Searching {api_name} for "{lookup_name}"...')
-            results = api.search(q=lookup_name).get(u'records', [])
+            question = f'Do any of these {api_name} results match "{lookup["display_name"]}" ({aff})?'
+            click.echo(f'\nSearching {api_name} for "{lookup["display_name"]}"...')
+            results = api.search(**lookup).get(u'records', [])
             if len(results) > 0:
                 i = multi_choice(question,
                                  [result_format.format(**r) for r in results] + ['None of these'],
@@ -160,20 +160,28 @@ class Combiner(object):
                 click.echo(f'Setting name to {new_name}')
                 return update_dict
             else:
-                click.echo(f'No results found for "{lookup_name}".')
+                click.echo(f'No results found for "{lookup["display_name"]}".')
         except Exception as e:
-            click.echo(f'{api_name} search error for "{lookup_name}"', err=True)
+            click.echo(f'{api_name} search error for "{lookup["display_name"]}"', err=True)
             click.echo(e, err=True)
 
     def search_orcid(self, contrib):
         display_name = ' '.join([contrib['given_names'], contrib['family_name']])
         result_format = '{family_name}, {given_names} ({external_id})'
-        return self._search_api(contrib, display_name, 'ORCID', result_format)
+        lookup = {
+            'display_name': display_name,
+            'family_name': contrib['family_name'],
+            'given_names': contrib['given_names']
+        }
+        return self._search_api(contrib, lookup, 'ORCID', result_format)
 
     def search_ror(self, contrib):
-        lookup_name = contrib['name']
         result_format = '{name}, {location} ({external_id})'
-        return self._search_api(contrib, lookup_name, 'ROR', result_format)
+        lookup = {
+            'display_name': contrib['name'],
+            'q': contrib['name']
+        }
+        return self._search_api(contrib, lookup, 'ROR', result_format)
 
     def update_affiliations(self, contributor):
         '''

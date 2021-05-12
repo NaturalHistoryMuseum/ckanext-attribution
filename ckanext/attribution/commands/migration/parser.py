@@ -118,7 +118,9 @@ class Parser(object):
             nlp_ent_splits = self._split_by_nlp_ents(segment)
             options = []
             printable_options = []
-            for o in [nlp_ent_splits, nlp_sep_splits, rgx_splits, semicolon_splits, [segment]]:
+            for o in sorted(
+                [nlp_ent_splits, nlp_sep_splits, rgx_splits, semicolon_splits, [segment]],
+                    key=lambda x: -len(x)):
                 if len(o) == 0:
                     continue
                 printable = '; '.join(o) + ' ({0} fragments)'.format(len(o))

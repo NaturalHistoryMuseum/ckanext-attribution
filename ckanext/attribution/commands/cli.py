@@ -124,7 +124,7 @@ def migratedb(limit, dry_run):
 
     combiner = migration.Combiner(parser)
     combined = combiner.run()
-    click.echo('Found agents:')
+    click.echo('\n\nContributors found:')
     click.echo('\t' + '\n\t'.join([f'{k}: {len(v)}' for k, v in combined.items()]))
     if dry_run:
         click.echo('Exiting before saving to the database.')
@@ -152,6 +152,7 @@ def migratedb(limit, dry_run):
                 matches = AgentQuery.search(or_(*filters))
                 if len(matches) == 1:
                     new_agent = matches[0].as_dict()
+                    click.echo(f'MATCHED "{a["key"]}"')
                 elif len(matches) > 1:
                     choice_ix = migration.multi_choice(
                         f'Does "{a["key"]}" match any of these existing agents?',

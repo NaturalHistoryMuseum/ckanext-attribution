@@ -44,7 +44,7 @@ class OrcidApi(object):
         else:
             return None
 
-    def search(self, orcid_q=None, q=None):
+    def search(self, orcid_q=None, q=None, family_name=None, given_names=None):
         '''
 
         :param orcid_q:  (Default value = None)
@@ -56,6 +56,10 @@ class OrcidApi(object):
             query.append('orcid:' + orcid_q)
         if q is not None and q != '':
             query.append('text:' + q)
+        if family_name is not None and family_name != '':
+            query.append('family-name:' + family_name)
+        if given_names is not None and given_names != '':
+            query.append('given-names:' + given_names)
         query = '+AND+'.join(query)
         search_response = self.conn.search(query, access_token=self.read_token, rows=10)
         records = []
