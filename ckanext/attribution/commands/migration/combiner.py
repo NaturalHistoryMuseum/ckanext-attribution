@@ -12,6 +12,7 @@ from ckanext.attribution.lib.orcid_api import OrcidApi
 from ckanext.attribution.lib.ror_api import RorApi
 from fuzzywuzzy import process
 from unidecode import unidecode
+from prompt_toolkit import prompt
 
 from .common import multi_choice
 
@@ -53,12 +54,13 @@ class Combiner(object):
                 return list(subgroups.values())
         return [group]
 
-    def combine(self, group, name_func=None, api_func=None):
+    def combine(self, group, agent_type, name_func=None, api_func=None):
         all_names = [x.name for x in group]
         _contrib_dicts = sorted([(ct, pkgs) for c in group for ct, pkgs in c.packages.items()],
                                 key=lambda x: x[0])
         _grouped_contribs = itertools.groupby(_contrib_dicts, key=lambda x: x[0])
         contrib = {
+            'agent_type': agent_type,
             'all_names': [str(n) for n in all_names],
             'affiliations': list(set([a for x in group for a in x.affiliations])),
             'packages': {contrib_type: list(set([pkgid for ct, pkgid in v])) for contrib_type, v in
@@ -136,9 +138,24 @@ class Combiner(object):
                 i = multi_choice(question,
                                  [result_format.format(**r) for r in results] + ['None of these'],
                                  default=len(results))
+                update_dict = {}
                 if i == len(results):
-                    return
-                return results[i]
+                    if not click.confirm('Enter ID manually?'):
+                        if not click.confirm('Edit names manually?'):
+                            return
+                        elif contrib.get('agent_type', 'person') == 'person':
+                            update_dict['given_names'] = prompt('Given names: ',
+                                                                default=contrib['given_names'])
+                            update_dict['family_name'] = prompt('Family name: ',
+                                                                default=contrib['family_name'])
+                        else:
+                            update_dict['name'] = prompt('Name: ', default=contrib['name'])
+                    else:
+                        _id = click.prompt(f'{api_name} ID', show_default=False)
+                        update_dict = api.read(_id)
+                else:
+                    update_dict = results[i]
+                return update_dict
             else:
                 click.echo(f'No results found for "{lookup_name}".')
         except Exception as e:
@@ -192,19 +209,19 @@ class Combiner(object):
         for g in [grp for family_name, initials_list in self.contributors['person'].items() for
                   initial, grp in initials_list.items()]:
             for person in self.separate(g):
-                c = self.combine(person, self.combine_person_names, self.search_orcid)
+                c = self.combine(person, 'person', self.combine_person_names, self.search_orcid)
                 if c is not None:
                     combined['person'].append(c)
                     self.update_affiliations(c)
         for abbr, g in self.contributors['org'].items():
             for org in self.separate(g):
-                c = self.combine(org, None, self.search_ror)
+                c = self.combine(org, 'org', None, self.search_ror)
                 if c is not None:
                     combined['org'].append(c)
                     self.update_affiliations(c)
         for abbr, g in self.contributors['other'].items():
             for o in self.separate(g):
-                c = self.combine(o)
+                c = self.combine(o, 'other')
                 if c is not None:
                     combined['other'].append(c)
                     self.update_affiliations(c)

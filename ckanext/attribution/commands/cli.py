@@ -91,17 +91,19 @@ def refresh_packages(ids):
 
 @attribution.command()
 @click.option('--limit', help='Process n packages at a time (best for testing/debugging).')
-def migratedb(limit):
+@click.option('--dry-run', help='Don\'t save anything to the database.', is_flag=True)
+def migratedb(limit, dry_run):
     '''
     Semi-manual migration script that attempts to extract individual contributors from 'author' and
     'contributor' fields (if present) in order to create Agent and ContributionActivity records for
     them.
     '''
-    click.secho(
-        'Attempting to migrate contributors. It is HIGHLY recommended that you back up your '
-        'database before running this.',
-        fg='red')
-    click.confirm('Continue?', default=False, abort=True)
+    if not dry_run:
+        click.secho(
+            'Attempting to migrate contributors. It is HIGHLY recommended that you back up your '
+            'database before running this.',
+            fg='red')
+        click.confirm('Continue?', default=False, abort=True)
     converted_packages = [r.package_id for r in PackageContributionActivityQuery.all()]
     unconverted_packages = PackageQuery.search(~PackageQuery.m.id.in_(converted_packages))
     contribution_extras = {
@@ -116,12 +118,18 @@ def migratedb(limit):
         click.echo('Processing package {0} of {1}.\n'.format(i + 1, total))
         parser.run(pkg.author, pkg.id, 'author')
         if contribution_extras.get(pkg.id) is not None:
-            click.echo(contribution_extras)
             extras = contribution_extras.get(pkg.id).value
-            parser.run(extras, pkg.id, 'contributor')
+            if not isinstance(extras, str):
+                parser.run(extras, pkg.id, 'contributor')
 
     combiner = migration.Combiner(parser)
     combined = combiner.run()
+    click.echo('Found agents:')
+    click.echo('\t' + '\n\t'.join([f'{k}: {len(v)}' for k, v in combined.items()]))
+    click.echo('; '.join([a['key'] for agents in combined.values() for a in agents]))
+    if dry_run:
+        click.echo('Exiting before saving to the database.')
+        return
     agent_lookup = {}
     agent_create = toolkit.get_action('agent_create')
     contribution_activity_create = toolkit.get_action('contribution_activity_create')

@@ -57,7 +57,7 @@ class OrcidApi(object):
         if q is not None and q != '':
             query.append('text:' + q)
         query = '+AND+'.join(query)
-        search_response = self.conn.search(query, access_token=self.read_token, rows=20)
+        search_response = self.conn.search(query, access_token=self.read_token, rows=10)
         records = []
         loaded_ids = []
         for r in search_response.get('result', []):
