@@ -203,6 +203,8 @@ class Parser(object):
             if name.last == '':
                 name.last = name.first
                 name.first = '?'
+            if name.first == '':
+                name.first = '?'
             c.name = name
             family_name_records = self.contributors[_type].get(name.last, {})
             initial_records = family_name_records.get(name.first[0], []) + [c]
