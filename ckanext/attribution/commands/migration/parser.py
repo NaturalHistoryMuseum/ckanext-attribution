@@ -76,7 +76,7 @@ class Parser(object):
                             (name.strip(), a)]
                         parsed_affiliation = ParsedSegment(a.strip(), text=a, affiliations=[],
                                                            packages={'affiliation': (pkg_id, None)})
-                        self.sort_contributor(parsed_affiliation, _type)
+                        self.sort_contributor(parsed_affiliation)
                 else:
                     name = subline
                     affiliations = []
@@ -84,7 +84,7 @@ class Parser(object):
                 parsed_segment = ParsedSegment(name=name.strip(), text=subline,
                                                affiliations=affiliations,
                                                packages={contrib_type: (pkg_id, order)})
-                self.sort_contributor(parsed_segment)
+                self.sort_contributor(parsed_segment, _type)
                 segments.append(parsed_segment)
         return segments
 
@@ -218,7 +218,7 @@ class Parser(object):
                 if k == 'person':
                     continue
                 if initials in v:
-                    if c.name in v[initials]:
+                    if any([x.name == c.name for x in v[initials]]):
                         _type = k
         if _type is None:
             i = multi_choice('What type of contributor is "{0}"?'.format(c.name),
