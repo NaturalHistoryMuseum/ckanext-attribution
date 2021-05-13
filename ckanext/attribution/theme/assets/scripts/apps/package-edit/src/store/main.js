@@ -16,7 +16,7 @@ database.register(Citation);
 
 // persistent storage
 const vuexLocal = new VuexPersistence({
-    storage: window.localStorage
+    storage: window.sessionStorage
 });
 
 const store = new Vuex.Store(
