@@ -25,8 +25,6 @@ class Combiner(object):
     def __init__(self, parser):
         self.contributors = parser.contributors
         self.affiliations = parser.affiliations
-        self.api = {'ORCID': OrcidApi(),
-                    'ROR': RorApi()}
 
     def separate(self, group):
         '''
@@ -55,7 +53,7 @@ class Combiner(object):
                 return list(subgroups.values())
         return [group]
 
-    def combine(self, group, agent_type, name_func=None, api_func=None):
+    def combine(self, group, agent_type, name_func=None):
         all_names = [x.name for x in group]
         _contrib_dicts = sorted([(ct, pkgs) for c in group for ct, pkgs in c.packages.items()],
                                 key=lambda x: x[0])
@@ -73,10 +71,6 @@ class Combiner(object):
         else:
             name = name_func(all_names)
         contrib.update(name)
-        if api_func is not None:
-            from_api = api_func(contrib)
-            if from_api is not None:
-                contrib.update(from_api)
         contrib['key'] = self._get_key(contrib)
         return contrib
 
@@ -119,78 +113,6 @@ class Combiner(object):
         }
         return combined
 
-    def _search_api(self, contrib, lookup, api_name, result_format):
-        '''
-        Search an API endpoint for a contributor.
-        :param contrib: the full contributor dict
-        :param lookup_name: the name to send to the endpoint
-        :param api_name: name of the API (see self.api)
-        :param result_format: display format of each result, e.g. "{name} ({location})"
-        :return: None if not found, dict for matching result if found/selected
-        '''
-        aff = '; '.join(contrib['affiliations'])
-        api = self.api[api_name]
-        display_name = lookup.pop('display_name')
-        try:
-            question = f'Do any of these {api_name} results match "{display_name}" ({aff})?'
-            click.echo(f'\nSearching {api_name} for "{display_name}"...')
-            results = api.search(**lookup).get(u'records', [])
-            if len(results) > 0:
-                i = multi_choice(question,
-                                 [result_format.format(**r) for r in results] + ['None of these'],
-                                 default=len(results))
-                if i == len(results):
-                    update_dict = self._manual_edit(contrib, api_name)
-                else:
-                    update_dict = results[i]
-            else:
-                click.echo(f'No results found for "{display_name}".')
-                update_dict = self._manual_edit(contrib, api_name)
-        except Exception as e:
-            click.echo(f'{api_name} search error for "{display_name}"', err=True)
-            click.echo(e, err=True)
-            update_dict = self._manual_edit(contrib, api_name)
-        update_dict['agent_type'] = contrib['agent_type']
-        if 'name' in update_dict or 'family_name' in update_dict:
-            new_name = self._get_key(update_dict)
-            click.echo(f'Setting name to {new_name}')
-        return update_dict
-
-    def _manual_edit(self, contrib, api_name):
-        if click.confirm('Enter ID manually?'):
-            api = self.api[api_name]
-            _id = click.prompt(f'{api_name} ID', show_default=False).strip()
-            return api.as_agent_record(api.read(_id))
-        if not click.confirm('Edit names manually?'):
-            return {}
-        if contrib.get('agent_type') == 'person':
-            return {
-                'given_names': prompt('Given names: ',
-                                      default=contrib['given_names']),
-                'family_name': prompt('Family name: ',
-                                      default=contrib['family_name'])
-            }
-        else:
-            return {'name': prompt('Name: ', default=contrib['name'])}
-
-    def search_orcid(self, contrib):
-        display_name = ' '.join([contrib['given_names'], contrib['family_name']])
-        result_format = '{family_name}, {given_names} ({external_id})'
-        lookup = {
-            'display_name': display_name,
-            'family_name': contrib['family_name'],
-            'given_names': contrib['given_names']
-        }
-        return self._search_api(contrib, lookup, 'ORCID', result_format)
-
-    def search_ror(self, contrib):
-        result_format = '{name}, {location} ({external_id})'
-        lookup = {
-            'display_name': contrib['name'],
-            'q': contrib['name']
-        }
-        return self._search_api(contrib, lookup, 'ROR', result_format)
-
     def update_affiliations(self, contributor):
         '''
         Update the self.affiliations dict to ensure the names are consistent.
@@ -221,28 +143,26 @@ class Combiner(object):
         searching APIs, and updating the affiliations dict.
         :return: a list of contributors
         '''
-        combined = {'person': [],
-                    'org': [],
-                    'other': []}
+        combined = []
 
         for g in [grp for family_name, initials_list in self.contributors['person'].items() for
                   initial, grp in initials_list.items()]:
             for person in self.separate(g):
-                c = self.combine(person, 'person', self.combine_person_names, self.search_orcid)
+                c = self.combine(person, 'person', self.combine_person_names)
                 if c is not None:
-                    combined['person'].append(c)
+                    combined.append(c)
                     self.update_affiliations(c)
         for abbr, g in self.contributors['org'].items():
             for org in self.separate(g):
-                c = self.combine(org, 'org', None, self.search_ror)
+                c = self.combine(org, 'org', None)
                 if c is not None:
-                    combined['org'].append(c)
+                    combined.append(c)
                     self.update_affiliations(c)
         for abbr, g in self.contributors['other'].items():
             for o in self.separate(g):
                 c = self.combine(o, 'other')
                 if c is not None:
-                    combined['other'].append(c)
+                    combined.append(c)
                     self.update_affiliations(c)
         return combined
 

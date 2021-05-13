@@ -90,9 +90,30 @@ def refresh_packages(ids):
 
 
 @attribution.command()
+@click.argument('ids', nargs=-1)
+@click.option('--limit', help='Process n packages at a time (best for testing/debugging).')
+def agent_external_search(ids, limit):
+    if ids:
+        agents = AgentQuery.search(AgentQuery.m.id.in_(ids))
+    else:
+        agents = AgentQuery.search(AgentQuery.m.external_id.is_(None))
+    if limit:
+        agents = agents[:int(limit)]
+    total = len(agents)
+    click.echo(f'{total} contributors without external IDs found.')
+    updater = migration.APISearch()
+    for i, a in enumerate(agents):
+        click.echo(f'Searching {i} of {total}')
+        update_dict = updater.update(a.as_dict())
+        AgentQuery.update(a.id, **update_dict)
+
+
+
+@attribution.command()
 @click.option('--limit', help='Process n packages at a time (best for testing/debugging).')
 @click.option('--dry-run', help='Don\'t save anything to the database.', is_flag=True)
-def migratedb(limit, dry_run):
+@click.option('--search-api/--no-search-api', help='Search external APIs (e.g. ORCID) for details.', default=True)
+def migratedb(limit, dry_run, search_api):
     '''
     Semi-manual migration script that attempts to extract individual contributors from 'author' and
     'contributor' fields (if present) in order to create Agent and ContributionActivity records for
@@ -124,6 +145,10 @@ def migratedb(limit, dry_run):
 
     combiner = migration.Combiner(parser)
     combined = combiner.run()
+    if search_api:
+        api_updater = migration.APISearch()
+        for agnt in combined:
+            api_updater.update(agnt)
     click.echo('\n\nContributors found:')
     click.echo('\t' + '\n\t'.join([f'{k}: {len(v)}' for k, v in combined.items()]))
     if dry_run:
@@ -134,66 +159,64 @@ def migratedb(limit, dry_run):
     contribution_activity_create = toolkit.get_action('contribution_activity_create')
     agent_affiliation_create = toolkit.get_action('agent_affiliation_create')
     remove_keys = ['packages', 'affiliations', 'key', 'all_names']
-    for agent_type, agents in combined.items():
-        for a in agents:
-            try:
-                # create the agent (check it doesn't exist first)
-                agent_dict = {
-                    'agent_type': agent_type,
-                    **{k: v for k, v in a.items() if k not in remove_keys}
-                }
-                if agent_type == 'person':
-                    filters = [and_(AgentQuery.m.family_name == a['family_name'],
-                                    AgentQuery.m.given_names == a['given_names'])]
-                else:
-                    filters = [AgentQuery.m.name == a['name']]
-                if a.get('external_id'):
-                    filters.append(AgentQuery.m.external_id == a.get('external_id'))
-                matches = AgentQuery.search(or_(*filters))
-                if len(matches) == 1:
-                    new_agent = matches[0].as_dict()
-                    click.echo(f'MATCHED "{a["key"]}"')
-                elif len(matches) > 1:
-                    choice_ix = migration.multi_choice(
-                        f'Does "{a["key"]}" match any of these existing agents?',
-                        [m.display_name for m in matches] + ['None of these'])
-                    if choice_ix == len(matches):
-                        del a['external_id']
-                        del a['external_id_scheme']
-                        new_agent = agent_create({'ignore_auth': True}, agent_dict)
-                        click.echo(f'CREATED "{a["key"]}"')
-                    else:
-                        new_agent = matches[choice_ix].as_dict()
-                        click.echo(f'MATCHED "{a["key"]}"')
-                else:
+    for a in combined:
+        try:
+            # create the agent (check it doesn't exist first)
+            agent_dict = {
+                **{k: v for k, v in a.items() if k not in remove_keys}
+            }
+            if a['agent_type'] == 'person':
+                filters = [and_(AgentQuery.m.family_name == a['family_name'],
+                                AgentQuery.m.given_names == a['given_names'])]
+            else:
+                filters = [AgentQuery.m.name == a['name']]
+            if a.get('external_id'):
+                filters.append(AgentQuery.m.external_id == a.get('external_id'))
+            matches = AgentQuery.search(or_(*filters))
+            if len(matches) == 1:
+                new_agent = matches[0].as_dict()
+                click.echo(f'MATCHED "{a["key"]}"')
+            elif len(matches) > 1:
+                choice_ix = migration.multi_choice(
+                    f'Does "{a["key"]}" match any of these existing agents?',
+                    [m.display_name for m in matches] + ['None of these'])
+                if choice_ix == len(matches):
+                    del a['external_id']
+                    del a['external_id_scheme']
                     new_agent = agent_create({'ignore_auth': True}, agent_dict)
                     click.echo(f'CREATED "{a["key"]}"')
-                agent_lookup[a['key']] = new_agent['id']
-                # then activities
-                for pkg, order in a['packages'].get('author', []):
-                    # create citation
-                    contribution_activity_create({'ignore_auth': True},
-                                                 {'activity': '[citation]',
-                                                  'scheme': 'internal',
-                                                  'order': order,
-                                                  'package_id': pkg,
-                                                  'agent_id': new_agent['id']})
-                    # then the actual activity
-                    contribution_activity_create({'ignore_auth': True},
-                                                 {'activity': 'Unspecified',
-                                                  'scheme': 'internal',
-                                                  'package_id': pkg,
-                                                  'agent_id': new_agent['id']})
-                for pkg, _ in a['packages'].get('contributor', []):
-                    # just the activity for this one
-                    contribution_activity_create({'ignore_auth': True},
-                                                 {'activity': 'Unspecified',
-                                                  'scheme': 'internal',
-                                                  'package_id': pkg,
-                                                  'agent_id': new_agent['id']})
-            except Exception as e:
-                # very broad catch just so it doesn't ruin everything if one thing breaks
-                click.echo(f'Skipping {a["key"]} due to error: {e}', err=True)
+                else:
+                    new_agent = matches[choice_ix].as_dict()
+                    click.echo(f'MATCHED "{a["key"]}"')
+            else:
+                new_agent = agent_create({'ignore_auth': True}, agent_dict)
+                click.echo(f'CREATED "{a["key"]}"')
+            agent_lookup[a['key']] = new_agent['id']
+            # then activities
+            for pkg, order in a['packages'].get('author', []):
+                # create citation
+                contribution_activity_create({'ignore_auth': True},
+                                             {'activity': '[citation]',
+                                              'scheme': 'internal',
+                                              'order': order,
+                                              'package_id': pkg,
+                                              'agent_id': new_agent['id']})
+                # then the actual activity
+                contribution_activity_create({'ignore_auth': True},
+                                             {'activity': 'Unspecified',
+                                              'scheme': 'internal',
+                                              'package_id': pkg,
+                                              'agent_id': new_agent['id']})
+            for pkg, _ in a['packages'].get('contributor', []):
+                # just the activity for this one
+                contribution_activity_create({'ignore_auth': True},
+                                             {'activity': 'Unspecified',
+                                              'scheme': 'internal',
+                                              'package_id': pkg,
+                                              'agent_id': new_agent['id']})
+        except Exception as e:
+            # very broad catch just so it doesn't ruin everything if one thing breaks
+            click.echo(f'Skipping {a["key"]} due to error: {e}', err=True)
     # finally, the affiliations
     for pkg, pairs in combiner.affiliations.items():
         for agent_a, agent_b in pairs:
