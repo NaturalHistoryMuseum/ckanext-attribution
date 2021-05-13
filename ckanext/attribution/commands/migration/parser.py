@@ -6,12 +6,12 @@
 
 from collections import Counter
 from dataclasses import dataclass
+from textwrap import shorten
 
 import click
 import spacy
 from nameparser import HumanName
 from prompt_toolkit import prompt
-from textwrap import shorten
 
 from .common import rgx, multi_choice
 
@@ -57,6 +57,15 @@ class Parser(object):
         for line in txt.split('\n'):
             line = line.replace('\\r', '')
             sublines = self.split(line)
+            # bulk sort for large lists
+            if len(sublines) > 20 and click.confirm(
+                f'Do you want to set the same type for all {len(sublines)} contributors found in this block?'):
+                i = multi_choice(
+                    f'What type of contributors are in "{shorten(line, width=50, placeholder="...")}"?',
+                    self.contributors.keys())
+                _type = list(self.contributors.keys())[i]
+            else:
+                _type = None
             for i, subline in enumerate(sublines):
                 if subline == '':
                     continue
@@ -67,7 +76,7 @@ class Parser(object):
                             (name.strip(), a)]
                         parsed_affiliation = ParsedSegment(a.strip(), text=a, affiliations=[],
                                                            packages={'affiliation': (pkg_id, None)})
-                        self.sort_contributor(parsed_affiliation)
+                        self.sort_contributor(parsed_affiliation, _type)
                 else:
                     name = subline
                     affiliations = []
@@ -115,13 +124,14 @@ class Parser(object):
             else:
                 semicolon_splits = []
             rgx_splits = rgx.name.findall(segment)
-            nlp_sep_splits = self._split_by_nlp_sep(segment)
+            rv_names = self._split_by_reversed_names(segment)
             nlp_ent_splits = self._split_by_nlp_ents(segment)
             options = []
             printable_options = []
-            for o in sorted(
-                [nlp_ent_splits, nlp_sep_splits, rgx_splits, semicolon_splits, [segment]],
-                    key=lambda x: -len(x)):
+            all_options = [nlp_ent_splits, rv_names, rgx_splits, semicolon_splits, [segment]]
+            all_options = sorted(all_options, key=lambda x: -len(''.join(x)))
+            all_options = sorted(all_options, key=lambda x: -len(x))
+            for o in all_options:
                 if len(o) == 0:
                     continue
                 printable = '; '.join(o) + ' ({0} fragments)'.format(len(o))
@@ -137,7 +147,8 @@ class Parser(object):
                 return options[ix]
 
         if len(segments) > 1:
-            click.echo(f'{len(segments)} found in "{shorten(txt, width=50, placeholder="...")}". e.g.:')
+            click.echo(
+                f'{len(segments)} found in "{shorten(txt, width=50, placeholder="...")}". e.g.:')
             for s in segments[:5]:
                 click.echo('\t' + s)
             if click.confirm('Skip individual processing of these segments?'):
@@ -175,6 +186,10 @@ class Parser(object):
         parsed = self.nlp(txt)
         return [ent.text for ent in parsed.ents]
 
+    def _split_by_reversed_names(self, txt):
+        names = rgx.reversed_names.findall(txt)
+        return [', '.join(n) for n in names]
+
     def extract_affiliations(self, txt):
         '''
         Uses regexes to find probable affiliations in parentheses.
@@ -189,21 +204,23 @@ class Parser(object):
         else:
             return txt, []
 
-    def sort_contributor(self, c: ParsedSegment):
+    def sort_contributor(self, c: ParsedSegment, default_type=None):
         '''
         Sort a contributor into lists based on agent type.
         '''
         name = HumanName(c.name)
-        _type = '?'
+        initials = ''.join(rgx.abbr.findall(c.name))
+        _type = default_type
         if name.last in self.contributors['person']:
             _type = 'person'
         else:
             for k, v in self.contributors.items():
                 if k == 'person':
                     continue
-                if c.name in v:
-                    _type = k
-        if _type == '?':
+                if initials in v:
+                    if c.name in v[initials]:
+                        _type = k
+        if _type is None:
             i = multi_choice('What type of contributor is "{0}"?'.format(c.name),
                              self.contributors.keys())
             _type = list(self.contributors.keys())[i]
@@ -219,5 +236,4 @@ class Parser(object):
             family_name_records[name.first[0]] = initial_records
             self.contributors[_type][name.last] = family_name_records
         else:
-            initials = ''.join(rgx.abbr.findall(c.name))
             self.contributors[_type][initials] = self.contributors[_type].get(initials, []) + [c]

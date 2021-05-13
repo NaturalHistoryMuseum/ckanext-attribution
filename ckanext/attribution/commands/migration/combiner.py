@@ -139,32 +139,39 @@ class Combiner(object):
                 i = multi_choice(question,
                                  [result_format.format(**r) for r in results] + ['None of these'],
                                  default=len(results))
-                update_dict = {}
                 if i == len(results):
-                    if not click.confirm('Enter ID manually?'):
-                        if not click.confirm('Edit names manually?'):
-                            return
-                        elif contrib.get('agent_type') == 'person':
-                            update_dict['given_names'] = prompt('Given names: ',
-                                                                default=contrib['given_names'])
-                            update_dict['family_name'] = prompt('Family name: ',
-                                                                default=contrib['family_name'])
-                        else:
-                            update_dict['name'] = prompt('Name: ', default=contrib['name'])
-                    else:
-                        _id = click.prompt(f'{api_name} ID', show_default=False).strip()
-                        update_dict = api.as_agent_record(api.read(_id))
+                    update_dict = self._manual_edit(contrib, api_name)
                 else:
                     update_dict = results[i]
-                update_dict['agent_type'] = contrib['agent_type']
-                new_name = self._get_key(update_dict)
-                click.echo(f'Setting name to {new_name}')
-                return update_dict
             else:
                 click.echo(f'No results found for "{display_name}".')
+                update_dict = self._manual_edit(contrib, api_name)
         except Exception as e:
             click.echo(f'{api_name} search error for "{display_name}"', err=True)
             click.echo(e, err=True)
+            update_dict = self._manual_edit(contrib, api_name)
+        update_dict['agent_type'] = contrib['agent_type']
+        if 'name' in update_dict or 'family_name' in update_dict:
+            new_name = self._get_key(update_dict)
+            click.echo(f'Setting name to {new_name}')
+        return update_dict
+
+    def _manual_edit(self, contrib, api_name):
+        if click.confirm('Enter ID manually?'):
+            api = self.api[api_name]
+            _id = click.prompt(f'{api_name} ID', show_default=False).strip()
+            return api.as_agent_record(api.read(_id))
+        if not click.confirm('Edit names manually?'):
+            return {}
+        if contrib.get('agent_type') == 'person':
+            return {
+                'given_names': prompt('Given names: ',
+                                      default=contrib['given_names']),
+                'family_name': prompt('Family name: ',
+                                      default=contrib['family_name'])
+            }
+        else:
+            return {'name': prompt('Name: ', default=contrib['name'])}
 
     def search_orcid(self, contrib):
         display_name = ' '.join([contrib['given_names'], contrib['family_name']])
