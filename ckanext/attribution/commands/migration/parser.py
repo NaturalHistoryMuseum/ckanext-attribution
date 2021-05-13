@@ -124,7 +124,7 @@ class Parser(object):
             else:
                 semicolon_splits = []
             rgx_splits = rgx.name.findall(segment)
-            rv_names = self._split_by_reversed_names(segment)
+            rv_names = self._split_by_reversed_name(segment)
             nlp_ent_splits = self._split_by_nlp_ents(segment)
             options = []
             printable_options = []
@@ -186,8 +186,8 @@ class Parser(object):
         parsed = self.nlp(txt)
         return [ent.text for ent in parsed.ents]
 
-    def _split_by_reversed_names(self, txt):
-        names = rgx.reversed_names.findall(txt)
+    def _split_by_reversed_name(self, txt):
+        names = rgx.reversed_name.findall(txt)
         return [', '.join(n) for n in names]
 
     def extract_affiliations(self, txt):
