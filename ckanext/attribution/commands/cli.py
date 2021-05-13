@@ -149,8 +149,7 @@ def migratedb(limit, dry_run, search_api):
         api_updater = migration.APISearch()
         for agnt in combined:
             api_updater.update(agnt)
-    click.echo('\n\nContributors found:')
-    click.echo('\t' + '\n\t'.join([f'{k}: {len(v)}' for k, v in combined.items()]))
+    click.echo(f'\n\n{len(combined)} contributors found.')
     if dry_run:
         click.echo('Exiting before saving to the database.')
         return
