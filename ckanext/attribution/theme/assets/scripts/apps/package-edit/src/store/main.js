@@ -3,7 +3,6 @@ import Vuex from 'vuex';
 import {get} from '../api';
 import {Activity, Affiliation, Agent, Citation, Meta} from '../models/main';
 import VuexORM from '@vuex-orm/core';
-import VuexPersistence from 'vuex-persist';
 
 Vue.use(Vuex);
 
@@ -14,14 +13,9 @@ database.register(Activity);
 database.register(Meta);
 database.register(Citation);
 
-// persistent storage
-const vuexLocal = new VuexPersistence({
-    storage: window.sessionStorage
-});
-
 const store = new Vuex.Store(
     {
-        plugins  : [VuexORM.install(database), vuexLocal.plugin],
+        plugins  : [VuexORM.install(database)],
         state    : {
             settings: {
                 packageId      : null,
