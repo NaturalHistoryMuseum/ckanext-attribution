@@ -15,7 +15,7 @@ from ckanext.attribution.model import (agent, agent_affiliation, agent_contribut
                                        relationships)
 from ckanext.attribution.model.crud import AgentQuery, PackageQuery, \
     PackageContributionActivityQuery, AgentAffiliationQuery, AgentContributionActivityQuery
-from fuzzywuzzy import process
+from fuzzywuzzy import process, fuzz
 from sqlalchemy import and_, or_
 
 
@@ -120,8 +120,9 @@ def merge_agents(q, match_threshold):
         if a['id'] in merging:
             continue
         other_agents = [o.display_name for o in all_agents if o.id != a['id']]
-        matches = [m for m in process.extract(a['display_name'], other_agents, limit=10) if
-                   m[1] >= int(match_threshold)]
+        compare = process.extract(a['display_name'], other_agents, limit=10,
+                                  scorer=fuzz.token_set_ratio)
+        matches = [m for m in compare if m[1] >= int(match_threshold)]
         to_merge = []
         while matches:
             ix = migration.multi_choice(
