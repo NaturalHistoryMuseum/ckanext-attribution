@@ -14,7 +14,8 @@ from ckanext.attribution.model import (agent, agent_affiliation, agent_contribut
                                        contribution_activity, package_contribution_activity,
                                        relationships)
 from ckanext.attribution.model.crud import AgentQuery, PackageQuery, \
-    PackageContributionActivityQuery
+    PackageContributionActivityQuery, AgentAffiliationQuery, AgentContributionActivityQuery
+from fuzzywuzzy import process
 from sqlalchemy import and_, or_
 
 
@@ -108,11 +109,85 @@ def agent_external_search(ids, limit):
         AgentQuery.update(a.id, **update_dict)
 
 
+@attribution.command()
+@click.option('--q')
+def merge_agents(q):
+    agents = toolkit.get_action('agent_list')({}, {'q': q})
+    all_agents = AgentQuery.all()
+    merging = []
+    for a in agents:
+        if a['id'] in merging:
+            continue
+        other_agents = [o.display_name for o in all_agents if o.id != a['id']]
+        matches = [m for m in process.extract(a['display_name'], other_agents, limit=10) if m[1] >= 50]
+        to_merge = []
+        while matches:
+            ix = migration.multi_choice(
+                f'Choose a{"nother" if len(to_merge) > 0 else ""} record to merge with {a["display_name"]}:',
+                [f'{m}: {x}%' for m, x in matches] + ['None of these'], default=len(matches))
+            if ix == len(matches):
+                break
+            match_name = matches.pop(ix)[0]
+            to_merge.append(
+                next(r for r in all_agents if r.display_name == match_name and r.id != a['id']))
+        if len(to_merge) == 0:
+            continue
+        to_merge.append(AgentQuery.read(a['id']))
+        merging += [m.id for m in to_merge]
+        has_external_id = [r for r in to_merge if r.external_id is not None]
+        if len(has_external_id) == 1:
+            base_record = has_external_id[0]
+        else:
+            choices = has_external_id if len(has_external_id) > 1 else to_merge
+            ix = migration.multi_choice('Choose base record:',
+                                        [f'{r.display_name} ({r.external_id_url or "no ID"})' for r
+                                         in choices])
+            base_record = choices[ix]
+        not_base_record = [r for r in to_merge if r.id != base_record.id]
+        for merging_record in not_base_record:
+            # update affiliations
+            for aff in merging_record.affiliations:
+                if aff['agent'].id == base_record.id:
+                    AgentAffiliationQuery.delete(aff['affiliation'].id)
+                else:
+                    k = 'agent_a_id' if aff[
+                                            'affiliation'].agent_a_id == merging_record.id else 'agent_b_id'
+                    AgentAffiliationQuery.update(aff['affiliation'].id, **{k: base_record.id})
+            base_record_activities = AgentContributionActivityQuery.search(
+                AgentContributionActivityQuery.m.agent_id == base_record.id)
+            merging_activities = AgentContributionActivityQuery.search(
+                AgentContributionActivityQuery.m.agent_id == merging_record.id)
+            for activity in merging_activities:
+                name = activity.contribution_activity.activity
+                pkg = activity.contribution_activity.package.id
+                scheme = activity.contribution_activity.scheme
+                matching_activities = [x for x in base_record_activities if
+                                       (x.contribution_activity.activity == name and
+                                        x.contribution_activity.package.id == pkg and
+                                        x.contribution_activity.scheme == scheme)]
+                if len(matching_activities) == 0:
+                    AgentContributionActivityQuery.update(activity.id, agent_id=base_record.id)
+                else:
+                    matching_activities.append(activity)
+                    matching_activities = sorted(matching_activities,
+                                                 key=lambda x: x.contribution_activity.order)
+                    first_activity = matching_activities.pop(0)
+                    AgentContributionActivityQuery.update(first_activity.id,
+                                                          agent_id=base_record.id)
+                    for other_activity in matching_activities:
+                        AgentContributionActivityQuery.delete(other_activity.id)
+            AgentQuery.delete(merging_record.id)
+            click.echo(
+                f'Merged {merging_record.display_name} ({merging_record.id}) into {base_record.display_name} ({base_record.id}).')
+    if len(merging) == 0:
+        click.echo('Nothing to merge.')
+
 
 @attribution.command()
 @click.option('--limit', help='Process n packages at a time (best for testing/debugging).')
 @click.option('--dry-run', help='Don\'t save anything to the database.', is_flag=True)
-@click.option('--search-api/--no-search-api', help='Search external APIs (e.g. ORCID) for details.', default=True)
+@click.option('--search-api/--no-search-api', help='Search external APIs (e.g. ORCID) for details.',
+              default=True)
 def migratedb(limit, dry_run, search_api):
     '''
     Semi-manual migration script that attempts to extract individual contributors from 'author' and
