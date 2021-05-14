@@ -73,7 +73,7 @@ def sync(ids):
 @click.argument('ids', nargs=-1)
 def refresh_packages(ids):
     if not ids:
-        ids = [r.package_id for r in PackageContributionActivityQuery.all()]
+        ids = list(set([r.package_id for r in PackageContributionActivityQuery.all()]))
     click.echo('Attempting to update the author field for {0} packages.'.format(len(ids)))
     errors = []
     with click.progressbar(ids) as bar:
