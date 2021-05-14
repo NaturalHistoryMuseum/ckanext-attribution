@@ -111,7 +111,8 @@ def agent_external_search(ids, limit):
 
 @attribution.command()
 @click.option('--q')
-def merge_agents(q):
+@click.option('--match-threshold', default=75)
+def merge_agents(q, match_threshold):
     agents = toolkit.get_action('agent_list')({}, {'q': q})
     all_agents = AgentQuery.all()
     merging = []
@@ -119,7 +120,8 @@ def merge_agents(q):
         if a['id'] in merging:
             continue
         other_agents = [o.display_name for o in all_agents if o.id != a['id']]
-        matches = [m for m in process.extract(a['display_name'], other_agents, limit=10) if m[1] >= 50]
+        matches = [m for m in process.extract(a['display_name'], other_agents, limit=10) if
+                   m[1] >= int(match_threshold)]
         to_merge = []
         while matches:
             ix = migration.multi_choice(
