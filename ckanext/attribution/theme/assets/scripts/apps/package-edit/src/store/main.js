@@ -17,10 +17,10 @@ const store = new Vuex.Store(
     {
         plugins  : [VuexORM.install(database)],
         state    : {
-            settings: {
-                packageId      : null,
-                canEdit        : false,
-                doiPlugin      : false,
+            settings       : {
+                packageId: null,
+                canEdit  : false,
+                doiPlugin: false,
             },
             packageDetail  : {},
             controlledLists: {
@@ -53,7 +53,7 @@ const store = new Vuex.Store(
             updateSettings(state, payload) {
                 Vue.set(state.settings, 'packageId', payload.packageId);
                 Vue.set(state.settings, 'canEdit', payload.canEdit);
-                Vue.set(state.settings, 'doiPlugin', payload.doiPlugin)
+                Vue.set(state.settings, 'doiPlugin', payload.doiPlugin);
             }
         },
         actions  : {
@@ -125,9 +125,23 @@ const store = new Vuex.Store(
             },
             removeContributor(context, contributorId) {
                 // mark for deletion rather than deleting instantly
-                Agent.updateMeta(contributorId, {is_hidden: true, to_delete: true});
-                Agent.query().with('_activities').find(contributorId).activities.forEach(a => {
-                    Activity.updateMeta(a.id, {to_delete: true});
+                let promises = [];
+                promises.push(Agent.updateMeta(contributorId, {is_hidden: true, to_delete: true}));
+                let agent = Agent.query().with('_activities').find(contributorId);
+                agent.activities.forEach(a => {
+                    promises.push(Activity.updateMeta(a.id, {to_delete: true}));
+                });
+                Promise.all(promises).then(() => {
+                    if (agent.citation) {
+                        Citation.query()
+                                .whereHas('agent', q => {
+                                    q.where('isActive', true);
+                                })
+                                .orderBy('order').get()
+                                .forEach((c, i) => {
+                                    Citation.update({where: c.id, data: {order: i + 1}});
+                                });
+                    }
                 });
             },
             syncAgent(context, contributorId) {

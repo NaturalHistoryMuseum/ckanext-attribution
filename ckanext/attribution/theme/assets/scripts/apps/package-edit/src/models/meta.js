@@ -19,4 +19,8 @@ export default class Meta extends Model {
             item: this.morphTo('item_id', 'item_type')
         };
     }
+
+    get isShown() {
+        return (!this.is_hidden) && (!this.to_delete);
+    }
 }

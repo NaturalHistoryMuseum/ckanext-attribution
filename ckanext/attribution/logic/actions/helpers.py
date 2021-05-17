@@ -3,8 +3,8 @@ import json
 
 from ckan.plugins import toolkit
 from ckanext.attribution.model.crud import (AgentQuery, AgentContributionActivityQuery,
-                                            ContributionActivityQuery,
-                                            AgentAffiliationQuery, PackageQuery)
+                                            ContributionActivityQuery, AgentAffiliationQuery,
+                                            PackageQuery, PackageContributionActivityQuery)
 
 
 def split_list_by_action(input_list, crud_model, id_field='id'):
@@ -68,18 +68,20 @@ def parse_contributors(context, data_dict):
         agent_upd(context, agent)
     # agents marked 'to_delete' almost certainly should not be deleted - only their activities
     # should be removed
+    deleted_agents = [a['id'] for a in agents['deleted']]
 
     # activities
     activities = split_list_by_action(contributors.get('activities', []), ContributionActivityQuery)
-    for agent in agents['deleted']:
+    for agent in deleted_agents:
         activities['deleted'] += [r.as_dict() for r in
-                                  AgentContributionActivityQuery.read_agent_package(agent['id'],
-                                                                                    pkg_id)]
+                                  AgentContributionActivityQuery.read_agent_package(agent, pkg_id)]
     activities['deleted'] = list(set([a['id'] for a in activities['deleted']]))
     activity_cre = toolkit.get_action('contribution_activity_create')
     activity_upd = toolkit.get_action('contribution_activity_update')
     activity_del = toolkit.get_action('contribution_activity_delete')
     for activity in activities['new']:
+        if activity['agent_id'] in deleted_agents:
+            continue
         del activity['id']
         new_agent_id = new_agents.get(activity['agent_id'])
         if new_agent_id:
@@ -87,14 +89,17 @@ def parse_contributors(context, data_dict):
         activity['package_id'] = activity.get('package_id', pkg_id)
         activity_cre(context, activity)
     for activity in activities['updated']:
+        if activity['agent_id'] in deleted_agents:
+            continue
         activity_upd(context, activity)
     for activity in activities['deleted']:
         activity_del(context, {'id': activity})
 
     # citations (specialised activities)
     citations = split_list_by_action(contributors.get('citations', []), ContributionActivityQuery)
-    citation_ids = []
     for citation in citations['new']:
+        if citation['agent_id'] in deleted_agents:
+            continue
         del citation['id']
         citation['activity'] = '[citation]'
         citation['scheme'] = 'internal'
@@ -103,12 +108,18 @@ def parse_contributors(context, data_dict):
             citation['agent_id'] = new_agent_id
         citation['package_id'] = citation.get('package_id', pkg_id)
         new_citation = activity_cre(context, citation)
-        citation_ids.append(new_citation['id'])
     for citation in citations['updated']:
+        if citation['agent_id'] in deleted_agents:
+            continue
         updated_citation = activity_upd(context, citation)
-        citation_ids.append(updated_citation['id'])
     for citation in citations['deleted']:
         activity_del(context, {'id': citation['id']})
+    # make sure the order is right
+    all_citations = sorted([c for c in PackageQuery.get_contributions(pkg_id) if
+                            c.activity == '[citation]'], key=lambda x: x.order)
+    for i, c in enumerate(all_citations):
+        if c.order != i+1:
+            activity_upd(context, {'id': c.id, 'order': i+1})
 
     # affiliations
     affiliations = split_list_by_action(contributors.get('affiliations', []), AgentAffiliationQuery,
@@ -131,6 +142,8 @@ def parse_contributors(context, data_dict):
         new_other_agent_id = new_agents.get(aff['other_agent_id'])
         aff['agent_b_id'] = new_other_agent_id or aff['other_agent_id']
         aff['package_id'] = pkg_id
+        if aff['agent_a_id'] in deleted_agents or aff['agent_b_id'] in deleted_agents:
+            continue
         affiliation_cre(context, aff)
 
     for aff in affiliations['updated']:
@@ -139,12 +152,16 @@ def parse_contributors(context, data_dict):
         aff['agent_a_id'] = new_agent_id or aff['agent_id']
         new_other_agent_id = new_agents.get(aff['other_agent_id'])
         aff['agent_b_id'] = new_other_agent_id or aff['other_agent_id']
+        if aff['agent_a_id'] in deleted_agents or aff['agent_b_id'] in deleted_agents:
+            continue
         affiliation_upd(context, aff)
 
     for aff in affiliations['deleted']:
         affiliation_del(context, {'id': aff['db_id']})
 
-    return citation_ids
+    for agent in deleted_agents:
+        for aff in AgentAffiliationQuery.read_agent(agent, pkg_id):
+            affiliation_del(context, {'id': aff.id})
 
 
 def get_author_string(package_id=None, citation_ids=None):

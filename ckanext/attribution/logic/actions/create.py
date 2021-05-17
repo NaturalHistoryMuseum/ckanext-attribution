@@ -140,7 +140,7 @@ def package_create(next_func, context, data_dict):
     # functions first
     created_pkg = next_func(context, data_dict)
     created_pkg['attribution'] = data_dict.get('attribution', '{}')
-    citation_ids = parse_contributors(context, created_pkg)
+    parse_contributors(context, created_pkg)
 
-    data_dict['author'] = get_author_string(citation_ids=citation_ids)
+    data_dict['author'] = get_author_string(package_id=created_pkg['id'])
     return data_dict
