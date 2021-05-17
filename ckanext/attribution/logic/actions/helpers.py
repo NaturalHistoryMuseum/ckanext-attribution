@@ -2,7 +2,7 @@ import itertools
 import json
 
 from ckan.plugins import toolkit
-from ckanext.attribution.model.crud import (AgentQuery,
+from ckanext.attribution.model.crud import (AgentQuery, AgentContributionActivityQuery,
                                             ContributionActivityQuery,
                                             AgentAffiliationQuery, PackageQuery)
 
@@ -71,6 +71,11 @@ def parse_contributors(context, data_dict):
 
     # activities
     activities = split_list_by_action(contributors.get('activities', []), ContributionActivityQuery)
+    for agent in agents['deleted']:
+        activities['deleted'] += [r.as_dict() for r in
+                                  AgentContributionActivityQuery.read_agent_package(agent['id'],
+                                                                                    pkg_id)]
+    activities['deleted'] = list(set([a['id'] for a in activities['deleted']]))
     activity_cre = toolkit.get_action('contribution_activity_create')
     activity_upd = toolkit.get_action('contribution_activity_update')
     activity_del = toolkit.get_action('contribution_activity_delete')
@@ -84,7 +89,7 @@ def parse_contributors(context, data_dict):
     for activity in activities['updated']:
         activity_upd(context, activity)
     for activity in activities['deleted']:
-        activity_del(context, {'id': activity['id']})
+        activity_del(context, {'id': activity})
 
     # citations (specialised activities)
     citations = split_list_by_action(contributors.get('citations', []), ContributionActivityQuery)

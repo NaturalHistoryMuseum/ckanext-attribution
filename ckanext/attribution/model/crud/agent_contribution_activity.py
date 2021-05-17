@@ -15,3 +15,8 @@ class AgentContributionActivityQuery(BaseQuery):
     # model and table (subclasses should override)
     m = AgentContributionActivity
     t = agent_contribution_activity_table
+
+    @classmethod
+    def read_agent_package(cls, agent_id, package_id):
+        return [r.contribution_activity for r in cls.search(cls.m.agent_id == agent_id) if
+                r.contribution_activity.package.id == package_id]
