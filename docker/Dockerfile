@@ -13,7 +13,7 @@ RUN pip3 install --upgrade pip
 RUN pip3 install pytest-ckan
 
 # otherwise installing spacy breaks
-RUN pip3 install numpy
+RUN pip3 install numpy cython
 
 # install the dependencies
 RUN python3 setup.py develop && \
