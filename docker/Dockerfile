@@ -12,6 +12,9 @@ RUN pip3 install --upgrade pip
 # fixes this https://github.com/ckan/ckan/issues/5570
 RUN pip3 install pytest-ckan
 
+# otherwise installing spacy breaks
+RUN pip3 install numpy
+
 # install the dependencies
 RUN python3 setup.py develop && \
     pip3 install -r requirements.txt && \

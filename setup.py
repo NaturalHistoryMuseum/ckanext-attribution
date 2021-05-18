@@ -35,7 +35,6 @@ setup(
         'sqlalchemy',
         'requests',
         'beautifulsoup4>=4.4.0',
-        'numpy',
         'spacy[transformers]',
         'unidecode',
         'nameparser',
