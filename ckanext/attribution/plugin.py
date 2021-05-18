@@ -134,7 +134,8 @@ class AttributionPlugin(SingletonPlugin):
             'can_edit': helpers.can_edit,
             'split_caps': helpers.split_caps,
             'get_cited_contributors': helpers.get_cited_contributors,
-            'controlled_list': helpers.controlled_list
+            'controlled_list': helpers.controlled_list,
+            'doi_plugin': helpers.doi_plugin
         }
 
     # IDoi
@@ -166,6 +167,12 @@ class AttributionPlugin(SingletonPlugin):
         for c in all_contributors['cited']:
             creator_dict = _make_contrib_dict(c)
             creators.append(creator_dict)
+
+        if len(creators) == 0:
+            default_author = toolkit.config.get('ckanext.doi.publisher',
+                                                toolkit.config.get('ckan.site_title', 'Anonymous'))
+            creators.append({'full_name': default_author,
+                             'is_org': True})
 
         contributors = []
         for c in all_contributors['uncited']:

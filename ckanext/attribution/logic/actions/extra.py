@@ -67,6 +67,9 @@ def attribution_controlled_lists(context, data_dict):
                 {'name': 'Sponsor'},
                 {'name': 'Supervisor'},
                 {'name': 'WorkPackageLeader'},
+            ],
+            'internal': [
+                {'name': 'Unspecified'}
             ]
         },
         'contribution_activity_levels': ['Lead', 'Supporting', 'Equal'],

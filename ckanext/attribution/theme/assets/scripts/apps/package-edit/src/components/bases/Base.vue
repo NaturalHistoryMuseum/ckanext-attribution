@@ -20,7 +20,7 @@ export default {
         };
     },
     computed: {
-        ...mapState(['canEdit', 'controlledLists', 'packageId']),
+        ...mapState(['settings', 'controlledLists']),
         contributor() {
             return Agent.query().with('meta').with('citation').find(this.contributorId);
         },

@@ -64,15 +64,22 @@
                     </text-field>
                 </template>
             </div>
-            <div class="agent-user-edit attribution-row">
+            <div class="agent-user-edit attribution-row" v-if="edits.agent_type === 'person'">
                 <autocomplete-field v-model="edits.user_id" @typing="updateUserOptions" :options="userOptions"
-                                    label="Associated user" :item-id="'agent-user-' + contributorId">
+                                    label="Linked user account" :item-id="'agent-user-' + contributorId" v-if="!edits.user_id">
                 </autocomplete-field>
+                <div class="attribution-field user-display" v-if="user">
+                    <label>Linked user account</label>
+                    <a :href="'/user/' + edits.user_id" target="_blank">
+                        {{ user }}
+                    </a>
+                    <i class="fas fa-times" @click="edits.user_id = null"></i>
+                </div>
                 <help-tooltip>
-                    If this contributor has a user account registered on the portal, associate it here
+                    If this contributor has a user account registered on this site, associate it here
                 </help-tooltip>
             </div>
-            <div class="agent-affiliations-edit attribution-row">
+            <div class="agent-affiliations-edit attribution-row" v-if="edits.agent_type === 'person'">
                 <autocomplete-list v-model="affiliations" @typing="updateAffiliationOptions"
                                    :options="affiliationOptions"
                                    label="Add affiliation" :item-id="'agent-affiliation-' + contributorId">
@@ -120,7 +127,8 @@ export default {
         return {
             affiliations      : [],
             userOptions       : [],
-            affiliationOptions: []
+            affiliationOptions: [],
+            user: null
         };
     },
     computed  : {
@@ -204,7 +212,7 @@ export default {
             // get user info
             if (this.edits.user_id) {
                 get('user_show', {'id': this.edits.user_id}).then(d => {
-                    this.userOptions = [{label: d.display_name, value: this.edits.user_id}];
+                    this.user = d.display_name;
                 });
             }
             this.$emit('validated', this.isValid);
@@ -225,7 +233,7 @@ export default {
                 let body = {
                     agent_id      : this.contributorId,
                     other_agent_id: a.value,
-                    package_id    : this.packageId,
+                    package_id    : this.settings.packageId,
                     meta          : {
                         is_new      : true,
                         is_temporary: this.contributor.is_temporary
@@ -346,6 +354,18 @@ export default {
                 this.saveEdit();
             }
         });
+    },
+    watch: {
+        'edits.user_id': function () {
+            if (this.edits.user_id) {
+                get('user_show', {'id': this.edits.user_id}).then(d => {
+                    this.user = d.display_name;
+                });
+            }
+            else {
+                this.user = null;
+            }
+        }
     }
 };
 </script>

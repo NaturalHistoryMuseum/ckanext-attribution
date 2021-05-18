@@ -5,7 +5,7 @@
 # Created by the Natural History Museum in London, UK
 
 from ckan.plugins import toolkit
-from ckanext.attribution.logic.actions.helpers import parse_contributors
+from ckanext.attribution.logic.actions.helpers import parse_contributors, get_author_string
 from ckanext.attribution.model.crud import (AgentContributionActivityQuery, AgentQuery,
                                             ContributionActivityQuery,
                                             PackageContributionActivityQuery, AgentAffiliationQuery)
@@ -97,7 +97,7 @@ def contribution_activity_create(context, data_dict):
     :param activity: short (one/two words) description for the activity
     :type activity: str
     :param scheme: name of the role/activity taxonomy, e.g. credit or datacite
-    :type scheme: str, optional
+    :type scheme: str
     :param level: lead, equal, or supporting
     :type level: str, optional
     :param time: time activity took place
@@ -139,16 +139,8 @@ def package_create(next_func, context, data_dict):
     # we need the package ID to create links, but that's not created yet - so run the other
     # functions first
     created_pkg = next_func(context, data_dict)
-    created_pkg['attribution'] = data_dict['attribution']
-    citation_ids = parse_contributors(context, created_pkg)
+    created_pkg['attribution'] = data_dict.get('attribution', '{}')
+    parse_contributors(context, created_pkg)
 
-    citations = sorted([ContributionActivityQuery.read(c) for c in citation_ids],
-                       key=lambda x: x.order)
-    author_string = '; '.join([c.agent.citation_name for c in citations])
-
-    if len(citations) == 0:
-        author_string = toolkit.config.get('ckanext.doi.publisher',
-                                           toolkit.config.get('ckan.site_title', 'Anonymous'))
-
-    data_dict['author'] = author_string
+    data_dict['author'] = get_author_string(package_id=created_pkg['id'])
     return data_dict

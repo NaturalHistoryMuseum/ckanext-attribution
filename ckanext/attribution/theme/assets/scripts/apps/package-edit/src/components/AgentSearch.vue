@@ -14,13 +14,10 @@
                             }}</label>
                     </div>
                 </template>
-                <div class="help-icon">
-                    <i class="fas fa-question-circle"></i>
-                    <div class="help-tooltip" role="tooltip" id="orcid-search-toggle-help">
-                        Search external sources for contributors that have not yet been imported.
-                        This may take several seconds.
-                    </div>
-                </div>
+                <help-tooltip>
+                    Search external sources for contributors that have not yet been imported.
+                    This may take several seconds.
+                </help-tooltip>
             </div>
             <autocomplete-field v-model="selectedAgent" @typing="updateSearchResults" @input="setAgent"
                                 :options="searchResults" @cancel="cancelSearches"
@@ -92,7 +89,7 @@ export default {
         };
     },
     computed  : {
-        ...mapState(['controlledLists', 'packageId']),
+        ...mapState(['controlledLists', 'settings']),
         searchLoading() {
             return this.queuedSearches > 0;
         },
@@ -250,7 +247,7 @@ export default {
                     data:
                         {
                             agent_id  : newId,
-                            package_id: this.packageId,
+                            package_id: this.settings.packageId,
                             meta      : {is_new: true, is_editing: true, is_temporary: true}
                         }
                 }).then(() => {
@@ -261,7 +258,7 @@ export default {
                     return Citation.insert({
                         data: {
                             agent_id  : newId,
-                            package_id: this.packageId,
+                            package_id: this.settings.packageId,
                             order     : citationCount + 1,
                             meta      : {is_new: true}
                         }

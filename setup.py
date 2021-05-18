@@ -6,7 +6,7 @@
 
 from setuptools import find_packages, setup
 
-__version__ = '1.0.0-alpha'
+__version__ = '1.0.0'
 
 with open('README.md', 'r') as f:
     __long_description__ = f.read()
@@ -34,7 +34,12 @@ setup(
         'orcid',
         'sqlalchemy',
         'requests',
-        'beautifulsoup4>=4.4.0'
+        'beautifulsoup4>=4.4.0',
+        'spacy[transformers]',
+        'unidecode',
+        'nameparser',
+        'prompt_toolkit',
+        'fuzzywuzzy[speedup]'
     ],
     entry_points= \
         '''

@@ -3,6 +3,9 @@
         <label :for="fieldId">
             <slot></slot>
         </label>
+        <help-tooltip v-if="showHelpText">
+            <slot name="help"></slot>
+        </help-tooltip>
         <input class="form-control" type="text" :value="value" :id="fieldId" :placeholder="placeholder" @input="debouncedSetValue">
     </div>
 </template>

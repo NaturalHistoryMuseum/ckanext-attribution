@@ -32,8 +32,7 @@ export default class Agent extends BaseModel {
         let isShown = Meta.query()
                            .where('item_id', this.id)
                            .where('item_type', 'agents')
-                           .where('is_hidden', false)
-                           .where('to_delete', false)
+                           .where('isShown', true)
                            .exists();
         return hasActivities && isShown;
     }

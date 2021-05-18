@@ -3,7 +3,6 @@ import Vuex from 'vuex';
 import {get} from '../api';
 import {Activity, Affiliation, Agent, Citation, Meta} from '../models/main';
 import VuexORM from '@vuex-orm/core';
-import VuexPersistence from 'vuex-persist';
 
 Vue.use(Vuex);
 
@@ -14,18 +13,16 @@ database.register(Activity);
 database.register(Meta);
 database.register(Citation);
 
-// persistent storage
-const vuexLocal = new VuexPersistence({
-  storage: window.localStorage
-})
-
 const store = new Vuex.Store(
     {
-        plugins  : [VuexORM.install(database), vuexLocal.plugin],
+        plugins  : [VuexORM.install(database)],
         state    : {
-            packageId      : null,
+            settings       : {
+                packageId: null,
+                canEdit  : false,
+                doiPlugin: false,
+            },
             packageDetail  : {},
-            canEdit        : false,
             controlledLists: {
                 'agentTypes'    : {},
                 'activityTypes' : {},
@@ -53,11 +50,10 @@ const store = new Vuex.Store(
             }
         },
         mutations: {
-            setPackageId(state, payload) {
-                Vue.set(state, 'packageId', payload);
-            },
-            setEditPermission(state, payload) {
-                Vue.set(state, 'canEdit', payload);
+            updateSettings(state, payload) {
+                Vue.set(state.settings, 'packageId', payload.packageId);
+                Vue.set(state.settings, 'canEdit', payload.canEdit);
+                Vue.set(state.settings, 'doiPlugin', payload.doiPlugin);
             }
         },
         actions  : {
@@ -66,10 +62,10 @@ const store = new Vuex.Store(
                               .then(() => context.dispatch('getContributions'));
             },
             getContributions(context) {
-                if ((!context.state.packageId) || context.state.packageId === '') {
+                if ((!context.state.settings.packageId) || context.state.settings.packageId === '') {
                     return;
                 }
-                return get('package_contributions_show', {id: context.state.packageId})
+                return get('package_contributions_show', {id: context.state.settings.packageId})
                     .then(res => {
                         if (res === undefined) {
                             return;
@@ -93,14 +89,14 @@ const store = new Vuex.Store(
                                     agent._activities = r.activities.filter(a => a.activity !== '[citation]')
                                                          .map(a => {
                                                              if (!a.package_id) {
-                                                                 a.package_id = context.state.packageId;
+                                                                 a.package_id = context.state.settings.packageId;
                                                              }
                                                              return a;
                                                          });
                                     agent._citation = r.activities.filter(a => a.activity === '[citation]')
                                                        .map(a => {
                                                            if (!a.package_id) {
-                                                               a.package_id = context.state.packageId;
+                                                               a.package_id = context.state.settings.packageId;
                                                            }
                                                            return a;
                                                        })
@@ -111,12 +107,11 @@ const store = new Vuex.Store(
                         });
                     });
             },
-            getPackage(context, packageId) {
-                context.commit('setPackageId', packageId);
-                if ((!context.state.packageId) || context.state.packageId === '') {
+            getPackage(context) {
+                if ((!context.state.settings.packageId) || context.state.settings.packageId === '') {
                     return;
                 }
-                return get('package_show', {id: packageId}).then(res => {
+                return get('package_show', {id: context.state.settings.packageId}).then(res => {
                     context.state.packageDetail = res;
                 });
             },
@@ -130,9 +125,23 @@ const store = new Vuex.Store(
             },
             removeContributor(context, contributorId) {
                 // mark for deletion rather than deleting instantly
-                Agent.updateMeta(contributorId, {is_hidden: true, to_delete: true});
-                Agent.query().with('_activities').find(contributorId).activities.forEach(a => {
-                    Activity.updateMeta(a.id, {to_delete: true});
+                let promises = [];
+                promises.push(Agent.updateMeta(contributorId, {is_hidden: true, to_delete: true}));
+                let agent = Agent.query().with('_activities').find(contributorId);
+                agent.activities.forEach(a => {
+                    promises.push(Activity.updateMeta(a.id, {to_delete: true}));
+                });
+                Promise.all(promises).then(() => {
+                    if (agent.citation) {
+                        Citation.query()
+                                .whereHas('agent', q => {
+                                    q.where('isActive', true);
+                                })
+                                .orderBy('order').get()
+                                .forEach((c, i) => {
+                                    Citation.update({where: c.id, data: {order: i + 1}});
+                                });
+                    }
                 });
             },
             syncAgent(context, contributorId) {
@@ -150,7 +159,7 @@ const store = new Vuex.Store(
             purgeTemporary(context) {
                 Meta.query().where('is_temporary', true).with('item').get().forEach(m => {
                     m.item.$delete();
-                })
+                });
             }
         }
     }

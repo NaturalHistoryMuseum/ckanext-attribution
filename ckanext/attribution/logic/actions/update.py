@@ -5,10 +5,10 @@
 # Created by the Natural History Museum in London, UK
 
 from ckan.plugins import toolkit
-from ckanext.attribution.logic.actions.helpers import parse_contributors
+from ckanext.attribution.logic.actions.helpers import parse_contributors, get_author_string
 from ckanext.attribution.model.crud import (AgentQuery,
                                             ContributionActivityQuery,
-                                            AgentAffiliationQuery, PackageQuery)
+                                            AgentAffiliationQuery, AgentContributionActivityQuery)
 
 
 def agent_affiliation_update(context, data_dict):
@@ -90,6 +90,7 @@ def agent_update(context, data_dict):
     except KeyError:
         raise toolkit.ValidationError('Record ID must be provided.')
     current_record = AgentQuery.read(item_id)
+    old_citation_name = current_record.citation_name
     if 'agent_type' not in data_dict:
         agent_type = current_record.agent_type
     else:
@@ -97,6 +98,15 @@ def agent_update(context, data_dict):
     data_dict['agent_type'] = agent_type
     data_dict = AgentQuery.validate(data_dict)
     new_agent = AgentQuery.update(item_id, **data_dict)
+    if new_agent.citation_name != old_citation_name:
+        # if the name has been updated, the author strings need to be updated everywhere else too
+        agent_id_column = AgentContributionActivityQuery.m.agent_id
+        contrib_activities = AgentContributionActivityQuery.search(agent_id_column == item_id)
+        packages = list(set([c.contribution_activity.package.id for c in contrib_activities]))
+        for p in packages:
+            author_string = get_author_string(package_id=p)
+            toolkit.get_action('package_revise')({}, {'match': {'id': p},
+                                                      'update': {'author': author_string}})
     if new_agent is None:
         raise toolkit.ValidationError('Unable to update agent. Check the fields are valid.')
     return new_agent.as_dict()
@@ -158,14 +168,5 @@ def contribution_activity_update(context, data_dict):
 @toolkit.chained_action
 def package_update(next_func, context, data_dict):
     parse_contributors(context, data_dict)
-
-    cited_contributors = sorted([c for c in PackageQuery.get_contributions(data_dict['id']) if
-                                 c.activity == '[citation]'], key=lambda x: x.order)
-    author_string = '; '.join([c.agent.citation_name for c in cited_contributors])
-
-    if len(cited_contributors) == 0:
-        author_string = toolkit.config.get('ckanext.doi.publisher',
-                                           toolkit.config.get('ckan.site_title', 'Anonymous'))
-
-    data_dict['author'] = author_string
+    data_dict['author'] = get_author_string(package_id=data_dict['id'])
     return next_func(context, data_dict)

@@ -64,6 +64,7 @@
 
 .attribution-field {
   display: grid;
+  grid-template-columns: 1fr auto;
   grid-gap: 0.5em 1em;
 
   &.one-line {
@@ -71,17 +72,24 @@
     justify-items: left;
   }
 
+  &.user-display {
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+  }
+
   & label {
     margin: 0;
   }
 
-  & input {
+  & input, select {
     margin: 0;
     width: 100%;
+    grid-column: span 2;
 
     &[type="checkbox"] {
       top: 0;
       width: unset;
+      grid-column: span 1;
     }
   }
 }
@@ -363,14 +371,10 @@
 
 .help-icon {
   padding-left: 0.5em;
-  cursor: help;
   position: relative;
 
-  & .help-tooltip {
-    display: none;
-  }
 
-  & i:hover + .help-tooltip {
+  & .help-tooltip {
     display: block;
     position: absolute;
     right: 0;
@@ -461,7 +465,7 @@
     & + label:before {
       display: block;
       position: absolute;
-      top: 1.3em;
+      top: 14px;
       left: 0;
       bottom: 0;
       right: 0;
@@ -479,7 +483,7 @@
     & + label:after {
       display: block;
       position: absolute;
-      top: 1.3em;
+      top: 16px;
       left: 1px;
       bottom: 0;
       width: 22px;

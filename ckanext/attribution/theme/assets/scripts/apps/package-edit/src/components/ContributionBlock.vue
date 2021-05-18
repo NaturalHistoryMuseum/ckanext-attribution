@@ -52,7 +52,7 @@ export default {
         };
     },
     computed  : {
-        ...mapState(['packageId', 'controlledLists']),
+        ...mapState(['settings', 'controlledLists']),
         activityCreating() {
             return this.activityEditing ? Activity.query().with('meta')
                                                   .find(this.activityEditing).meta.is_new : false;
@@ -86,7 +86,7 @@ export default {
                 Activity.insert({
                     data: {
                         agent_id: this.contributorId,
-                        package_id: this.packageId,
+                        package_id: this.settings.packageId,
                         meta    : {
                             is_new: true
                         }
@@ -146,7 +146,7 @@ export default {
                             activity: '[citation]',
                             scheme  : 'internal',
                             agent_id: this.contributorId,
-                            package_id: this.packageId,
+                            package_id: this.settings.packageId,
                             order   : citationCount + 1,
                             meta    : {is_new: true}
                         }

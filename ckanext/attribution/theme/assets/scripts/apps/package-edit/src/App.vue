@@ -35,7 +35,7 @@ export default {
         AgentSearch,
         draggable
     },
-    props     : ['packageId', 'canEdit'],
+    props     : ['packageId', 'canEdit', 'doiPlugin'],
     data      : function () {
         return {
             sortedAgents: []
@@ -102,11 +102,15 @@ export default {
     },
     methods   : {
         ...mapActions(['initialise', 'getPackage']),
-        ...mapMutations(['setEditPermission'])
+        ...mapMutations(['updateSettings'])
     },
     created   : function () {
-        this.getPackage(this.packageId);
-        this.setEditPermission(this.canEdit === 'True');
+        this.updateSettings({
+            packageId: this.packageId,
+            canEdit: this.canEdit === 'True',
+            doiPlugin: this.doiPlugin === 'True'
+        })
+        this.getPackage();
         this.initialise();
     }
 };
