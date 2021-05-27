@@ -98,6 +98,7 @@ def agent_external_search(ids, limit):
         agents = AgentQuery.search(AgentQuery.m.id.in_(ids))
     else:
         agents = AgentQuery.search(AgentQuery.m.external_id.is_(None))
+    agents = sorted(agents, key=lambda x: -len(x.contribution_activities))
     if limit:
         agents = agents[:int(limit)]
     total = len(agents)
