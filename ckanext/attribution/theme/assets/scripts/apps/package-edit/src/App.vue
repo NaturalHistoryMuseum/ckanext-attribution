@@ -1,17 +1,39 @@
 <template>
     <div>
         <CitationPreview/>
-        <div class="cited-contributors">
+        <div class="cited-contributors" :class="{'attribution-loading': results.loading}">
             <draggable v-model="citedContributors" group="citationOrder" handle=".citation-ordering">
                 <ContributionBlock v-for="contributor in citedContributors" :contributor-id="contributor.id"
                                    :key="contributor.id"/>
             </draggable>
         </div>
-        <div class="other-contributors">
+        <div class="other-contributors" :class="{'attribution-loading': results.loading}">
             <draggable v-model="otherContributors" group="citationOrder" handle=".citation-ordering">
                 <ContributionBlock v-for="contributor in otherContributors" :contributor-id="contributor.id"
                                    :key="contributor.id"/>
             </draggable>
+        </div>
+        <div class="contributor-pagination" v-if="results.total > results.pageSize">
+            <div>
+                <span class="page-btn" v-if="results.offset - results.pageSize >= 0" @click="previousPage">
+                    <i class="fas fa-arrow-left"></i>
+                    Previous
+                </span>
+            </div>
+            <div>
+                <span v-if="!results.loading">{{results.offset + 1}} - {{results.offset + results.pageSize}}</span>
+                <i v-if="results.loading" class="fas fa-spin fa-spinner"></i>
+                <span style="padding-left: 0.4em;">of {{ results.total }} total contributors loaded</span>
+                <help-tooltip>
+                    To reduce page load times and make it easier to read the rest of the page, only {{ results.pageSize }} contributors are loaded at a time.
+                </help-tooltip>
+            </div>
+            <div>
+                <span class="page-btn" v-if="results.offset + results.pageSize < results.total" @click="nextPage">
+                    Next
+                    <i class="fas fa-arrow-right"></i>
+                </span>
+            </div>
         </div>
         <AgentSearch/>
         <input type="hidden" id="contributor-content" name="attribution" :value="serialisedContent">
@@ -21,7 +43,7 @@
 <script>
 import ContributionBlock from './components/ContributionBlock.vue';
 import AgentSearch from './components/AgentSearch.vue';
-import {mapActions, mapMutations, mapGetters} from 'vuex';
+import {mapActions, mapMutations, mapGetters, mapState} from 'vuex';
 import {Agent, Citation} from './models/main';
 import draggable from 'vuedraggable';
 const CitationPreview = import(/* webpackChunkName: 'citations' */ './components/CitationPreview.vue')
@@ -42,6 +64,7 @@ export default {
         };
     },
     computed  : {
+        ...mapState(['results']),
         ...mapGetters(['serialisedContent']),
         citedContributors: {
             get() {
@@ -101,7 +124,7 @@ export default {
         }
     },
     methods   : {
-        ...mapActions(['initialise', 'getPackage']),
+        ...mapActions(['initialise', 'getPackage', 'nextPage', 'previousPage']),
         ...mapMutations(['updateSettings'])
     },
     created   : function () {

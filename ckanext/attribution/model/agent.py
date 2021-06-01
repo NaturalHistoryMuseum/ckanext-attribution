@@ -76,6 +76,14 @@ class Agent(DomainObject):
         return [a for a in self.affiliations if
                 a['affiliation'].package_id is None or a['affiliation'].package_id == pkg_id]
 
+    def package_order(self, pkg_id):
+        try:
+            citation = next(c for c in self.contribution_activities if (
+                c.package.id == pkg_id or c.package.name == pkg_id) and c.activity == '[citation]')
+        except StopIteration:
+            return -1
+        return citation.order
+
     @property
     def sort_name(self):
         return self.family_name if self.agent_type == 'person' else self.name

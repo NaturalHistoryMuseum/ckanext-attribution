@@ -3,11 +3,11 @@
         <div class="citation-preview-header">
             <span class="citation-preview-title">Citation preview</span>
             <help-tooltip>
-                This is a rough guide to help visualise how changes made to the contributors below will affect the
-                citation output.
+                This is a <em>rough guide</em> to help visualise how changes made to the
+                contributors below will affect the citation output.
                 <br>
-                Only numbered contributors are counted as citeable authors. Click the plus icon to make
-                a contributor citeable.
+                Only numbered contributors are counted as citeable authors. Click the plus icon on
+                the left side of a contributor to make them citeable.
             </help-tooltip>
         </div>
         <div class="citation-preview-body">
@@ -16,7 +16,16 @@
                 <span>{{ availableFormats[citationFormat] }}</span>
                 <i class="fas fa-angle-right fa-lg" @click="scrollFormat(1)"></i>
             </div>
-            <div class="citation-string">{{ citation }}</div>
+            <div class="citation-string">
+                {{ citation }}
+            </div>
+        </div>
+        <div class="attribution-warning">
+            <small>
+                <i class="fas fa-warning"></i>
+                <em>This is a <b>guide</b>. Do not use this as an actual citation.</em>
+                <em v-if="warning">{{ warning }}</em>
+            </small>
         </div>
     </div>
 </template>
@@ -24,11 +33,12 @@
 <script>
 import {Agent} from '../models/main';
 import {Cite, plugins} from '@citation-js/core';
-require('@citation-js/plugin-csl')
 import {mapState} from 'vuex';
 import ieee from '../../vendor/ieee.csl';
 import chicago from '../../vendor/chicago-author-date.csl';
 import mla from '../../vendor/modern-language-association.csl';
+
+require('@citation-js/plugin-csl');
 
 export default {
     name    : 'CitationPreview',
@@ -47,7 +57,7 @@ export default {
         };
     },
     computed: {
-        ...mapState(['packageDetail']),
+        ...mapState(['packageDetail', 'results']),
         citedContributors() {
             return Agent.query()
                         .with('meta')
@@ -58,6 +68,22 @@ export default {
                             // .orderBy doesn't seem to update automatically but this does
                             return a.citation.order - b.citation.order;
                         });
+        },
+        warning() {
+            if (this.results.total <= this.results.pageSize) {
+                return null;
+            }
+            let warningString = `This preview only includes the ${this.results.pageSize} contributors on this page; the `;
+            let otherContributors = [];
+            if (this.results.offset > 0) {
+                otherContributors.push(`${this.results.offset} previous`);
+            }
+            let remaining = this.results.total - (this.results.pageSize + this.results.offset);
+            if (remaining > 0) {
+                otherContributors.push(`${remaining} subsequent`);
+            }
+            warningString += otherContributors.join(' and ') + ' contributors are not shown.';
+            return warningString;
         },
         citation() {
             let contributors = this.citedContributors.map(c => {

@@ -63,9 +63,6 @@ export default {
         },
         blockClasses() {
             let classes = ['agent-detail', `agent-${this.contributor.agent_type.toLowerCase()}`]
-            if (this.contributor.meta.is_dirty) {
-                classes.push('agent-dirty');
-            }
             if (this.contributor.activities.filter(a => !a.meta.to_delete).length === 0) {
                 classes.push('agent-empty');
             }

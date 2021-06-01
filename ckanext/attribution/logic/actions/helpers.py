@@ -18,9 +18,10 @@ def split_list_by_action(input_list, crud_model, id_field='id'):
         if meta.get('is_editing', False):
             # ignore anything where the changes haven't been saved
             continue
+        is_saved_edit = meta.get('is_saved_edit', False)
         is_hidden = meta.get('is_hidden', False)
         to_delete = meta.get('to_delete', False)
-        is_active = not is_hidden and not to_delete
+        is_active = (is_saved_edit or not is_hidden) and not to_delete
 
         is_new = meta.get('is_new', False)
         if is_active and is_new and item.get(id_field) is not None:

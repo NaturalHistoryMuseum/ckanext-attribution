@@ -14,3 +14,11 @@ main-css:
     LESS_BIN: ../../../../../node_modules/less/bin/lessc
   contents:
     - less/attribution.less
+
+addtl-css:
+  output: ckanext-attribution/%(version)s_addtl.css
+  filters: less
+  config:
+    LESS_BIN: ../../../../../node_modules/less/bin/lessc
+  contents:
+    - less/attribution-additional.less

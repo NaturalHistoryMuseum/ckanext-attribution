@@ -130,27 +130,49 @@ def package_contribution_activity_show(context, data_dict):
 @toolkit.side_effect_free
 def package_contributions_show(context, data_dict):
     '''
-    Show associated agents and their contributions for a given package.
+    Show associated agents and their contributions for a given package. Agents are returned in
+    citation then agent id order.
 
     :param id: ID of the package record
     :type id: str
+    :param limit: limit the number of records returned
+    :type limit: int
+    :param offset: skip n agents
+    :type offset: int
     :returns: The package contribution activity record.
     :rtype: dict
-
     '''
     toolkit.check_access('package_contributions_show', context, data_dict)
     item_id = toolkit.get_or_bust(data_dict, 'id')
+    limit = data_dict.get('limit')
+    limit = int(limit) if limit is not None else None
+    offset = int(data_dict.get('offset', 0))
     contributions = PackageQuery.get_contributions(item_id)
     by_agent = {k: list(v) for k, v in
                 itertools.groupby(sorted(contributions, key=lambda x: x.agent.id),
                                   key=lambda x: x.agent.id)}
-    contributions_dict = [
+    sorted_contributions = sorted([
         {
-            'agent': v[0].agent.as_dict(),
+            'agent': v[0].agent,
             'activities': [a.as_dict() for a in v],
             'affiliations': toolkit.get_action('agent_affiliations')(context,
-                                               {'agent_id': k, 'package_id': item_id})
-        } for k, v in by_agent.items()]
+                                                                     {'agent_id': k,
+                                                                      'package_id': item_id})
+        } for k, v in by_agent.items()], key=lambda x: x['agent'].package_order(item_id))
+    total = len(sorted_contributions)
+    page_end = offset + limit if limit is not None else total + 1
+    contributions_dict = {
+        'contributions': [
+            {
+                'agent': c['agent'].as_dict(),
+                'activities': c['activities'],
+                'affiliations': c['affiliations']
+            } for c in sorted_contributions[offset:page_end]
+        ],
+        'total': total,
+        'offset': offset,
+        'page_size': limit or total
+    }
     return contributions_dict
 
 

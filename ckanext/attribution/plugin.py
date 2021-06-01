@@ -123,7 +123,7 @@ class AttributionPlugin(SingletonPlugin):
             toolkit.config.get('ckanext.attribution.enable_faceting', False))
         if enable_faceting:
             contributions = toolkit.get_action('package_contributions_show')({}, {'id': pkg_dict['id']})
-            agents = [c['agent'] for c in contributions]
+            agents = [c['agent'] for c in contributions['contributions']]
             pkg_dict['author'] = [a['display_name'] for a in agents]
         return pkg_dict
 

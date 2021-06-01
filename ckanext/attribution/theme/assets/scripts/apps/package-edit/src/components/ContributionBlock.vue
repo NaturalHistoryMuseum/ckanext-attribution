@@ -13,7 +13,7 @@
             </template>
 
         </div>
-        <div>
+        <div :class="{'agent-dirty': contributor.meta.is_dirty}">
             <ShowAgent :contributor-id="contributorId" v-if="!contributor.meta.is_editing"/>
             <EditAgent :contributor-id="contributorId" v-if="contributor.meta.is_editing"/>
             <div class="agent-activities">

@@ -7,7 +7,7 @@
             <slot name="help"></slot>
         </help-tooltip>
         <input class="form-control" :class="{'form-control-invalid': failed}" type="text" v-model="textValue"
-               :id="fieldId" :placeholder="placeholder" @input="debouncedSetValue">
+               :id="fieldId" :placeholder="placeholder" @input="debouncedSetValue" @focusout="debouncedSetValue.flush">
         <i class="box-status-icon fas" :class="boxIcon" :title="failed" @click="$emit('cancel')"></i>
     </div>
 </template>
@@ -52,7 +52,7 @@ export default {
         }
     },
     created() {
-        this.debouncedSetValue = debounce(this.validate, 500);
+        this.debouncedSetValue = debounce(this.validate, 500, {maxWait: 500});
         this.textValue = this.value;
         this.validate();
     },

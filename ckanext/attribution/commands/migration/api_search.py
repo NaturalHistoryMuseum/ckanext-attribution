@@ -45,7 +45,7 @@ class APISearch(object):
         :param result_format: display format of each result, e.g. "{name} ({location})"
         :return: None if not found, dict for matching result if found/selected
         '''
-        aff = '; '.join(contrib['affiliations'])
+        aff = '; '.join(contrib.get('affiliations', []))
         api = self.api[api_name]
         display_name = lookup.pop('display_name')
         try:

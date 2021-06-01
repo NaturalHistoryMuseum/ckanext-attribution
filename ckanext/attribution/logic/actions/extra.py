@@ -233,6 +233,6 @@ def validate_external_id(context, data_dict):
                     'id': match,
                     'error': None
                 }
-        except:
+        except Exception as e:
             continue
-    return {'id': None, 'error': 'ID could not be read from {0}.'.format(external_id_scheme)}
+    return {'id': None, 'error': '{0} ID could not be found'.format(external_id_scheme)}
