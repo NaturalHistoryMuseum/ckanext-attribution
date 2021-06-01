@@ -102,7 +102,7 @@ export default {
         }
     },
     created() {
-        this._debounced = debounce(this.textChange, this.delay);
+        this._debounced = debounce(this.textChange, this.delay, {maxWait: this.delay});
         if (this.value) {
             let matchingOptions = this.options.filter((o) => o.value === this.value);
             if (matchingOptions.length > 0) {

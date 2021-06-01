@@ -28,7 +28,14 @@ const store = new Vuex.Store(
                 'activityTypes' : {},
                 'activityLevels': [],
                 'agentIdSchemes': {}
-            }
+            },
+            results        : {
+                offset  : 0,
+                total   : 0,
+                pageSize: 10,
+                loading : false
+            },
+
         },
         getters  : {
             agentTypeIcon    : (state) => (agentType) => {
@@ -54,7 +61,7 @@ const store = new Vuex.Store(
                 Vue.set(state.settings, 'packageId', payload.packageId);
                 Vue.set(state.settings, 'canEdit', payload.canEdit);
                 Vue.set(state.settings, 'doiPlugin', payload.doiPlugin);
-            }
+            },
         },
         actions  : {
             initialise(context) {
@@ -65,18 +72,34 @@ const store = new Vuex.Store(
                 if ((!context.state.settings.packageId) || context.state.settings.packageId === '') {
                     return;
                 }
-                return get('package_contributions_show', {id: context.state.settings.packageId})
+                Vue.set(context.state.results, 'loading', true);
+
+                let editedItems = Meta.query()
+                                      .withAll()
+                                      .where('is_dirty', true)
+                                      .orWhere('is_new', true)
+                                      .orWhere('to_delete', true)
+                                      .get();
+
+                return get('package_contributions_show', {
+                    id                                           : context.state.settings.packageId,
+                    limit: context.state.results.pageSize, offset: context.state.results.offset
+                })
                     .then(res => {
                         if (res === undefined) {
                             return;
                         }
-                        let agentIds = res.map(r => r.agent.id);
+                        Vue.set(context.state.results, 'offset', res.offset);
+                        Vue.set(context.state.results, 'pageSize', res.page_size);
+                        Vue.set(context.state.results, 'total', res.total);
+
+                        let agentIds = res.contributions.map(r => r.agent.id);
                         // there seems to be some kind of bug in .create() where it will sometimes
                         // create everything and then delete it - manually clearing first then
                         // using .insert() instead avoids that
                         context.dispatch('entities/deleteAll').then(() => {
-                            Agent.insert({
-                                data: res.map(r => {
+                            return Agent.insert({
+                                data: res.contributions.map(r => {
                                     let agent = r.agent;
                                     agent.affiliations = r.affiliations.map(a => {
                                         a.db_id = a.id;
@@ -104,8 +127,48 @@ const store = new Vuex.Store(
                                     return agent;
                                 })
                             });
-                        });
+                        }).then(() => {
+                                // add the previously edited items but hide them
+                                editedItems.forEach((itemMeta) => {
+                                    let factory = this.$db().model(itemMeta.item_type);
+                                    let item = itemMeta.item;
+                                    delete itemMeta.item;
+                                    delete itemMeta.id;
+                                    delete itemMeta.$id;
+                                    if (factory.query().where('id', itemMeta.item_id).exists()) {
+                                        factory.update({data: item})
+                                               .then(() => {
+                                                   itemMeta.is_hidden = false;
+                                                   itemMeta.is_saved_edit = false;
+                                                   return factory.updateMeta(item.id, itemMeta)
+                                               });
+
+                                    } else {
+                                        itemMeta.is_hidden = true;
+                                        itemMeta.is_saved_edit = true;
+                                        item.meta = itemMeta;
+                                        factory.insert({data: item});
+                                    }
+                                });
+                            }
+                        );
+                    }).finally(() => {
+                        Vue.set(context.state.results, 'loading', false);
                     });
+            },
+            nextPage(context) {
+                let newOffset = context.state.results.offset + context.state.results.pageSize;
+                if (newOffset < context.state.results.total) {
+                    Vue.set(context.state.results, 'offset', newOffset);
+                    context.dispatch('getContributions');
+                }
+            },
+            previousPage(context) {
+                let newOffset = context.state.results.offset - context.state.results.pageSize;
+                if (newOffset >= 0) {
+                    Vue.set(context.state.results, 'offset', newOffset);
+                    context.dispatch('getContributions');
+                }
             },
             getPackage(context) {
                 if ((!context.state.settings.packageId) || context.state.settings.packageId === '') {

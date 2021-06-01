@@ -72,6 +72,9 @@ def sync(ids):
 @attribution.command()
 @click.argument('ids', nargs=-1)
 def refresh_packages(ids):
+    '''
+    Update the author string for all (or the specified) packages.
+    '''
     if not ids:
         ids = list(set([r.package_id for r in PackageContributionActivityQuery.all()]))
     click.echo('Attempting to update the author field for {0} packages.'.format(len(ids)))

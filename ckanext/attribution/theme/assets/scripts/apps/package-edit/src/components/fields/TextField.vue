@@ -6,7 +6,8 @@
         <help-tooltip v-if="showHelpText">
             <slot name="help"></slot>
         </help-tooltip>
-        <input class="form-control" type="text" :value="value" :id="fieldId" :placeholder="placeholder" @input="debouncedSetValue">
+        <input class="form-control" type="text" :value="value" :id="fieldId" :placeholder="placeholder"
+               @input="debouncedSetValue" @focusout="debouncedSetValue.flush">
     </div>
 </template>
 
@@ -15,11 +16,11 @@ import Field from './Field.vue';
 import debounce from 'lodash.debounce';
 
 export default {
-    name: 'TextField',
+    name   : 'TextField',
     extends: Field,
-    props: ['placeholder'],
+    props  : ['placeholder'],
     created() {
-        this.debouncedSetValue = debounce(this.setValue, 200);
+        this.debouncedSetValue = debounce(this.setValue, 500, {maxWait: 500});
     },
-}
+};
 </script>
