@@ -8,7 +8,7 @@ import itertools
 import re
 
 from ckan.plugins import toolkit, plugin_loaded
-from ckanext.attribution.model.crud import PackageQuery
+from ckanext.attribution.model.crud import PackageQuery, AgentQuery
 
 
 def can_edit():
@@ -72,3 +72,11 @@ def controlled_list(list_name):
 
 def doi_plugin():
     return plugin_loaded('doi')
+
+
+def agent_from_user(user_id):
+    matches = AgentQuery.search(AgentQuery.m.user_id == user_id)
+    if matches:
+        return matches[0]
+    else:
+        return

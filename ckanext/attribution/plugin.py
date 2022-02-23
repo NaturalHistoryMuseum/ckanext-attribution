@@ -135,7 +135,8 @@ class AttributionPlugin(SingletonPlugin):
             'split_caps': helpers.split_caps,
             'get_cited_contributors': helpers.get_cited_contributors,
             'controlled_list': helpers.controlled_list,
-            'doi_plugin': helpers.doi_plugin
+            'doi_plugin': helpers.doi_plugin,
+            'agent_from_user': helpers.agent_from_user
         }
 
     # IDoi

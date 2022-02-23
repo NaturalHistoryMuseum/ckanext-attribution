@@ -1,0 +1,12 @@
+{% ckan_extends %}
+
+{% block user_info_extras %}
+{% set agent = h.agent_from_user(user.id) %}
+{% if agent and agent.external_id %}
+{% set external_scheme = h.controlled_list('agent_external_id_schemes')[agent.external_id_scheme] %}
+<dl>
+    <dt class="key">{{ external_scheme['label'] }} <i class="{{ external_scheme['fa_icon'] }}"></i></dt>
+    <dd class="value"><a href="{{ agent.external_id_url }}">{{ agent.external_id }}</a></dd>
+</dl>
+{% endif %}
+{% endblock %}
