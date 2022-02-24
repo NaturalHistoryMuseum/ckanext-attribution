@@ -80,3 +80,13 @@ def agent_from_user(user_id):
         return matches[0]
     else:
         return
+
+
+def user_contributions(user_id):
+    agent = agent_from_user(user_id)
+    packages = []
+    for c in agent.contribution_activities:
+        pkg_ids = [p['id'] for p in packages]
+        if c.package.id not in pkg_ids:
+            packages.append(c.package.as_dict())
+    return packages

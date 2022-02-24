@@ -136,7 +136,8 @@ class AttributionPlugin(SingletonPlugin):
             'get_cited_contributors': helpers.get_cited_contributors,
             'controlled_list': helpers.controlled_list,
             'doi_plugin': helpers.doi_plugin,
-            'agent_from_user': helpers.agent_from_user
+            'agent_from_user': helpers.agent_from_user,
+            'user_contributions': helpers.user_contributions
         }
 
     # IDoi
