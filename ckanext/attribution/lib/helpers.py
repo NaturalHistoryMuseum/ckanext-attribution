@@ -90,8 +90,18 @@ def user_contributions(user_id):
     by_package = {k: list(v) for k, v in itertools.groupby(
         sorted(agent.contribution_activities, key=lambda x: x.package.id),
         key=lambda x: x.package.id)}
-    by_package = [{'dataset': pkg_show({}, {'id': k}),
-                   'activities': [x for x in v if x.activity != '[citation]'],
-                   'citation': next(x.order for x in v if x.activity == '[citation]') if any([x.activity == '[citation]' for x in v]) else None
-                   } for k, v in by_package.items()]
-    return by_package
+    package_details = []
+    for k, v in by_package.items():
+        try:
+            pkg = pkg_show({}, {'id': k})
+        except toolkit.NotAuthorized:
+            continue
+        activities = [x for x in v if x.activity != '[citation]']
+        try:
+            citation = next(x.order for x in v if x.activity == '[citation]')
+        except StopIteration:
+            citation = None
+        package_details.append({'dataset': pkg,
+                                'activities': activities,
+                                'citation': citation})
+    return package_details
