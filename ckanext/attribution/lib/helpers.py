@@ -84,9 +84,24 @@ def agent_from_user(user_id):
 
 def user_contributions(user_id):
     agent = agent_from_user(user_id)
-    packages = []
-    for c in agent.contribution_activities:
-        pkg_ids = [p['id'] for p in packages]
-        if c.package.id not in pkg_ids:
-            packages.append(c.package.as_dict())
-    return packages
+    if not agent:
+        return []
+    pkg_show = toolkit.get_action('package_show')
+    by_package = {k: list(v) for k, v in itertools.groupby(
+        sorted(agent.contribution_activities, key=lambda x: x.package.id),
+        key=lambda x: x.package.id)}
+    package_details = []
+    for k, v in by_package.items():
+        try:
+            pkg = pkg_show({}, {'id': k})
+        except toolkit.NotAuthorized:
+            continue
+        activities = [x for x in v if x.activity != '[citation]']
+        try:
+            citation = next(x.order for x in v if x.activity == '[citation]')
+        except StopIteration:
+            citation = None
+        package_details.append({'dataset': pkg,
+                                'activities': activities,
+                                'citation': citation})
+    return package_details

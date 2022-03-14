@@ -1,5 +1,10 @@
 {% ckan_extends %}
 
+{% block content_primary_nav %}
+    {{ super() }}
+    {{ h.build_nav_icon('attribution_user.datasets', _('Contributions'),username=user.name, icon='quote-left') }}
+{% endblock %}
+
 {% block user_info_extras %}
     {% set agent = h.agent_from_user(user.id) %}
     {% if agent %}
