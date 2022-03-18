@@ -377,7 +377,7 @@
 
 
   & .help-tooltip {
-    display: block;
+    display: none;
     position: absolute;
     right: 0;
     background-color: @attribution-grey5;
@@ -387,6 +387,10 @@
     z-index: 100;
     width: 18em;
     border: 1px solid @attribution-grey3;
+  }
+
+  &:hover .help-tooltip {
+    display: block;
   }
 }
 

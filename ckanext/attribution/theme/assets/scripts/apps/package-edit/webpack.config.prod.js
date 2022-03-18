@@ -1,8 +1,8 @@
 'use strict';
 
-const merge = require('webpack-merge');
+const { merge } = require('webpack-merge');
 const commonConfig = require('./webpack.config.common');
-const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 
 const webpackConfig = {
@@ -15,8 +15,8 @@ const webpackConfig = {
     optimization: {
         minimize   : true,
         minimizer  : [
-            new OptimizeCSSAssetsPlugin({
-                cssProcessorPluginOptions: {
+            new CssMinimizerPlugin({
+                minimizerOptions: {
                     preset: ['default', {discardComments: {removeAll: true}}],
                 }
             }),
