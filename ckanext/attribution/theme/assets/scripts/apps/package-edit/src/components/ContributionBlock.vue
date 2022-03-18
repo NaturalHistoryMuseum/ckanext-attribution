@@ -97,6 +97,7 @@ export default {
             }
         },
         moveCitation(by) {
+            let contributorId = this.contributor.citation.id;
             let currentPosition = this.contributor.citation.order;
             let newPosition = currentPosition + by;
             if (newPosition < 1 || (this.lastCited && by === 1)) {
@@ -111,13 +112,13 @@ export default {
                 return Citation.updateMeta(records[0].id, {is_dirty: true})
             }).then(() => {
                 return Citation.update({
-                    where: this.contributor.citation.id,
+                    where: contributorId,
                     data : {
                         order: newPosition
                     }
                 });
-            }).then(() => {
-                return Citation.updateMeta(this.contributor.citation.id, {is_dirty: true})
+            }).then((record) => {
+                return Citation.updateMeta(record.id, {is_dirty: true})
             });
 
         },
