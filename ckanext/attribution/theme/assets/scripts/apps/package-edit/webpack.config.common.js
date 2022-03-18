@@ -1,6 +1,7 @@
 'use strict';
 
 const {VueLoaderPlugin} = require('vue-loader');
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin')
 
 const webpackConfig = {
     entry:   [
@@ -23,24 +24,26 @@ const webpackConfig = {
             },
             {
                 test: /\.css$/,
-                use: ['style-loader', 'css-loader'],
+                use: ['vue-style-loader','style-loader', 'css-loader'],
             },
             {
                 test: /\.csl$/,
-                use: 'raw-loader'
+                type: 'asset/source'
             }
         ]
     },
     plugins: [
-        new VueLoaderPlugin()
+        new VueLoaderPlugin(),
+        // this fixes a bug with citation-js where 'process' is not defined
+        // (https://github.com/citation-js/citation-js/issues/150)
+        new NodePolyfillPlugin()
     ],
     output:  {
         library:       'package-edit',
         libraryTarget: 'umd',
         filename: '[name].package-edit.js',
         publicPath: '/assets/scripts/apps/package-edit/'
-    },
-
+    }
 };
 
 module.exports = webpackConfig;

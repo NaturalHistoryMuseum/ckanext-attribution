@@ -32,13 +32,12 @@
 
 <script>
 import {Agent} from '../models/main';
+require('@citation-js/plugin-csl');  // this MUST go before the import of @citation-js/core
 import {Cite, plugins} from '@citation-js/core';
 import {mapState} from 'vuex';
 import ieee from '../../vendor/ieee.csl';
 import chicago from '../../vendor/chicago-author-date.csl';
 import mla from '../../vendor/modern-language-association.csl';
-
-require('@citation-js/plugin-csl');
 
 export default {
     name    : 'CitationPreview',
