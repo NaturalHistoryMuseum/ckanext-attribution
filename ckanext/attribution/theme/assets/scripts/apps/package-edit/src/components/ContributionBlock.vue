@@ -124,6 +124,15 @@ export default {
         },
         toggleCitation() {
             if (this.contributor.citeable) {
+                let currentPosition = this.contributor.citation.order;
+                Citation.update({
+                    where: c => c.order > currentPosition,
+                    data(c) {
+                        c.order -= 1;
+                    }
+                }).then((records) => {
+                    records.forEach(r => { Citation.updateMeta(r.id, {is_dirty: true}) })
+                })
                 Citation.updateMeta(this.contributor.citation.id, {
                     to_delete: true
                 });
