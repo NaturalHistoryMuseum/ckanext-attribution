@@ -1,6 +1,5 @@
 main-js:
   output: ckanext-attribution/%(version)s_main.js
-  filters: rjsmin
   extra:
     preload:
       - base/main
