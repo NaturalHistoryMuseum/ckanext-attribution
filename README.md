@@ -2,7 +2,7 @@
 
 # ckanext-attribution
 
-[![Tests](https://github.com/NaturalHistoryMuseum/ckanext-versioned-datastore/actions/workflows/main.yml/badge.svg)](https://github.com/NaturalHistoryMuseum/ckanext-versioned-datastore/actions/workflows/main.yml)
+[![Tests](https://github.com/NaturalHistoryMuseum/ckanext-attribution/actions/workflows/main.yml/badge.svg)](https://github.com/NaturalHistoryMuseum/ckanext-attribution/actions/workflows/main.yml)
 [![Coveralls](https://img.shields.io/coveralls/github/NaturalHistoryMuseum/ckanext-attribution/master.svg?style=flat-square)](https://coveralls.io/github/NaturalHistoryMuseum/ckanext-attribution)
 [![CKAN](https://img.shields.io/badge/ckan-2.9.1-orange.svg?style=flat-square)](https://github.com/ckan/ckan)
 
