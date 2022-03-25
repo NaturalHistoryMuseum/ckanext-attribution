@@ -12,13 +12,8 @@ RUN pip3 install --upgrade pip
 # fixes this https://github.com/ckan/ckan/issues/5570
 RUN pip3 install pytest-ckan
 
-# otherwise installing spacy breaks
-RUN pip3 install numpy cython
-
 # install the dependencies
-RUN python3 setup.py develop && \
-    pip3 install -r requirements.txt && \
-    pip3 install -r dev_requirements.txt
+RUN pip3 install .[test]
 
 # this entrypoint ensures our service dependencies (postgresql, solr and redis) are running before
 # running the cmd
