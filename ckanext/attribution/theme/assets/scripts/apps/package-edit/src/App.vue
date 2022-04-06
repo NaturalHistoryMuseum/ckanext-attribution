@@ -15,8 +15,12 @@
         </div>
         <div class="contributor-pagination" v-if="results.total > results.pageSize">
             <div>
-                <span class="page-btn" v-if="results.offset - results.pageSize >= 0" @click="previousPage">
-                    <i class="fas fa-arrow-left"></i>
+                <span class="page-btn" v-if="results.offset - results.pageSize >= 0" @click="changeOffset(0)">
+                    <i class="fas fa-angle-double-left"></i>
+                    First
+                </span>
+                <span class="page-btn" v-if="results.offset - results.pageSize > 0" @click="changeOffset(results.offset - results.pageSize)">
+                    <i class="fas fa-angle-left"></i>
                     Previous
                 </span>
             </div>
@@ -29,9 +33,13 @@
                 </help-tooltip>
             </div>
             <div>
-                <span class="page-btn" v-if="results.offset + results.pageSize < results.total" @click="nextPage">
+                <span class="page-btn" v-if="results.offset + results.pageSize < (results.total - results.pageSize)" @click="changeOffset(results.offset + results.pageSize)">
                     Next
-                    <i class="fas fa-arrow-right"></i>
+                    <i class="fas fa-angle-right"></i>
+                </span>
+                <span class="page-btn" v-if="results.offset + results.pageSize < results.total" @click="changeOffset(results.total - results.pageSize)">
+                    Last
+                    <i class="fas fa-angle-double-right"></i>
                 </span>
             </div>
         </div>
@@ -124,7 +132,7 @@ export default {
         }
     },
     methods   : {
-        ...mapActions(['initialise', 'getPackage', 'nextPage', 'previousPage']),
+        ...mapActions(['initialise', 'getPackage', 'changeOffset']),
         ...mapMutations(['updateSettings'])
     },
     created   : function () {

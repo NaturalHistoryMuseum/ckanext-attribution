@@ -156,16 +156,8 @@ const store = new Vuex.Store(
                         Vue.set(context.state.results, 'loading', false);
                     });
             },
-            nextPage(context) {
-                let newOffset = context.state.results.offset + context.state.results.pageSize;
-                if (newOffset < context.state.results.total) {
-                    Vue.set(context.state.results, 'offset', newOffset);
-                    context.dispatch('getContributions');
-                }
-            },
-            previousPage(context) {
-                let newOffset = context.state.results.offset - context.state.results.pageSize;
-                if (newOffset >= 0) {
+            changeOffset(context, newOffset) {
+                if (newOffset < context.state.results.total && newOffset >= 0) {
                     Vue.set(context.state.results, 'offset', newOffset);
                     context.dispatch('getContributions');
                 }
