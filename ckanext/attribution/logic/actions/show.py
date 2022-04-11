@@ -151,15 +151,17 @@ def package_contributions_show(context, data_dict):
     by_agent = {k: list(v) for k, v in
                 itertools.groupby(sorted(contributions, key=lambda x: x.agent.id),
                                   key=lambda x: x.agent.id)}
-    sorted_contributions = sorted([
+    total = len(by_agent)
+    agent_order = [(
         {
             'agent': v[0].agent,
             'activities': [a.as_dict() for a in v],
             'affiliations': toolkit.get_action('agent_affiliations')(context,
                                                                      {'agent_id': k,
                                                                       'package_id': item_id})
-        } for k, v in by_agent.items()], key=lambda x: x['agent'].package_order(item_id))
-    total = len(sorted_contributions)
+        }, v[0].agent.package_order(item_id)) for k, v in by_agent.items()]
+    sorted_contributions = [c for c, o in sorted(agent_order, key=lambda x: (x[1] if x[1] >= 0 else total, x[0]['agent'].sort_name))]
+
     page_end = offset + limit if limit is not None else total + 1
     contributions_dict = {
         'contributions': [
@@ -169,7 +171,9 @@ def package_contributions_show(context, data_dict):
                 'affiliations': c['affiliations']
             } for c in sorted_contributions[offset:page_end]
         ],
+        'all_agents': [c['agent'].id for c in sorted_contributions],
         'total': total,
+        'cited_total': len([x for x in agent_order if x[1] >= 0]),
         'offset': offset,
         'page_size': limit or total
     }
