@@ -15,17 +15,17 @@
         </div>
         <div class="contributor-pagination" v-if="results.total > results.pageSize">
             <div>
-                <span class="page-btn" v-if="results.offset - results.pageSize >= 0" @click="changeOffset(0)">
+                <span class="page-btn" v-if="results.offset > 0" @click="changeOffset(0)">
                     <i class="fas fa-angle-double-left"></i>
                     First
                 </span>
-                <span class="page-btn" v-if="results.offset - results.pageSize > 0" @click="changeOffset(results.offset - results.pageSize)">
+                <span class="page-btn" v-if="results.offset - results.pageSize > 0" @click="changeOffset(results.offset - (results.pageSize-1))">
                     <i class="fas fa-angle-left"></i>
                     Previous
                 </span>
             </div>
             <div>
-                <span v-if="!results.loading">{{results.offset + 1}} - {{results.offset + results.pageSize}}</span>
+                <span v-if="!results.loading">{{results.offset + 1}} - {{pageEnd}}</span>
                 <i v-if="results.loading" class="fas fa-spin fa-spinner"></i>
                 <span style="padding-left: 0.4em;">of {{ results.total }} total contributors loaded</span>
                 <help-tooltip>
@@ -33,11 +33,11 @@
                 </help-tooltip>
             </div>
             <div>
-                <span class="page-btn" v-if="results.offset + results.pageSize < (results.total - results.pageSize)" @click="changeOffset(results.offset + results.pageSize)">
+                <span class="page-btn" v-if="results.offset + results.pageSize < results.total" @click="changeOffset(results.offset + (results.pageSize-1))">
                     Next
                     <i class="fas fa-angle-right"></i>
                 </span>
-                <span class="page-btn" v-if="results.offset + results.pageSize < results.total" @click="changeOffset(results.total - results.pageSize)">
+                <span class="page-btn" v-if="results.offset + results.pageSize < results.total" @click="changeOffset(results.total-results.pageSize)">
                     Last
                     <i class="fas fa-angle-double-right"></i>
                 </span>
@@ -51,11 +51,12 @@
 <script>
 import ContributionBlock from './components/ContributionBlock.vue';
 import AgentSearch from './components/AgentSearch.vue';
-import {mapActions, mapMutations, mapGetters, mapState} from 'vuex';
-import {Agent, Citation} from './models/main';
+import { mapActions, mapGetters, mapMutations, mapState } from 'vuex';
+import { Agent, Citation } from './models/main';
 import draggable from 'vuedraggable';
-const CitationPreview = import(/* webpackChunkName: 'citations' */ './components/CitationPreview.vue')
 import Loader from './components/Loader.vue';
+
+const CitationPreview = import(/* webpackChunkName: 'citations' */ './components/CitationPreview.vue')
 
 export default {
     name      : 'App',
@@ -74,12 +75,18 @@ export default {
     computed  : {
         ...mapState(['results']),
         ...mapGetters(['serialisedContent']),
+        pageEnd() {
+            return Math.min(this.results.total, this.results.offset + this.results.pageSize);
+        },
         citedContributors: {
             get() {
                 return Agent.query()
                             .with('meta')
                             .where('isActive', true)
                             .where('citeable', true)
+                            .whereHas('meta', q => {
+                                q.where('is_temporary', false);
+                            })
                             .get()
                             .sort((a, b) => {
                                 // .orderBy doesn't seem to update automatically but this does
