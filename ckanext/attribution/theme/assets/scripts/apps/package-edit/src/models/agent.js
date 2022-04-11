@@ -34,7 +34,9 @@ export default class Agent extends BaseModel {
                            .where('item_type', 'agents')
                            .where('isShown', true)
                            .exists();
-        return hasActivities && isShown;
+        // if this is not a cited author, ignore this (set true); if it is, check that the citation is not hidden
+        let citationShown = this.citeable ? this.citation.meta.isShown : true;
+        return hasActivities && isShown && citationShown;
     }
 
     get citation() {

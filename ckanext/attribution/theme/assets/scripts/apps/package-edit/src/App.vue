@@ -102,7 +102,7 @@ export default {
                                 activity: '[citation]',
                                 scheme  : 'internal',
                                 agent_id: v.id,
-                                order   : i + 1,
+                                order   : this.results.offset + i + 1,
                                 meta    : {is_new: true}
                             }
                         }));
@@ -111,8 +111,8 @@ export default {
                     }
 
                     Promise.all(makeCitation).then(() => {
-                        if (v.citation.order !== i + 1) {
-                            Citation.update({where: v.citation.id, data: {order: i + 1}});
+                        if (v.citation.order !== this.results.offset + i + 1) {
+                            Citation.update({where: v.citation.id, data: {order: this.results.offset + i + 1}});
                             Citation.updateMeta(v.citation.id, {is_dirty: true})
                         }
                     });
