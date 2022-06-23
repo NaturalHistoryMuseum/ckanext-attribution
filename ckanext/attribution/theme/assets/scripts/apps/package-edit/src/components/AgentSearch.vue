@@ -140,7 +140,7 @@ export default {
                             value: agent
                         };
                     }).filter(opt => {
-                        return !this.results.allAgents.contains(opt.value.id)
+                        return !this.results.allAgents.includes(opt.value.id)
                     }));
                 }
             ).catch(e => {
