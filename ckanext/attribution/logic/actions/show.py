@@ -11,6 +11,7 @@ from ckanext.attribution.model.crud import (AgentAffiliationQuery, AgentContribu
                                             AgentQuery, ContributionActivityQuery,
                                             PackageContributionActivityQuery, PackageQuery)
 from sqlalchemy import or_
+from fuzzywuzzy import fuzz
 
 
 @toolkit.side_effect_free
@@ -52,6 +53,8 @@ def agent_list(context, data_dict):
 
     :param q: name or external id (ORCID/ROR ID) of the agent record
     :type q: str, optional
+    :param mode: 'normal' or 'duplicates'
+    :type mode: str, optional
     :returns: A list of potential matches.
     :rtype: list
 
@@ -71,6 +74,8 @@ def agent_list(context, data_dict):
     else:
         portal_results = AgentQuery.all()
     results = [a.as_dict() for a in portal_results]
+    if data_dict.get('mode', 'normal') == 'duplicates':
+        results = [r for r in results if fuzz.token_set_ratio(q, r['display_name']) >= 90]
     return results
 
 
