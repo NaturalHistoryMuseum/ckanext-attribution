@@ -24,7 +24,6 @@ export default {
     },
     methods: {
         leave(event) {
-            console.log('left')
             this.debouncedSetValue.flush();
             this.$emit('leave');
         }
