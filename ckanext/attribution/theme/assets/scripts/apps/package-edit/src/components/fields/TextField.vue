@@ -7,7 +7,7 @@
             <slot name="help"></slot>
         </help-tooltip>
         <input class="form-control" type="text" :value="value" :id="fieldId" :placeholder="placeholder"
-               @input="debouncedSetValue" @focusout="debouncedSetValue.flush">
+               @input="debouncedSetValue" @focusout="leave">
     </div>
 </template>
 
@@ -22,5 +22,11 @@ export default {
     created() {
         this.debouncedSetValue = debounce(this.setValue, 500, {maxWait: 500});
     },
+    methods: {
+        leave(event) {
+            this.debouncedSetValue.flush();
+            this.$emit('leave');
+        }
+    }
 };
 </script>

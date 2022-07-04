@@ -6,7 +6,7 @@
         <help-tooltip v-if="showHelpText">
             <slot name="help"></slot>
         </help-tooltip>
-        <input class="form-control" :type="inputType" :value="value" :id="fieldId" @change="setValue">
+        <input class="form-control" :type="inputType" :value="value" :id="fieldId" @change="setValue" @focusout="leave">
     </div>
 </template>
 
@@ -36,6 +36,9 @@ export default {
     methods: {
         setValue(event) {
             this.$emit('input', event.target.value);
+        },
+        leave(event) {
+            this.$emit('leave');
         }
     }
 }
