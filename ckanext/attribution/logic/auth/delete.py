@@ -9,10 +9,10 @@ from ckan.authz import is_sysadmin
 
 def agent_affiliation_delete(context, data_dict):
     '''
-    Only allow for sysadmins (who usually skip this method, except in tests).
+    Allow for logged-in users.
     '''
     return {
-        'success': is_sysadmin(context.get('user'))
+        'success': True
     }
 
 
@@ -27,26 +27,26 @@ def agent_delete(context, data_dict):
 
 def agent_contribution_activity_delete(context, data_dict):
     '''
-    Only allow for sysadmins (who usually skip this method, except in tests).
+    Allow for logged-in users.
     '''
     return {
-        'success': is_sysadmin(context.get('user'))
+        'success': True
     }
 
 
 def contribution_activity_delete(context, data_dict):
     '''
-    Only allow for sysadmins (who usually skip this method, except in tests).
+    Allow for logged-in users.
     '''
     return {
-        'success': is_sysadmin(context.get('user'))
+        'success': True
     }
 
 
 def package_contribution_activity_delete(context, data_dict):
     '''
-    Only allow for sysadmins (who usually skip this method, except in tests).
+    Allow for logged-in users.
     '''
     return {
-        'success': is_sysadmin(context.get('user'))
+        'success': True
     }

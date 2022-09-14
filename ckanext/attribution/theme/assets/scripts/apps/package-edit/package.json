@@ -13,7 +13,7 @@
     "lodash.debounce": "^4.0.8",
     "nanoid": "^3.3.2",
     "node-polyfill-webpack-plugin": "^1.1.4",
-    "vue": "legacy",
+    "vue": "^2.7.10",
     "vuedraggable": "^2.24.3",
     "vuex": "^3.6.2"
   },
@@ -32,7 +32,7 @@
     "terser-webpack-plugin": "^5.3.1",
     "vue-loader": "^15.9.8",
     "vue-style-loader": "^4.1.3",
-    "vue-template-compiler": "^2.6.14",
+    "vue-template-compiler": "^2.7.10",
     "webpack": "^5.72.0",
     "webpack-cli": "^4.9.2",
     "webpack-dev-server": "^4.8.1",

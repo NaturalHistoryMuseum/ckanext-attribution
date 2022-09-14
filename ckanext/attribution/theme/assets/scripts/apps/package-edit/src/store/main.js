@@ -56,6 +56,31 @@ const store = new Vuex.Store(
                     affiliations: serialise(Affiliation),
                     citations: serialise(Citation)
                 });
+            },
+            currentPageCitedSelector: () => {
+                return () => Agent.query()
+                                  .with('meta')
+                                  .where('isActive', true)
+                                  .where('citeable', true)
+                                  .whereHas('meta', q => {
+                                      q.where('is_temporary', false);
+                                  });
+            },
+            currentPageUncitedSelector: () => {
+                return () => Agent.query()
+                                  .with('meta')
+                                  .where('isActive', true)
+                                  .where('citeable', false)
+                                  .whereHas('meta', q => {
+                                      q.where('is_temporary', false);
+                                  });
+            },
+            citedTotal: (state, getters) => {
+                return getters.currentPageCitedSelector()
+                              .whereHas('meta', q => {
+                                  q.where('is_new', true);
+                              })
+                              .count() + state.results.citedTotal;
             }
         },
         mutations: {
@@ -197,6 +222,7 @@ const store = new Vuex.Store(
                     });
             },
             changeOffset(context, newOffset) {
+                console.log(newOffset);
                 if (newOffset < context.state.results.total && newOffset >= 0) {
                     Vue.set(context.state.results, 'offset', newOffset);
                     context.dispatch('getContributions');

@@ -49,7 +49,7 @@
 </template>
 
 <script>
-import { mapActions, mapState } from 'vuex';
+import { mapActions, mapGetters, mapState } from 'vuex';
 import { cancelAll, get } from '../api';
 import axios from 'axios';
 import { Activity, Agent, Citation } from '../models/main';
@@ -90,6 +90,7 @@ export default {
     },
     computed  : {
         ...mapState(['controlledLists', 'settings', 'results']),
+        ...mapGetters(['citedTotal']),
         searchLoading() {
             return this.queuedSearches > 0;
         },
@@ -208,7 +209,6 @@ export default {
                     this.selectedAgent = null;
                     this.newAgentId = null;
                     this.searchString = null;
-                    this.changeOffset(this.results.citedTotal - 1);
                 })
             }
         },
@@ -261,13 +261,12 @@ export default {
                             meta      : {is_new: true, is_editing: true, is_temporary: true}
                         }
                 }).then(() => {
-                    let citationCount = this.results.citedTotal;
                     return Citation.insert({
                         data: {
                             agent_id  : newId,
                             package_id: this.settings.packageId,
-                            order     : citationCount + 1,
-                            meta      : {is_new: true}
+                            order     : this.citedTotal + 1,
+                            meta      : {is_new: true, is_temporary: true}
                         }
                     });
                 }).then(() => {
