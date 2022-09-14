@@ -266,7 +266,7 @@ export default {
                             agent_id  : newId,
                             package_id: this.settings.packageId,
                             order     : this.citedTotal + 1,
-                            meta      : {is_new: true}
+                            meta      : {is_new: true, is_temporary: true}
                         }
                     });
                 }).then(() => {
