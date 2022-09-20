@@ -107,8 +107,7 @@
                 <help-tooltip>
                     <!-- TODO: make agent edit page and add link here -->
                     For affiliations that are associated with <em>this package only</em>. Only
-                    includes contributors
-                    that have already been added to this page.
+                    includes contributors that have already been added to this page.
                 </help-tooltip>
             </div>
         </template>
@@ -275,6 +274,18 @@ export default {
 
             let promises = [];
 
+            if (this.settings.canEdit && (!this.contributor.meta.is_new)) {
+                Object.entries(this.edits).every(e => {
+                    if (this.contributor[e[0]] !== e[1]) {
+                        promises.push(Agent.updateMeta(this.contributorId, { is_dirty: true }));
+                        return false;
+                    }
+                    else {
+                        return true;
+                    }
+                })
+            }
+
             // add new affiliations
             let newAffiliations = this.affiliations.filter((a) => {
                 return this.contributor.affiliations.findIndex(e => e.other_agent_id === a.value) === -1;
@@ -311,9 +322,6 @@ export default {
             }));
 
             return Promise.all(promises)
-                          .then(() => {
-                              return Agent.updateMeta(this.contributorId, { is_dirty: true });
-                          })
                           .then(() => {
                               this.$emit(this.events.editsSaved);
                           })
