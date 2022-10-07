@@ -13,8 +13,8 @@ services:
       - solr
       - redis
     volumes:
-      - ./ckanext:/srv/app/src/ckanext-attribution/ckanext
-      - ./tests:/srv/app/src/ckanext-attribution/tests
+      - ./ckanext:/base/src/ckanext-attribution/ckanext
+      - ./tests:/base/src/ckanext-attribution/tests
 
   solr:
     build:
