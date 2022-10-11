@@ -99,7 +99,7 @@ class Combiner(object):
         family_name = sorted(_filter_diacritics(family), key=lambda x: -len(x))[0].strip()
         # given names are more complicated
         # remove empty strings and split into parts
-        given = [re.split('\s+', m) for m in list(set(given)) if m != '']
+        given = [re.split(r'\s+', m) for m in list(set(given)) if m != '']
         given_parts = {}
         for m in given:
             for i, x in enumerate(m):
