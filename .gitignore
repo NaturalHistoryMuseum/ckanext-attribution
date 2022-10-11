@@ -2,3 +2,9 @@
 *.pyc
 
 ckanext/attribution/theme/assets/scripts/apps/package-edit/node_modules/
+.coverage
+.pytest_cache
+build/
+dist/
+.idea
+
