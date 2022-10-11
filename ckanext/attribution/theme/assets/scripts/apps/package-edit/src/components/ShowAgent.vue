@@ -7,7 +7,7 @@
             </div>
             <div class="edit-icons">
                 <span class="edit-icon" title="Download contributor details from external source"
-                      v-if="contributor.external_id" @click="syncAgent(contributorId)">
+                      v-if="contributor.external_id && settings.canEdit" @click="syncAgent(contributorId)">
                     <i class="fas" :class="contributor.meta.syncing ? 'fa-spinner fa-spin' : 'fa-arrow-alt-circle-down'"></i>
                 </span>
                 <span class="edit-icon" title="Edit" v-if="settings.canEdit" @click="startEdit">

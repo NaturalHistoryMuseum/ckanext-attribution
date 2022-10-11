@@ -49,11 +49,11 @@
 </template>
 
 <script>
-import {mapActions, mapState} from 'vuex';
-import {cancelAll, get} from '../api';
+import { mapActions, mapGetters, mapState } from 'vuex';
+import { cancelAll, get } from '../api';
 import axios from 'axios';
-import {Activity, Agent, Citation} from '../models/main';
-import {eventBus, events} from '../eventbus';
+import { Activity, Agent, Citation } from '../models/main';
+import { eventBus, events } from '../eventbus';
 
 const ShowAgent = () => import(/* webpackChunkName: 'show-agent' */ './ShowAgent.vue');
 const EditAgent = () => import(/* webpackChunkName: 'edit-agent' */ './EditAgent.vue');
@@ -89,7 +89,8 @@ export default {
         };
     },
     computed  : {
-        ...mapState(['controlledLists', 'settings']),
+        ...mapState(['controlledLists', 'settings', 'results']),
+        ...mapGetters(['citedTotal']),
         searchLoading() {
             return this.queuedSearches > 0;
         },
@@ -110,7 +111,7 @@ export default {
         },
     },
     methods   : {
-        ...mapActions(['purgeTemporary']),
+        ...mapActions(['purgeTemporary', 'changeOffset']),
         cancelSearches() {
             cancelAll();
             this.searchFailed = new Error('Search cancelled.');
@@ -140,11 +141,7 @@ export default {
                             value: agent
                         };
                     }).filter(opt => {
-                        return !Agent.query()
-                                     .whereHas('meta', q => {
-                                         q.where('is_hidden', false);
-                                     })
-                                     .where('id', opt.value.id).exists();
+                        return !this.results.allAgents.includes(opt.value.id)
                     }));
                 }
             ).catch(e => {
@@ -196,11 +193,23 @@ export default {
             eventBus.$emit(events.saveAgent, this.newAgentId);
             eventBus.$emit(events.saveActivity, this.activity.id);
             if (this.valid.agent && this.valid.activity) {
-                Agent.updateMeta(this.newAgentId, {is_hidden: false, is_temporary: false});
-                Activity.updateMeta(this.activity.id, {is_hidden: false, is_temporary: false});
-                this.selectedAgent = null;
-                this.newAgentId = null;
-                this.searchString = null;
+                let updates = [
+                    Agent.updateMeta(this.newAgentId, {
+                        is_editing: false,
+                        is_hidden: false,
+                        is_temporary: false
+                    }),
+                    Activity.updateMeta(this.activity.id, {
+                        is_editing: false,
+                        is_hidden: false,
+                        is_temporary: false
+                    })
+                ];
+                Promise.all(updates).then(() => {
+                    this.selectedAgent = null;
+                    this.newAgentId = null;
+                    this.searchString = null;
+                })
             }
         },
         stopEdit() {
@@ -234,12 +243,13 @@ export default {
                     is_hidden   : true,
                     to_delete   : false,
                     is_new      : true,
-                    is_editing  : Object.keys(input).length === 0,
+                    is_editing  : true,
                     is_temporary: true
                 };
-                updateAgent = () => Agent.insert({data: input}).then(records => {
-                    newId = records.agents[0].id;
-                });
+                updateAgent = () => Agent.insert({ data: input })
+                                                         .then(records => {
+                                                             newId = records.agents[0].id;
+                                                         });
             }
 
             updateAgent().then(() => {
@@ -251,16 +261,12 @@ export default {
                             meta      : {is_new: true, is_editing: true, is_temporary: true}
                         }
                 }).then(() => {
-                    let citationCount = Agent.query()
-                                             .where('isActive', true)
-                                             .where('citeable', true)
-                                             .count();
                     return Citation.insert({
                         data: {
                             agent_id  : newId,
                             package_id: this.settings.packageId,
-                            order     : citationCount + 1,
-                            meta      : {is_new: true}
+                            order     : this.citedTotal + 1,
+                            meta      : {is_new: true, is_temporary: true}
                         }
                     });
                 }).then(() => {
