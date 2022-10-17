@@ -29,13 +29,13 @@ def multi_choice(question, options, default=0):
 
 
 rgx = SimpleNamespace(
-    opening=re.compile('\('),
-    closing=re.compile('\)'),
-    initials=re.compile('([A-Z])\.\s*'),
-    name=re.compile('(?:(?:,\s?)|^|and )([A-Za-z]+, [^,(]+)'),
-    reversed_name=re.compile('([A-Z][A-Za-z\s-]+)\s+([A-Z.\s]+)(?![a-z])(?:,\s+)?'),
-    has_affiliation=re.compile('^([^()]+)\((.+)\)$'),
-    no_affiliation=re.compile('^([^(),;]+)$'),
-    initialism=re.compile('^[A-Z.]+$'),
-    abbr=re.compile('([A-Z]|(?<=[^A-Za-z])[a-z])')
+    opening=re.compile(r'\('),
+    closing=re.compile(r'\)'),
+    initials=re.compile(r'([A-Z])\.\s*'),
+    name=re.compile(r'(?:(?:,\s?)|^|and )([A-Za-z]+, [^,(]+)'),
+    reversed_name=re.compile(r'([A-Z][A-Za-z\s-]+)\s+([A-Z.\s]+)(?![a-z])(?:,\s+)?'),
+    has_affiliation=re.compile(r'^([^()]+)\((.+)\)$'),
+    no_affiliation=re.compile(r'^([^(),;]+)$'),
+    initialism=re.compile(r'^[A-Z.]+$'),
+    abbr=re.compile(r'([A-Z]|(?<=[^A-Za-z])[a-z])')
 )

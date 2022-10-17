@@ -79,7 +79,7 @@ def attribution_controlled_lists(context, data_dict):
                 'scheme_uri': 'https://orcid.org',
                 'label': 'ORCID',
                 'fa_icon': 'fab fa-orcid',
-                'rgx': '(?:\d{4}-){3}\d{3}[\dX]'
+                'rgx': r'(?:\d{4}-){3}\d{3}[\dX]'
 
             },
             'ror': {
@@ -87,7 +87,7 @@ def attribution_controlled_lists(context, data_dict):
                 'scheme_uri': 'https://ror.org',
                 'label': 'ROR',
                 'fa_icon': 'fas fa-university',
-                'rgx': '0[0-9a-hjkmnp-z]{6}\d{2}'
+                'rgx': r'0[0-9a-hjkmnp-z]{6}\d{2}'
             }
         }
     }
