@@ -11,6 +11,7 @@ from ckanext.attribution.model import (agent, agent_affiliation, agent_contribut
                                        relationships)
 from ckanext.attribution.commands import cli
 from ckanext.attribution import routes
+from ckantools.loaders import create_actions, create_auth
 
 try:
     from ckanext.doi.interfaces import IDoi
@@ -38,60 +39,12 @@ class AttributionPlugin(SingletonPlugin):
     # IActions
     def get_actions(self):
         from ckanext.attribution.logic.actions import create, show, update, delete, extra
-        actions = {
-            'agent_affiliation_create': create.agent_affiliation_create,
-            'agent_create': create.agent_create,
-            'contribution_activity_create': create.contribution_activity_create,
-            'package_create': create.package_create,
-            'agent_affiliation_show': show.agent_affiliation_show,
-            'agent_show': show.agent_show,
-            'agent_list': show.agent_list,
-            'agent_contribution_activity_show': show.agent_contribution_activity_show,
-            'contribution_activity_show': show.contribution_activity_show,
-            'package_contribution_activity_show': show.package_contribution_activity_show,
-            'package_contributions_show': show.package_contributions_show,
-            'agent_affiliations': show.agent_affiliations,
-            'agent_affiliation_update': update.agent_affiliation_update,
-            'agent_update': update.agent_update,
-            'agent_external_update': update.agent_external_update,
-            'contribution_activity_update': update.contribution_activity_update,
-            'package_update': update.package_update,
-            'agent_affiliation_delete': delete.agent_affiliation_delete,
-            'agent_delete': delete.agent_delete,
-            'agent_contribution_activity_delete': delete.agent_contribution_activity_delete,
-            'contribution_activity_delete': delete.contribution_activity_delete,
-            'package_contribution_activity_delete': delete.package_contribution_activity_delete,
-            'attribution_controlled_lists': extra.attribution_controlled_lists,
-            'agent_external_search': extra.agent_external_search,
-            'agent_external_read': extra.agent_external_read,
-            'validate_external_id': extra.validate_external_id
-        }
-        return actions
+        return create_actions(create, show, update, delete, extra)
 
     # IAuthFunctions
     def get_auth_functions(self):
-        from ckanext.attribution.logic.auth import create, show, update, delete
-        auth = {
-            'agent_affiliation_create': create.agent_affiliation_create,
-            'agent_create': create.agent_create,
-            'contribution_activity_create': create.contribution_activity_create,
-            'agent_affiliation_show': show.agent_affiliation_show,
-            'agent_show': show.agent_show,
-            'agent_contribution_activity_show': show.agent_contribution_activity_show,
-            'contribution_activity_show': show.contribution_activity_show,
-            'package_contribution_activity_show': show.package_contribution_activity_show,
-            'package_contributions_show': show.package_contributions_show,
-            'agent_affiliation_update': update.agent_affiliation_update,
-            'agent_update': update.agent_update,
-            'agent_external_update': update.agent_external_update,
-            'contribution_activity_update': update.contribution_activity_update,
-            'agent_affiliation_delete': delete.agent_affiliation_delete,
-            'agent_delete': delete.agent_delete,
-            'agent_contribution_activity_delete': delete.agent_contribution_activity_delete,
-            'contribution_activity_delete': delete.contribution_activity_delete,
-            'package_contribution_activity_delete': delete.package_contribution_activity_delete,
-        }
-        return auth
+        from ckanext.attribution.logic.auth import create, show, update, delete, extra
+        return create_auth(create, show, update, delete, extra)
 
     # IBlueprint
     def get_blueprint(self):

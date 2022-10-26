@@ -9,20 +9,12 @@ from ckan.plugins import toolkit
 from ckanext.attribution.lib.orcid_api import OrcidApi
 from ckanext.attribution.lib.ror_api import RorApi
 from ckanext.attribution.model.crud import AgentQuery
+from ckantools.decorators import action
+from ckanext.attribution.logic.actions.meta import schema, help
 
 
-@toolkit.side_effect_free
-def attribution_controlled_lists(context, data_dict):
-    '''
-    Return one or more lists or dicts of defined values, e.g. agent types or contribution activity
-    types. Details dicts can include various pieces of arbitrary information (e.g. names,
-    translations, or icon definitions for templates) as long as the initial structure is retained.
-
-    :param lists: names of the lists to be returned
-    :type lists: list, optional
-    :return: dict of all requested lists (or all lists if unspecified)
-    :rtype: dict
-    '''
+@action(schema.attribution_controlled_lists, help.attribution_controlled_lists, get=True)
+def attribution_controlled_lists(context, lists=None):
     all_lists = {
         'agent_types': {'person': {'fa_icon': 'fas fa-user',
                                    'default_scheme': 'orcid'},
@@ -91,7 +83,6 @@ def attribution_controlled_lists(context, data_dict):
             }
         }
     }
-    lists = data_dict.get('lists')
     if lists is not None and isinstance(lists, str):
         lists = [l.strip() for l in lists.split(',')]
     if lists is not None and isinstance(lists, list):
@@ -101,22 +92,8 @@ def attribution_controlled_lists(context, data_dict):
         return all_lists
 
 
-@toolkit.side_effect_free
-def agent_external_search(context, data_dict):
-    '''
-    Search external sources for agent data. Ignores records that already exist in the database.
-
-    :param q: searches all fields (names, ids, etc)
-    :type q: str
-    :param sources: a list of sources to search (default None searches all)
-    :type sources: list, optional
-    :returns: A list of potential matches.
-    :rtype: list
-
-    '''
-    toolkit.check_access('agent_show', context, data_dict)
-    q = toolkit.get_or_bust(data_dict, 'q')
-    sources = data_dict.get('sources')
+@action(schema.agent_external_search, help.agent_external_search, get=True)
+def agent_external_search(q, sources):
     if sources is not None and isinstance(sources, str):
         sources = [sources.lower()]
     elif sources is not None and isinstance(sources, list):
@@ -158,37 +135,16 @@ def agent_external_search(context, data_dict):
     return results
 
 
-@toolkit.side_effect_free
-def agent_external_read(context, data_dict):
-    '''
-    Read data from an external source like ORCID or ROR.
-
-    :param id: ID of the record to read
-    :type id: str, optional
-    :param external_id: ID from external service
-    :type external_id: str, optional
-    :param external_id_scheme: external scheme, e.g. orcid
-    :type external_id_scheme: str, optional
-    :param diff: only show values that differ from the record's current values; only valid if record
-                 already exists (default False)
-    :type diff: bool, optional
-    :returns: The details pulled from the external source, formatted as a record dict
-    :rtype: dict
-
-    '''
-    toolkit.check_access('agent_show', context, data_dict)
-    item_id = data_dict.get('id')
-    external_id = data_dict.get('external_id')
-    external_id_scheme = data_dict.get('external_id_scheme')
-    if item_id is None and (external_id is None or external_id_scheme is None):
+@action(schema.agent_external_read, help.agent_external_read, get=True)
+def agent_external_read(agent_id, external_id, external_id_scheme, diff=False):
+    if agent_id is None and (external_id is None or external_id_scheme is None):
         raise toolkit.Invalid('Either record ID or external ID + scheme must be provided.')
-    if item_id is not None:
-        diff = toolkit.asbool(data_dict.get('diff', False))
-        updated_dict = AgentQuery.read_from_external_api(item_id)
-        updated_dict['id'] = item_id
+    if agent_id is not None:
+        updated_dict = AgentQuery.read_from_external_api(agent_id)
+        updated_dict['id'] = agent_id
         del updated_dict['user_id']  # this is internal only so it's always going to be None
         if diff:
-            item_dict = AgentQuery.read(item_id).as_dict()
+            item_dict = AgentQuery.read(agent_id).as_dict()
             for k, v in item_dict.items():
                 if k in updated_dict and updated_dict.get(k) == v:
                     del updated_dict[k]
@@ -200,19 +156,8 @@ def agent_external_read(context, data_dict):
         return api.as_agent_record(api.read(external_id))
 
 
-def validate_external_id(context, data_dict):
-    '''
-    Validate/format an external ID.
-
-    :param external_id: ID from external service
-    :type external_id: str
-    :param external_id_scheme: external scheme, e.g. orcid
-    :type external_id_scheme: str
-    :return:
-    '''
-    external_id = toolkit.get_or_bust(data_dict, 'external_id')
-    external_id_scheme = toolkit.get_or_bust(data_dict, 'external_id_scheme')
-
+@action(schema.validate_external_id, help.validate_external_id)
+def validate_external_id(context, external_id, external_id_scheme):
     # extract via regex first
     controlled_lists = toolkit.get_action('attribution_controlled_lists')(context, {})
     scheme = controlled_lists['agent_external_id_schemes'][external_id_scheme.lower()]
