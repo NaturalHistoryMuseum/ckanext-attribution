@@ -11,20 +11,20 @@ valid = {'success': True}
 
 
 @auth(anon=True)
-def attribution_controlled_lists():
+def attribution_controlled_lists(context, data_dict):
     return valid
 
 
 @auth('agent_show')
-def agent_external_search():
+def agent_external_search(context, data_dict):
     return valid
 
 
 @auth('agent_show')
-def agent_external_read():
+def agent_external_read(context, data_dict):
     return valid
 
 
 @auth(anon=True)
-def validate_external_id():
+def validate_external_id(context, data_dict):
     return valid
