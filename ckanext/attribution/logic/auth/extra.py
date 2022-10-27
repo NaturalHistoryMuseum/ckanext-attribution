@@ -6,25 +6,24 @@
 
 
 from ckantools.decorators import auth
-
-valid = {'success': True}
+from ckantools.vars import auth_valid
 
 
 @auth(anon=True)
 def attribution_controlled_lists(context, data_dict):
-    return valid
+    return auth_valid
 
 
 @auth('agent_show')
 def agent_external_search(context, data_dict):
-    return valid
+    return auth_valid
 
 
 @auth('agent_show')
 def agent_external_read(context, data_dict):
-    return valid
+    return auth_valid
 
 
 @auth(anon=True)
 def validate_external_id(context, data_dict):
-    return valid
+    return auth_valid

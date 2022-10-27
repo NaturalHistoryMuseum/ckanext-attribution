@@ -4,6 +4,73 @@
 # This file is part of ckanext-attribution
 # Created by the Natural History Museum in London, UK
 
+# CREATE ===========================================================================================
+
+agent_affiliation_create = '''
+Create an :class:`~ckanext.attribution.model.agent_affiliation.AgentAffiliation` link record
+between two :class:`~ckanext.attribution.model.agent.Agent` records, e.g. to show institutional
+affiliation for an author.
+
+:param agent_a_id: ID of the first agent
+:type agent_a_id: str
+:param agent_b_id: ID of the second agent
+:type agent_b_id: str
+:param affiliation_type: type of affiliation/relationship between the two agents
+:type affiliation_type: str, optional
+:param description: description of affiliation/relationship
+:type description: str, optional
+:param start_date: when the affiliation started (e.g. when employment began)
+:type start_date: datetime.date, optional
+:param end_date: when the affiliation ended (e.g. when a researcher left an institution)
+:type end_date: datetime.date, optional
+:returns: New agent affiliation record.
+:rtype: dict
+'''
+
+agent_create = '''
+Action for creating an :class:`~ckanext.attribution.model.agent.Agent` record. Different fields are
+required by different agent types.
+
+:param agent_type: broad type of agent; usually 'person' or 'org'
+:type agent_type: str
+:param family_name: family name of an person [person only, required]
+:type family_name: str, optional
+:param given_names: given name(s) or initials of an person [person only, required]
+:type given_names: str, optional
+:param given_names_first: whether given names should be displayed before the family name
+                          (default True) [person only, optional]
+:type given_names_first: bool, optional
+:param user_id: the ID for a registered user of this CKAN instance associated with this agent
+                [person only, optional]
+:type user_id: str, optional
+:param name: name of an organisation [org only, required]
+:type name: str, optional
+:returns: New agent record.
+:rtype: dict
+'''
+
+contribution_activity_create = '''
+Creates a :class:`~ckanext.attribution.model.contribution_activity.ContributionActivity` record,
+linked to a package and an agent via package_contribution_activity and agent_contribution_activity
+records (respectively). These link records are also created as part of this action, as the activity
+should not exist without the package or agent.
+
+:param package_id: the ID for the package this activity is associated with
+:type package_id: str
+:param agent_id: the ID for the agent this activity is associated with
+:type agent_id: str
+:param activity: short (one/two words) description for the activity
+:type activity: str
+:param scheme: name of the role/activity taxonomy, e.g. credit or datacite
+:type scheme: str
+:param level: lead, equal, or supporting
+:type level: str, optional
+:param time: time activity took place
+:type time: datetime.datetime, optional
+:returns: New contribution activity record.
+:rtype: dict
+'''
+
 # EXTRA ============================================================================================
 
 attribution_controlled_lists = '''
