@@ -6,61 +6,31 @@
 
 import itertools
 
-from ckan.plugins import toolkit
+from ckanext.attribution.logic.actions.meta import help, schema
 from ckanext.attribution.model.crud import (AgentAffiliationQuery, AgentContributionActivityQuery,
                                             AgentQuery, ContributionActivityQuery,
                                             PackageContributionActivityQuery, PackageQuery)
-from sqlalchemy import or_
+from ckantools.decorators import action
 from fuzzywuzzy import fuzz
+from sqlalchemy import or_
+
+from ckan.plugins import toolkit
 
 
-@toolkit.side_effect_free
-def agent_affiliation_show(context, data_dict):
-    '''
-    Retrieve an :class:`~ckanext.attribution.model.agent_affiliation.AgentAffiliation` record by ID.
-
-    :param id: ID of the affiliation record
-    :type id: str
-    :returns: The affiliation record.
-    :rtype: dict
-
-    '''
-    toolkit.check_access('agent_affiliation_show', context, data_dict)
-    item_id = toolkit.get_or_bust(data_dict, 'id')
+@action(schema.agent_affiliation_show, help.agent_affiliation_show, get=True)
+def agent_affiliation_show(original_data_dict):
+    item_id = original_data_dict.pop('id')
     return AgentAffiliationQuery.read(item_id).as_dict()
 
 
-@toolkit.side_effect_free
-def agent_show(context, data_dict):
-    '''
-    Retrieve an :class:`~ckanext.attribution.model.agent.Agent` record by ID.
-
-    :param id: ID of the agent record
-    :type id: str
-    :returns: The agent record.
-    :rtype: dict
-
-    '''
-    toolkit.check_access('agent_show', context, data_dict)
-    item_id = toolkit.get_or_bust(data_dict, 'id')
+@action(schema.agent_show, help.agent_show, get=True)
+def agent_show(original_data_dict):
+    item_id = original_data_dict.pop('id')
     return AgentQuery.read(item_id).as_dict()
 
 
-@toolkit.side_effect_free
-def agent_list(context, data_dict):
-    '''
-    Search for :class:`~ckanext.attribution.model.agent.Agent` records.
-
-    :param q: name or external id (ORCID/ROR ID) of the agent record
-    :type q: str, optional
-    :param mode: 'normal' or 'duplicates'
-    :type mode: str, optional
-    :returns: A list of potential matches.
-    :rtype: list
-
-    '''
-    toolkit.check_access('agent_show', context, data_dict)
-    q = data_dict.get('q')
+@action(schema.agent_list, help.agent_list, get=True)
+def agent_list(q, mode='normal'):
     if q is not None and q != '':
         q_string = '{0}%'.format(q)
         name_cols = [AgentQuery.m.name,
@@ -74,84 +44,34 @@ def agent_list(context, data_dict):
     else:
         portal_results = AgentQuery.all()
     results = [a.as_dict() for a in portal_results]
-    if data_dict.get('mode', 'normal') == 'duplicates':
+    if mode == 'duplicates':
         results = [r for r in results if fuzz.token_set_ratio(q, r['display_name']) >= 90]
     return results
 
 
-@toolkit.side_effect_free
-def agent_contribution_activity_show(context, data_dict):
-    '''
-    Retrieve an
-    :class:`~ckanext.attribution.model.agent_contribution_activity.AgentContributionActivity` record
-    by ID.
-
-    :param id: ID of the agent contribution activity record
-    :type id: str
-    :returns: The agent contribution activity record.
-    :rtype: dict
-
-    '''
-    toolkit.check_access('agent_contribution_activity_show', context, data_dict)
-    item_id = toolkit.get_or_bust(data_dict, 'id')
+@action(schema.agent_contribution_activity_show, help.agent_contribution_activity_show, get=True)
+def agent_contribution_activity_show(original_data_dict):
+    item_id = original_data_dict.pop('id')
     return AgentContributionActivityQuery.read(item_id).as_dict()
 
 
-@toolkit.side_effect_free
-def contribution_activity_show(context, data_dict):
-    '''
-    Retrieve a :class:`~ckanext.attribution.model.contribution_activity.ContributionActivity`
-    record by ID.
-
-    :param id: ID of the contribution activity record
-    :type id: str
-    :returns: The contribution activity record.
-    :rtype: dict
-
-    '''
-    toolkit.check_access('contribution_activity_show', context, data_dict)
-    item_id = toolkit.get_or_bust(data_dict, 'id')
+@action(schema.contribution_activity_show, help.contribution_activity_show, get=True)
+def contribution_activity_show(original_data_dict):
+    item_id = original_data_dict.pop('id')
     return ContributionActivityQuery.read(item_id).as_dict()
 
 
-@toolkit.side_effect_free
-def package_contribution_activity_show(context, data_dict):
-    '''
-    Retrieve a
-    :class:`~ckanext.attribution.model.package_contribution_activity.PackageContributionActivity`
-    record by ID.
-
-    :param id: ID of the package contribution activity record
-    :type id: str
-    :returns: The package contribution activity record.
-    :rtype: dict
-
-    '''
-    toolkit.check_access('package_contribution_activity_show', context, data_dict)
-    item_id = toolkit.get_or_bust(data_dict, 'id')
+@action(schema.package_contribution_activity_show, help.package_contribution_activity_show,
+        get=True)
+def package_contribution_activity_show(original_data_dict):
+    item_id = original_data_dict.pop('id')
     return PackageContributionActivityQuery.read(item_id).as_dict()
 
 
-@toolkit.side_effect_free
-def package_contributions_show(context, data_dict):
-    '''
-    Show associated agents and their contributions for a given package. Agents are returned in
-    citation then agent id order.
-
-    :param id: ID of the package record
-    :type id: str
-    :param limit: limit the number of records returned
-    :type limit: int
-    :param offset: skip n agents
-    :type offset: int
-    :returns: The package contribution activity record.
-    :rtype: dict
-    '''
-    toolkit.check_access('package_contributions_show', context, data_dict)
-    item_id = toolkit.get_or_bust(data_dict, 'id')
-    limit = data_dict.get('limit')
+@action(schema.package_contributions_show, help.package_contributions_show, get=True)
+def package_contributions_show(context, original_data_dict, limit=None, offset=0):
+    item_id = original_data_dict.pop('id')
     limit = int(limit) if limit is not None else None
-    offset = int(data_dict.get('offset', 0))
     contributions = PackageQuery.get_contributions(item_id)
     by_agent = {k: list(v) for k, v in
                 itertools.groupby(sorted(contributions, key=lambda x: x.agent.id),
@@ -165,7 +85,8 @@ def package_contributions_show(context, data_dict):
                                                                      {'agent_id': k,
                                                                       'package_id': item_id})
         }, v[0].agent.package_order(item_id)) for k, v in by_agent.items()]
-    sorted_contributions = [c for c, o in sorted(agent_order, key=lambda x: (x[1] if x[1] >= 0 else total, x[0]['agent'].sort_name))]
+    sorted_contributions = [c for c, o in sorted(agent_order, key=lambda x: (
+    x[1] if x[1] >= 0 else total, x[0]['agent'].sort_name))]
 
     page_end = offset + limit if limit is not None else total + 1
     contributions_dict = {
@@ -185,24 +106,8 @@ def package_contributions_show(context, data_dict):
     return contributions_dict
 
 
-@toolkit.side_effect_free
-def agent_affiliations(context, data_dict):
-    '''
-    Show affiliated agents, either all or for a given package. Including a package ID will still
-    return 'global' affiliations, e.g. those with no specific package associated.
-
-    :param agent_id: ID of the agent
-    :type agent_id: str
-    :param package_id: ID of the package
-    :type package_id: str, optional
-    :returns: The package contribution activity record.
-    :rtype: dict
-
-    '''
-    toolkit.check_access('agent_show', context, data_dict)
-    toolkit.check_access('agent_affiliation_show', context, data_dict)
-    agent_id = toolkit.get_or_bust(data_dict, 'agent_id')
-    package_id = data_dict.get('package_id')
+@action(schema.agent_affiliations, help.agent_affiliations, get=True)
+def agent_affiliations(agent_id, package_id):
     agent = AgentQuery.read(agent_id)
     affiliations = agent.affiliations
     if package_id is not None:
