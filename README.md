@@ -322,7 +322,7 @@ external ID.
 ```python
 # EITHER
 data_dict_existing = {
-    'id': 'AGENT_ID',
+    'agent_id': 'AGENT_ID',
     'diff': False
     # optional; only show values that differ from the record's current values (default False)
 }
