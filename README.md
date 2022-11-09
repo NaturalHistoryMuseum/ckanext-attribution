@@ -2,9 +2,11 @@
 
 # ckanext-attribution
 
-[![Tests](https://github.com/NaturalHistoryMuseum/ckanext-attribution/actions/workflows/main.yml/badge.svg)](https://github.com/NaturalHistoryMuseum/ckanext-attribution/actions/workflows/main.yml)
-[![Coveralls](https://img.shields.io/coveralls/github/NaturalHistoryMuseum/ckanext-attribution/master.svg?style=flat-square)](https://coveralls.io/github/NaturalHistoryMuseum/ckanext-attribution)
+[![Tests](https://img.shields.io/github/workflow/status/NaturalHistoryMuseum/ckanext-attribution/Tests?style=flat-square)](https://github.com/NaturalHistoryMuseum/ckanext-attribution/actions/workflows/main.yml)
+[![Coveralls](https://img.shields.io/coveralls/github/NaturalHistoryMuseum/ckanext-attribution/main?style=flat-square)](https://coveralls.io/github/NaturalHistoryMuseum/ckanext-attribution)
 [![CKAN](https://img.shields.io/badge/ckan-2.9.1-orange.svg?style=flat-square)](https://github.com/ckan/ckan)
+[![Python](https://img.shields.io/badge/python-3.6%20%7C%203.7%20%7C%203.8-blue.svg?style=flat-square)](https://www.python.org/)
+[![Docs](https://img.shields.io/readthedocs/ckanext-attribution?style=flat-square)](https://ckanext-attribution.readthedocs.io)
 
 _A CKAN extension that adds support for complex attribution._
 
@@ -381,23 +383,21 @@ It is recommended to run `merge-agents`, `refresh-packages`, and rebuild the sea
 
 # Testing
 
-There is a Docker compose configuration available in this repository to make it easy to run tests.
+There is a Docker compose configuration available in this repository to make it easier to run tests.
 
 To run the tests against ckan 2.9.x on Python3:
 
 1. Build the required images
-
 ```bash
 docker-compose build
 ```
 
-2. Then run the tests. The root of the repository is mounted into the ckan container as a volume by
-   the Docker compose configuration, so you should only need to rebuild the ckan image if you change
-   the extension's dependencies.
-
+2. Then run the tests.
+   The root of the repository is mounted into the ckan container as a volume by the Docker compose
+   configuration, so you should only need to rebuild the ckan image if you change the extension's
+   dependencies.
 ```bash
 docker-compose run ckan
 ```
 
-The ckan image uses the Dockerfile in the `docker/` folder which is based
-on `openknowledge/ckan-dev:2.9-py2`.
+The ckan image uses the Dockerfile in the `docker/` folder.
