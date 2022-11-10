@@ -11,17 +11,17 @@ from ckan.plugins import toolkit
 
 @auth(anon=True)
 def agent_affiliation_show(context, data_dict):
-    '''
+    """
     Allow for everyone.
-    '''
+    """
     return auth_valid
 
 
 @auth(anon=True)
 def agent_show(context, data_dict):
-    '''
+    """
     Allow for everyone.
-    '''
+    """
     return auth_valid
 
 
@@ -32,33 +32,33 @@ def agent_list(context, data_dict):
 
 @auth(anon=True)
 def agent_contribution_activity_show(context, data_dict):
-    '''
+    """
     Allow for everyone.
-    '''
+    """
     return auth_valid
 
 
 @auth(anon=True)
 def contribution_activity_show(context, data_dict):
-    '''
+    """
     Allow for everyone.
-    '''
+    """
     return auth_valid
 
 
 @auth(anon=True)
 def package_contribution_activity_show(context, data_dict):
-    '''
+    """
     Allow for everyone.
-    '''
+    """
     return auth_valid
 
 
 @auth(anon=True)
 def package_contributions_show(context, data_dict):
-    '''
+    """
     Allow for everyone.
-    '''
+    """
     return auth_valid
 
 

@@ -5,10 +5,16 @@
 # Created by the Natural History Museum in London, UK
 
 from ckan.plugins import toolkit
-from ckanext.attribution.logic.actions.helpers import parse_contributors, get_author_string
-from ckanext.attribution.model.crud import (AgentQuery,
-                                            ContributionActivityQuery,
-                                            AgentAffiliationQuery, AgentContributionActivityQuery)
+from ckanext.attribution.logic.actions.helpers import (
+    parse_contributors,
+    get_author_string,
+)
+from ckanext.attribution.model.crud import (
+    AgentQuery,
+    ContributionActivityQuery,
+    AgentAffiliationQuery,
+    AgentContributionActivityQuery,
+)
 from ckantools.decorators import action, basic_action
 from ckanext.attribution.logic.actions.meta import help, schema
 
@@ -21,15 +27,16 @@ def agent_affiliation_update(context, original_data_dict, agent_a_id, agent_b_id
         if agent_id is None:
             continue
         try:
-            toolkit.get_action('agent_show')(context, {
-                'id': agent_id
-            })
+            toolkit.get_action('agent_show')(context, {'id': agent_id})
         except toolkit.ObjectNotFound:
             raise toolkit.ValidationError(
-                'Agent ({0}) does not exist.'.format(agent_id))
+                'Agent ({0}) does not exist.'.format(agent_id)
+            )
     affiliation = AgentAffiliationQuery.update(item_id, **original_data_dict)
     if affiliation is None:
-        raise toolkit.ValidationError('Unable to update affiliation. Check the fields are valid.')
+        raise toolkit.ValidationError(
+            'Unable to update affiliation. Check the fields are valid.'
+        )
     return affiliation.as_dict()
 
 
@@ -46,14 +53,21 @@ def agent_update(original_data_dict, agent_type=None):
     if new_agent.citation_name != old_citation_name:
         # if the name has been updated, the author strings need to be updated everywhere else too
         agent_id_column = AgentContributionActivityQuery.m.agent_id
-        contrib_activities = AgentContributionActivityQuery.search(agent_id_column == item_id)
-        packages = list(set([c.contribution_activity.package.id for c in contrib_activities]))
+        contrib_activities = AgentContributionActivityQuery.search(
+            agent_id_column == item_id
+        )
+        packages = list(
+            set([c.contribution_activity.package.id for c in contrib_activities])
+        )
         for p in packages:
             author_string = get_author_string(package_id=p)
-            toolkit.get_action('package_revise')({}, {'match': {'id': p},
-                                                      'update': {'author': author_string}})
+            toolkit.get_action('package_revise')(
+                {}, {'match': {'id': p}, 'update': {'author': author_string}}
+            )
     if new_agent is None:
-        raise toolkit.ValidationError('Unable to update agent. Check the fields are valid.')
+        raise toolkit.ValidationError(
+            'Unable to update agent. Check the fields are valid.'
+        )
     return new_agent.as_dict()
 
 
@@ -63,7 +77,9 @@ def agent_external_update(original_data_dict):
     updated_dict = AgentQuery.read_from_external_api(item_id)
     updated_agent = AgentQuery.update(item_id, **updated_dict)
     if updated_agent is None:
-        raise toolkit.ValidationError('Unable to update agent. Check the fields are valid.')
+        raise toolkit.ValidationError(
+            'Unable to update agent. Check the fields are valid.'
+        )
     return updated_agent.as_dict()
 
 

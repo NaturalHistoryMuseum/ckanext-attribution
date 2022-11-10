@@ -30,7 +30,9 @@ class RorApi(object):
         return record
 
     def search(self, q):
-        response = requests.get('{0}/organizations'.format(self.url), params={'query': q})
+        response = requests.get(
+            '{0}/organizations'.format(self.url), params={'query': q}
+        )
         if not response.ok:
             search_response = {}
         else:
@@ -38,8 +40,12 @@ class RorApi(object):
                 search_response = response.json()
             except json.JSONDecodeError:
                 search_response = {}
-        return {'total': search_response.get('number_of_results', 0),
-                'records': [self.as_agent_record(r) for r in search_response.get('items', [])]}
+        return {
+            'total': search_response.get('number_of_results', 0),
+            'records': [
+                self.as_agent_record(r) for r in search_response.get('items', [])
+            ],
+        }
 
     def as_agent_record(self, ror_record):
         '''
@@ -60,5 +66,5 @@ class RorApi(object):
             'external_id': ror_record.get('id', '').split('/')[-1],
             'external_id_scheme': 'ror',
             'location': location,
-            'agent_type': 'org'  # default
+            'agent_type': 'org',  # default
         }

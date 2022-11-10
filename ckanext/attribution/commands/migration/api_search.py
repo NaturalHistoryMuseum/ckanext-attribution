@@ -14,13 +14,12 @@ from .common import multi_choice
 
 
 class APISearch(object):
-    '''
+    """
     Search for a contributor on an external API and download any relevant details.
-    '''
+    """
 
     def __init__(self):
-        self.api = {'ORCID': OrcidApi(),
-                    'ROR': RorApi()}
+        self.api = {'ORCID': OrcidApi(), 'ROR': RorApi()}
 
     def update(self, contrib):
         if contrib['agent_type'] == 'person':
@@ -37,25 +36,30 @@ class APISearch(object):
         return contrib
 
     def _search_api(self, contrib, lookup, api_name, result_format):
-        '''
+        """
         Search an API endpoint for a contributor.
+
         :param contrib: the full contributor dict
         :param lookup: dict of query params (plus display_name) to send to api.search
         :param api_name: name of the API (see self.api)
         :param result_format: display format of each result, e.g. "{name} ({location})"
         :return: None if not found, dict for matching result if found/selected
-        '''
+        """
         aff = '; '.join(contrib.get('affiliations', []))
         api = self.api[api_name]
         display_name = lookup.pop('display_name')
         try:
-            question = f'Do any of these {api_name} results match "{display_name}" ({aff})?'
+            question = (
+                f'Do any of these {api_name} results match "{display_name}" ({aff})?'
+            )
             click.echo(f'\nSearching {api_name} for "{display_name}"...')
             results = api.search(**lookup).get(u'records', [])
             if len(results) > 0:
-                i = multi_choice(question,
-                                 [result_format.format(**r) for r in results] + ['None of these'],
-                                 default=len(results))
+                i = multi_choice(
+                    question,
+                    [result_format.format(**r) for r in results] + ['None of these'],
+                    default=len(results),
+                )
                 if i == len(results):
                     update_dict = self._manual_edit(contrib, api_name)
                 else:
@@ -74,7 +78,9 @@ class APISearch(object):
                         lookup['q'] = new_name
                         lookup['name'] = new_name
                     lookup['display_name'] = self._get_key(contrib)
-                    update_dict = self._search_api(contrib, lookup, api_name, result_format)
+                    update_dict = self._search_api(
+                        contrib, lookup, api_name, result_format
+                    )
                 else:
                     update_dict = self._manual_edit(contrib, api_name)
         except Exception as e:
@@ -96,10 +102,8 @@ class APISearch(object):
             return {}
         if contrib.get('agent_type') == 'person':
             return {
-                'given_names': prompt('Given names: ',
-                                      default=contrib['given_names']),
-                'family_name': prompt('Family name: ',
-                                      default=contrib['family_name'])
+                'given_names': prompt('Given names: ', default=contrib['given_names']),
+                'family_name': prompt('Family name: ', default=contrib['family_name']),
             }
         else:
             return {'name': prompt('Name: ', default=contrib['name'])}
@@ -110,16 +114,13 @@ class APISearch(object):
         lookup = {
             'display_name': display_name,
             'family_name': contrib['family_name'],
-            'given_names': contrib['given_names']
+            'given_names': contrib['given_names'],
         }
         return self._search_api(contrib, lookup, 'ORCID', result_format)
 
     def search_ror(self, contrib):
         result_format = '{name}, {location} ({external_id})'
-        lookup = {
-            'display_name': contrib['name'],
-            'q': contrib['name']
-        }
+        lookup = {'display_name': contrib['name'], 'q': contrib['name']}
         return self._search_api(contrib, lookup, 'ROR', result_format)
 
     def _get_key(self, contrib_dict):

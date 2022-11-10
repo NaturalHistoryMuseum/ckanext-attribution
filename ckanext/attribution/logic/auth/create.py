@@ -10,23 +10,23 @@ from ckantools.vars import auth_valid
 
 @auth()
 def agent_affiliation_create(context, data_dict):
-    '''
+    """
     Allow for logged-in users.
-    '''
+    """
     return auth_valid
 
 
 @auth()
 def agent_create(context, data_dict):
-    '''
+    """
     Allow for logged-in users.
-    '''
+    """
     return auth_valid
 
 
 @auth()
 def contribution_activity_create(context, data_dict):
-    '''
+    """
     Allow for logged-in users.
-    '''
+    """
     return auth_valid

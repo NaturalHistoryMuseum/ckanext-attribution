@@ -11,7 +11,11 @@ from ckan.plugins import toolkit
 
 
 class BaseQuery(object):
-    '''A base class for easy CRUD (create, read, update, delete) access to attribution models.'''
+    """
+    A base class for easy CRUD (create, read, update, delete) access to attribution
+    models.
+    """
+
     __metaclass__ = ABCMeta
 
     #: :type: The associated database model type.
@@ -32,15 +36,16 @@ class BaseQuery(object):
 
     @classmethod
     def validate(cls, data_dict):
-        '''
-        Ensure the data_dict provided contains the correct parameters for creating or updating a
-        record, and fix issues where possible by deleting extra fields.
+        """
+        Ensure the data_dict provided contains the correct parameters for creating or
+        updating a record, and fix issues where possible by deleting extra fields.
 
         :param data_dict: a complete dictionary of parameters that will be passed to :func:`create`
                           or :func:`update`
         :type data_dict: dict
         :returns: updated data_dict if valid, raises error if not
-        '''
+        """
+
         def _empty_string_to_null(item):
             if isinstance(item, list):
                 return [_empty_string_to_null(i) for i in item]
@@ -64,9 +69,9 @@ class BaseQuery(object):
 
     @classmethod
     def create(cls, **kwargs):
-        '''
+        """
         Create a new record of type :class:`~m`.
-        '''
+        """
         item_dict = cls._columns(**kwargs)
         new_item = cls.m(**item_dict)
         Session.add(new_item)
@@ -75,12 +80,12 @@ class BaseQuery(object):
 
     @classmethod
     def read(cls, item_id):
-        '''
+        """
         Retrieve a record of type :class:`~m` by its ID.
 
         :param item_id: the ID of the record.
         :type item_id: str
-        '''
+        """
         retrieved_item = Session.query(cls.m).get(item_id)
         if retrieved_item is None:
             raise toolkit.ObjectNotFound('{0} was not found.'.format(item_id))
@@ -88,28 +93,28 @@ class BaseQuery(object):
 
     @classmethod
     def exists(cls, item_id):
-        '''
+        """
         Check if a record with the given ID exists.
 
         :param item_id: the ID of the potential record
         :return: bool
-        '''
+        """
         return Session.query(cls.m).get(item_id) is not None
 
     @classmethod
     def search(cls, query):
-        '''
+        """
         Retrieve all records matching the search criteria.
 
         :param query: a sqlalchemy filter query
-        '''
+        """
         return Session.query(cls.m).filter(query).all()
 
     @classmethod
     def all(cls):
-        '''
+        """
         Return all records.
-        '''
+        """
         return Session.query(cls.m).all()
 
     @classmethod
@@ -128,8 +133,7 @@ class BaseQuery(object):
         retrieved_item = Session.query(cls.m).filter(cls.m.id == item_id)
         if retrieved_item.count() < 1:
             raise toolkit.ObjectNotFound('{0} was not found.'.format(item_id))
-        retrieved_item.update(
-            cls._columns(**kwargs))
+        retrieved_item.update(cls._columns(**kwargs))
         Session.commit()
         return Session.query(cls.m).get(item_id)
 
