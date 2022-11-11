@@ -19,7 +19,11 @@ classifiers = [
     "Programming Language :: Python :: 3.8"
 ]
 dependencies = [
-    "ckantools"
+    "ckantools",
+    "orcid",
+    "sqlalchemy",
+    "requests",
+    "fuzzywuzzy[speedup]"
 ]
 
 [project.optional-dependencies]
@@ -28,6 +32,12 @@ test = [
     "pytest>=4.6.5",
     "pytest-cov>=2.7.1",
     "coveralls"
+]
+cli = [
+    "spacy[transformers]",
+    "unidecode",
+    "nameparser",
+    "prompt_toolkit"
 ]
 
 [project.urls]
