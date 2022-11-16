@@ -23,7 +23,11 @@ dependencies = [
     "orcid",
     "sqlalchemy",
     "requests",
-    "fuzzywuzzy[speedup]"
+    "fuzzywuzzy[speedup]",
+    "spacy[transformers]",
+    "unidecode",
+    "nameparser",
+    "prompt_toolkit"
 ]
 
 [project.optional-dependencies]
@@ -32,12 +36,6 @@ test = [
     "pytest>=4.6.5",
     "pytest-cov>=2.7.1",
     "coveralls"
-]
-cli = [
-    "spacy[transformers]",
-    "unidecode",
-    "nameparser",
-    "prompt_toolkit"
 ]
 
 [project.urls]
