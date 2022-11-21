@@ -1,3 +1,4 @@
+<!--header-start-->
 <img src=".github/nhm-logo.svg" align="left" width="150px" height="100px" hspace="40"/>
 
 # ckanext-attribution
@@ -10,8 +11,10 @@
 
 _A CKAN extension that adds support for complex attribution._
 
-# Overview
+<!--header-end-->
 
+# Overview
+<!--overview-start-->
 This extension standardises author/contributor attribution for datasets, enabling enhanced metadata
 and greater linkage between datasets. It currently integrates with the [ORCID](https://orcid.org)
 and [ROR](https://ror.org) APIs; contributors ('agents') can be added directly from these databases,
@@ -76,8 +79,10 @@ Field|Type|Values|Notes
 `end_date`|date||date at which the relationship ended (optional)
 `package_id`|string|`Package.id` foreign key|links affiliation to a specific package/dataset (optional)
 
-# Installation
+<!--overview-end-->
 
+# Installation
+<!--installation-start-->
 Path variables used below:
 
 - `$INSTALL_FOLDER` (i.e. where CKAN is installed), e.g. `/usr/lib/ckan/default`
@@ -147,8 +152,10 @@ After making the changes, restart SOLR and
 reindex (`ckan -c $CONFIG_FILE search-index rebuild-fast`). You will also have to enable the config
 option to see this in the UI (see below).
 
-# Configuration
+<!--installation-end-->
 
+# Configuration
+<!--configuration-start-->
 These are the options that can be specified in your .ini config file. NB:
 setting `ckanext.attribution.debug` to `True` means that the API
 accesses [sandbox.orcid.org](https://sandbox.orcid.org) instead of [orcid.org](https://orcid.org).
@@ -170,8 +177,10 @@ Name|Description|Options|Default
 `ckanext.attribution.debug`|If true, use sandbox.orcid.org (for testing)|True/False|True
 `ckanext.attribution.enable_faceting`|Enable filtering by contributor name (requires change to SOLR schema)|True/False|False
 
-# Usage
+<!--configuration-end-->
 
+# Usage
+<!--usage-start-->
 ## Actions
 
 This extension adds numerous new actions. These are primarily CRUD actions for managing models, with
@@ -381,8 +390,10 @@ Attempt to extract names of contributors from author fields and convert them to 
 
 It is recommended to run `merge-agents`, `refresh-packages`, and rebuild the search index after running this command.
 
-# Testing
+<!--usage-end-->
 
+# Testing
+<!--testing-start-->
 There is a Docker compose configuration available in this repository to make it easier to run tests.
 
 To run the tests against ckan 2.9.x on Python3:
@@ -401,3 +412,5 @@ docker-compose run ckan
 ```
 
 The ckan image uses the Dockerfile in the `docker/` folder.
+
+<!--testing-end-->
