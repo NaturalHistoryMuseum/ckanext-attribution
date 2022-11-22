@@ -11,10 +11,11 @@ import click
 
 
 def multi_choice(question, options, default=0):
-    '''
+    """
     Provide the user with a list of options.
+
     :return: index of the chosen option
-    '''
+    """
     click.echo(question)
     for i, o in enumerate(options):
         click.echo('\t({0}) {1}'.format(i + 1, o))
@@ -37,5 +38,5 @@ rgx = SimpleNamespace(
     has_affiliation=re.compile(r'^([^()]+)\((.+)\)$'),
     no_affiliation=re.compile(r'^([^(),;]+)$'),
     initialism=re.compile(r'^[A-Z.]+$'),
-    abbr=re.compile(r'([A-Z]|(?<=[^A-Za-z])[a-z])')
+    abbr=re.compile(r'([A-Z]|(?<=[^A-Za-z])[a-z])'),
 )

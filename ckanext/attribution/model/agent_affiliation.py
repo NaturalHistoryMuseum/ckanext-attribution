@@ -13,21 +13,36 @@ agent_affiliation_table = Table(
     'agent_affiliation',
     meta.metadata,
     Column('id', UnicodeText, primary_key=True, default=make_uuid),
-    Column('agent_a_id', UnicodeText,
-           ForeignKey('agent.id', onupdate='CASCADE', ondelete='CASCADE'), nullable=False),
-    Column('agent_b_id', UnicodeText,
-           ForeignKey('agent.id', onupdate='CASCADE', ondelete='CASCADE'), nullable=False),
+    Column(
+        'agent_a_id',
+        UnicodeText,
+        ForeignKey('agent.id', onupdate='CASCADE', ondelete='CASCADE'),
+        nullable=False,
+    ),
+    Column(
+        'agent_b_id',
+        UnicodeText,
+        ForeignKey('agent.id', onupdate='CASCADE', ondelete='CASCADE'),
+        nullable=False,
+    ),
     Column('affiliation_type', UnicodeText, nullable=True),
     Column('description', UnicodeText, nullable=True),
     Column('start_date', Date, nullable=True),
     Column('end_date', Date, nullable=True),
-    Column('package_id', UnicodeText,
-           ForeignKey('package.id', onupdate='CASCADE', ondelete='CASCADE'), nullable=True)
+    Column(
+        'package_id',
+        UnicodeText,
+        ForeignKey('package.id', onupdate='CASCADE', ondelete='CASCADE'),
+        nullable=True,
+    ),
 )
 
 
 class AgentAffiliation(DomainObject):
-    '''An affiliation between two agents (e.g. agent a is a researcher, agent b is a university).'''
+    """
+    An affiliation between two agents (e.g. agent a is a researcher, agent b is a
+    university).
+    """
 
     @property
     def agents(self):
@@ -39,6 +54,8 @@ class AgentAffiliation(DomainObject):
 
 
 def check_for_table():
-    ''' '''
+    """
+    
+    """
     if agent_table.exists():
         agent_affiliation_table.create(checkfirst=True)

@@ -5,9 +5,13 @@
 # Created by the Natural History Museum in London, UK
 
 from ckanext.attribution.logic.actions.meta import help, schema
-from ckanext.attribution.model.crud import (AgentAffiliationQuery, AgentContributionActivityQuery,
-                                            AgentQuery, ContributionActivityQuery,
-                                            PackageContributionActivityQuery)
+from ckanext.attribution.model.crud import (
+    AgentAffiliationQuery,
+    AgentContributionActivityQuery,
+    AgentQuery,
+    ContributionActivityQuery,
+    PackageContributionActivityQuery,
+)
 from ckantools.decorators import action
 
 
@@ -23,7 +27,9 @@ def agent_delete(original_data_dict):
     return AgentQuery.delete(item_id)
 
 
-@action(schema.agent_contribution_activity_delete, help.agent_contribution_activity_delete)
+@action(
+    schema.agent_contribution_activity_delete, help.agent_contribution_activity_delete
+)
 def agent_contribution_activity_delete(original_data_dict):
     item_id = original_data_dict.pop('id')
     return AgentContributionActivityQuery.delete(item_id)
@@ -35,7 +41,10 @@ def contribution_activity_delete(original_data_dict):
     return ContributionActivityQuery.delete(item_id)
 
 
-@action(schema.package_contribution_activity_delete, help.package_contribution_activity_delete)
+@action(
+    schema.package_contribution_activity_delete,
+    help.package_contribution_activity_delete,
+)
 def package_contribution_activity_delete(original_data_dict):
     item_id = original_data_dict.pop('id')
     return PackageContributionActivityQuery.delete(item_id)
