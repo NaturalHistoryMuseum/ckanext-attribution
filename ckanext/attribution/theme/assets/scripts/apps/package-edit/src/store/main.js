@@ -271,7 +271,7 @@ const store = new Vuex.Store(
             syncAgent(context, contributorId) {
                 // download details from external source
                 Agent.updateMeta(contributorId, { syncing: true });
-                return get('agent_external_read', { id: contributorId, diff: true }).then(res => {
+                return get('agent_external_read', { agent_id: contributorId, diff: true }).then(res => {
                     Agent.update({ where: contributorId, data: res });
                     Agent.updateMeta(contributorId, { is_dirty: true });
                 }).finally(() => Agent.updateMeta(contributorId, { syncing: false }));

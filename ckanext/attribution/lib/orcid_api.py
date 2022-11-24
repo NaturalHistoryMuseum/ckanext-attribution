@@ -11,7 +11,10 @@ from werkzeug.utils import cached_property
 
 
 class OrcidApi(object):
-    ''' '''
+    """
+    
+    """
+
     def __init__(self):
         self.key = toolkit.config.get('ckanext.attribution.orcid_key')
         self.secret = toolkit.config.get('ckanext.attribution.orcid_secret')
@@ -19,26 +22,35 @@ class OrcidApi(object):
 
     @cached_property
     def conn(self):
-        ''' '''
+        """
+        
+        """
         if self.key is None or self.secret is None:
             raise Exception(toolkit._('ORCID API credentials not supplied.'))
         return orcid.PublicAPI(self.key, self.secret, sandbox=self._debug)
 
     @cached_property
     def read_token(self):
-        ''' '''
+        """
+        
+        """
         if self.key is None or self.secret is None:
             raise Exception(toolkit._('ORCID API credentials not supplied.'))
-        url = 'https://sandbox.orcid.org/oauth/token' if self._debug else \
-            'https://orcid.org/oauth/token'
-        r = requests.post(url, data={
-            'client_id': self.key,
-            'client_secret': self.secret,
-            'grant_type': 'client_credentials',
-            'scope': '/read-public'
-        }, headers={
-            'Accept': 'application/json'
-        })
+        url = (
+            'https://sandbox.orcid.org/oauth/token'
+            if self._debug
+            else 'https://orcid.org/oauth/token'
+        )
+        r = requests.post(
+            url,
+            data={
+                'client_id': self.key,
+                'client_secret': self.secret,
+                'grant_type': 'client_credentials',
+                'scope': '/read-public',
+            },
+            headers={'Accept': 'application/json'},
+        )
         if r.ok:
             return r.json()['access_token']
         else:
@@ -74,10 +86,7 @@ class OrcidApi(object):
                 except AttributeError as e:
                     # probably a malformed orcid record
                     continue
-        result = {
-            'total': search_response.get('num-found', 0),
-            'records': records
-        }
+        result = {'total': search_response.get('num-found', 0), 'records': records}
         return result
 
     def read(self, orcid_id):
@@ -103,5 +112,5 @@ class OrcidApi(object):
             'given_names': names.get('given-names', {}).get('value', ''),
             'external_id': orcid_record.get('orcid-identifier', {}).get('path', ''),
             'external_id_scheme': 'orcid',
-            'agent_type': 'person'  # default
+            'agent_type': 'person',  # default
         }

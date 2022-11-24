@@ -6,11 +6,17 @@
 
 from ckan.plugins import SingletonPlugin, implements, interfaces, toolkit
 from ckanext.attribution.lib import helpers
-from ckanext.attribution.model import (agent, agent_affiliation, agent_contribution_activity,
-                                       contribution_activity, package_contribution_activity,
-                                       relationships)
+from ckanext.attribution.model import (
+    agent,
+    agent_affiliation,
+    agent_contribution_activity,
+    contribution_activity,
+    package_contribution_activity,
+    relationships,
+)
 from ckanext.attribution.commands import cli
 from ckanext.attribution import routes
+from ckantools.loaders import create_actions, create_auth
 
 try:
     from ckanext.doi.interfaces import IDoi
@@ -21,7 +27,9 @@ except ImportError:
 
 
 class AttributionPlugin(SingletonPlugin):
-    '''A CKAN extension that adds support for complex attribution.'''
+    """
+    A CKAN extension that adds support for complex attribution.
+    """
 
     implements(interfaces.IActions, inherit=True)
     implements(interfaces.IAuthFunctions, inherit=True)
@@ -37,61 +45,21 @@ class AttributionPlugin(SingletonPlugin):
 
     # IActions
     def get_actions(self):
-        from ckanext.attribution.logic.actions import create, show, update, delete, extra
-        actions = {
-            'agent_affiliation_create': create.agent_affiliation_create,
-            'agent_create': create.agent_create,
-            'contribution_activity_create': create.contribution_activity_create,
-            'package_create': create.package_create,
-            'agent_affiliation_show': show.agent_affiliation_show,
-            'agent_show': show.agent_show,
-            'agent_list': show.agent_list,
-            'agent_contribution_activity_show': show.agent_contribution_activity_show,
-            'contribution_activity_show': show.contribution_activity_show,
-            'package_contribution_activity_show': show.package_contribution_activity_show,
-            'package_contributions_show': show.package_contributions_show,
-            'agent_affiliations': show.agent_affiliations,
-            'agent_affiliation_update': update.agent_affiliation_update,
-            'agent_update': update.agent_update,
-            'agent_external_update': update.agent_external_update,
-            'contribution_activity_update': update.contribution_activity_update,
-            'package_update': update.package_update,
-            'agent_affiliation_delete': delete.agent_affiliation_delete,
-            'agent_delete': delete.agent_delete,
-            'agent_contribution_activity_delete': delete.agent_contribution_activity_delete,
-            'contribution_activity_delete': delete.contribution_activity_delete,
-            'package_contribution_activity_delete': delete.package_contribution_activity_delete,
-            'attribution_controlled_lists': extra.attribution_controlled_lists,
-            'agent_external_search': extra.agent_external_search,
-            'agent_external_read': extra.agent_external_read,
-            'validate_external_id': extra.validate_external_id
-        }
-        return actions
+        from ckanext.attribution.logic.actions import (
+            create,
+            show,
+            update,
+            delete,
+            extra,
+        )
+
+        return create_actions(create, show, update, delete, extra)
 
     # IAuthFunctions
     def get_auth_functions(self):
-        from ckanext.attribution.logic.auth import create, show, update, delete
-        auth = {
-            'agent_affiliation_create': create.agent_affiliation_create,
-            'agent_create': create.agent_create,
-            'contribution_activity_create': create.contribution_activity_create,
-            'agent_affiliation_show': show.agent_affiliation_show,
-            'agent_show': show.agent_show,
-            'agent_contribution_activity_show': show.agent_contribution_activity_show,
-            'contribution_activity_show': show.contribution_activity_show,
-            'package_contribution_activity_show': show.package_contribution_activity_show,
-            'package_contributions_show': show.package_contributions_show,
-            'agent_affiliation_update': update.agent_affiliation_update,
-            'agent_update': update.agent_update,
-            'agent_external_update': update.agent_external_update,
-            'contribution_activity_update': update.contribution_activity_update,
-            'agent_affiliation_delete': delete.agent_affiliation_delete,
-            'agent_delete': delete.agent_delete,
-            'agent_contribution_activity_delete': delete.agent_contribution_activity_delete,
-            'contribution_activity_delete': delete.contribution_activity_delete,
-            'package_contribution_activity_delete': delete.package_contribution_activity_delete,
-        }
-        return auth
+        from ckanext.attribution.logic.auth import create, show, update, delete, extra
+
+        return create_auth(create, show, update, delete, extra)
 
     # IBlueprint
     def get_blueprint(self):
@@ -118,7 +86,8 @@ class AttributionPlugin(SingletonPlugin):
     # IFacets
     def dataset_facets(self, facets_dict, package_type):
         enable_faceting = toolkit.asbool(
-            toolkit.config.get('ckanext.attribution.enable_faceting', False))
+            toolkit.config.get('ckanext.attribution.enable_faceting', False)
+        )
         if enable_faceting:
             facets_dict['author'] = toolkit._('Contributors')
         return facets_dict
@@ -126,9 +95,12 @@ class AttributionPlugin(SingletonPlugin):
     # IPackageController
     def before_index(self, pkg_dict):
         enable_faceting = toolkit.asbool(
-            toolkit.config.get('ckanext.attribution.enable_faceting', False))
+            toolkit.config.get('ckanext.attribution.enable_faceting', False)
+        )
         if enable_faceting:
-            contributions = toolkit.get_action('package_contributions_show')({}, {'id': pkg_dict['id']})
+            contributions = toolkit.get_action('package_contributions_show')(
+                {}, {'id': pkg_dict['id']}
+            )
             agents = [c['agent'] for c in contributions['contributions']]
             pkg_dict['author'] = [a['display_name'] for a in agents]
         return pkg_dict
@@ -143,7 +115,7 @@ class AttributionPlugin(SingletonPlugin):
             'controlled_list': helpers.controlled_list,
             'doi_plugin': helpers.doi_plugin,
             'agent_from_user': helpers.agent_from_user,
-            'user_contributions': helpers.user_contributions
+            'user_contributions': helpers.user_contributions,
         }
 
     # IDoi
@@ -154,9 +126,13 @@ class AttributionPlugin(SingletonPlugin):
         id_schemes = helpers.controlled_list('agent_external_id_schemes')
 
         def _make_contrib_dict(entry):
-            d = {'is_org': entry['agent'].agent_type == 'org',
-                 'affiliations': [a['agent'].display_name for a in
-                                  entry['agent'].package_affiliations(pkg_dict['id'])]}
+            d = {
+                'is_org': entry['agent'].agent_type == 'org',
+                'affiliations': [
+                    a['agent'].display_name
+                    for a in entry['agent'].package_affiliations(pkg_dict['id'])
+                ],
+            }
             if entry['agent'].agent_type == 'person':
                 d['family_name'] = entry['agent'].family_name
                 d['given_name'] = entry['agent'].given_names
@@ -166,9 +142,13 @@ class AttributionPlugin(SingletonPlugin):
                 scheme = entry['agent'].external_id_scheme
                 scheme_label = id_schemes.get(scheme, {}).get('label', scheme)
                 scheme_uri = id_schemes.get(scheme, {}).get('scheme_uri')
-                d['identifiers'] = [{'identifier': entry['agent'].external_id_url,
-                                     'scheme': scheme_label,
-                                     'scheme_uri': scheme_uri}]
+                d['identifiers'] = [
+                    {
+                        'identifier': entry['agent'].external_id_url,
+                        'scheme': scheme_label,
+                        'scheme_uri': scheme_uri,
+                    }
+                ]
             return d
 
         creators = []
@@ -177,10 +157,11 @@ class AttributionPlugin(SingletonPlugin):
             creators.append(creator_dict)
 
         if len(creators) == 0:
-            default_author = toolkit.config.get('ckanext.doi.publisher',
-                                                toolkit.config.get('ckan.site_title', 'Anonymous'))
-            creators.append({'full_name': default_author,
-                             'is_org': True})
+            default_author = toolkit.config.get(
+                'ckanext.doi.publisher',
+                toolkit.config.get('ckan.site_title', 'Anonymous'),
+            )
+            creators.append({'full_name': default_author, 'is_org': True})
 
         contributors = []
         for c in all_contributors['uncited']:
@@ -190,8 +171,10 @@ class AttributionPlugin(SingletonPlugin):
             # use the first alphabetically. If there are no datacite roles/activities for this
             # contributor, use 'Other' (because contributor type is a required field).
             contrib_dict = _make_contrib_dict(c)
-            datacite_roles = sorted([a for a in c['contributions'] if a.scheme == 'datacite'],
-                                    key=lambda x: (x.order or len(c['contributions']), x.activity))
+            datacite_roles = sorted(
+                [a for a in c['contributions'] if a.scheme == 'datacite'],
+                key=lambda x: (x.order or len(c['contributions']), x.activity),
+            )
             if datacite_roles:
                 contrib_dict['contributor_type'] = datacite_roles[0].activity
             else:

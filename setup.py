@@ -1,7 +1,7 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # encoding: utf-8
 #
-# This file is part of ckanext-versioned-datastore
+# This file is part of ckanext-attribution
 # Created by the Natural History Museum in London, UK
 
 import setuptools

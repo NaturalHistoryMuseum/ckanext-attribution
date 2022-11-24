@@ -14,7 +14,10 @@ from .package_contribution_activity import PackageContributionActivityQuery
 
 
 class PackageQuery(BaseQuery):
-    ''' '''
+    """
+    
+    """
+
     m = Package
     t = package_table
 
@@ -29,12 +32,20 @@ class PackageQuery(BaseQuery):
             pkg_id = pkg.id
 
         link_records = PackageContributionActivityQuery.read_package(pkg_id)
-        activities = sorted([r.contribution_activity for r in link_records],
-                            key=lambda x: x.activity)
+        activities = sorted(
+            [r.contribution_activity for r in link_records], key=lambda x: x.activity
+        )
         return activities
 
     @classmethod
     def get_agents(cls, pkg_id):
         link_records = PackageContributionActivityQuery.read_package(pkg_id)
-        agents = list(set(sorted([r.contribution_activity.agent for r in link_records], key=lambda x: x.standardised_name)))
+        agents = list(
+            set(
+                sorted(
+                    [r.contribution_activity.agent for r in link_records],
+                    key=lambda x: x.standardised_name,
+                )
+            )
+        )
         return agents

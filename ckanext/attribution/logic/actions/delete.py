@@ -4,87 +4,47 @@
 # This file is part of ckanext-attribution
 # Created by the Natural History Museum in London, UK
 
-from ckan.plugins import toolkit
-from ckanext.attribution.model.crud import (AgentAffiliationQuery, AgentContributionActivityQuery,
-                                            AgentQuery, ContributionActivityQuery,
-                                            PackageContributionActivityQuery)
+from ckanext.attribution.logic.actions.meta import help, schema
+from ckanext.attribution.model.crud import (
+    AgentAffiliationQuery,
+    AgentContributionActivityQuery,
+    AgentQuery,
+    ContributionActivityQuery,
+    PackageContributionActivityQuery,
+)
+from ckantools.decorators import action
 
 
-def agent_affiliation_delete(context, data_dict):
-    '''
-    Delete an :class:`~ckanext.attribution.model.agent_affiliation.AgentAffiliation` record by ID.
-
-    :param id: ID of the affiliation record
-    :type id: str
-    :returns: The affiliation record.
-    :rtype: dict
-
-    '''
-    toolkit.check_access('agent_affiliation_delete', context, data_dict)
-    item_id = toolkit.get_or_bust(data_dict, 'id')
+@action(schema.agent_affiliation_delete, help.agent_affiliation_delete)
+def agent_affiliation_delete(original_data_dict):
+    item_id = original_data_dict.pop('id')
     return AgentAffiliationQuery.delete(item_id)
 
 
-def agent_delete(context, data_dict):
-    '''
-    Delete an :class:`~ckanext.attribution.model.agent.Agent` record by ID.
-
-    :param id: ID of the agent record
-    :type id: str
-    :returns: The agent record.
-    :rtype: dict
-
-    '''
-    toolkit.check_access('agent_delete', context, data_dict)
-    item_id = toolkit.get_or_bust(data_dict, 'id')
+@action(schema.agent_delete, help.agent_delete)
+def agent_delete(original_data_dict):
+    item_id = original_data_dict.pop('id')
     return AgentQuery.delete(item_id)
 
 
-def agent_contribution_activity_delete(context, data_dict):
-    '''
-    Delete an
-    :class:`~ckanext.attribution.model.agent_contribution_activity.AgentContributionActivity` record
-    by ID.
-
-    :param id: ID of the agent contribution activity record
-    :type id: str
-    :returns: The agent contribution activity record.
-    :rtype: dict
-
-    '''
-    toolkit.check_access('agent_contribution_activity_delete', context, data_dict)
-    item_id = toolkit.get_or_bust(data_dict, 'id')
+@action(
+    schema.agent_contribution_activity_delete, help.agent_contribution_activity_delete
+)
+def agent_contribution_activity_delete(original_data_dict):
+    item_id = original_data_dict.pop('id')
     return AgentContributionActivityQuery.delete(item_id)
 
 
-def contribution_activity_delete(context, data_dict):
-    '''
-    Delete a :class:`~ckanext.attribution.model.contribution_activity.ContributionActivity`
-    record by ID.
-
-    :param id: ID of the contribution activity record
-    :type id: str
-    :returns: The contribution activity record.
-    :rtype: dict
-
-    '''
-    toolkit.check_access('contribution_activity_delete', context, data_dict)
-    item_id = toolkit.get_or_bust(data_dict, 'id')
+@action(schema.contribution_activity_delete, help.contribution_activity_delete)
+def contribution_activity_delete(original_data_dict):
+    item_id = original_data_dict.pop('id')
     return ContributionActivityQuery.delete(item_id)
 
 
-def package_contribution_activity_delete(context, data_dict):
-    '''
-    Delete a
-    :class:`~ckanext.attribution.model.package_contribution_activity.PackageContributionActivity`
-    record by ID.
-
-    :param id: ID of the package contribution activity record
-    :type id: str
-    :returns: The package contribution activity record.
-    :rtype: dict
-
-    '''
-    toolkit.check_access('package_contribution_activity_delete', context, data_dict)
-    item_id = toolkit.get_or_bust(data_dict, 'id')
+@action(
+    schema.package_contribution_activity_delete,
+    help.package_contribution_activity_delete,
+)
+def package_contribution_activity_delete(original_data_dict):
+    item_id = original_data_dict.pop('id')
     return PackageContributionActivityQuery.delete(item_id)

@@ -2,17 +2,18 @@ import itertools
 import json
 
 from ckan.plugins import toolkit
-from ckanext.attribution.model.crud import (AgentQuery, AgentContributionActivityQuery,
-                                            ContributionActivityQuery, AgentAffiliationQuery,
-                                            PackageQuery, PackageContributionActivityQuery)
+from ckanext.attribution.model.crud import (
+    AgentQuery,
+    AgentContributionActivityQuery,
+    ContributionActivityQuery,
+    AgentAffiliationQuery,
+    PackageQuery,
+    PackageContributionActivityQuery,
+)
 
 
 def split_list_by_action(input_list, crud_model, id_field='id'):
-    result = {
-        'new': [],
-        'updated': [],
-        'deleted': []
-    }
+    result = {'new': [], 'updated': [], 'deleted': []}
     for item in input_list:
         meta = item.get('meta', {})
         if meta.get('is_editing', False):
@@ -72,10 +73,14 @@ def parse_contributors(context, data_dict):
     deleted_agents = [a['id'] for a in agents['deleted']]
 
     # activities
-    activities = split_list_by_action(contributors.get('activities', []), ContributionActivityQuery)
+    activities = split_list_by_action(
+        contributors.get('activities', []), ContributionActivityQuery
+    )
     for agent in deleted_agents:
-        activities['deleted'] += [r.as_dict() for r in
-                                  AgentContributionActivityQuery.read_agent_package(agent, pkg_id)]
+        activities['deleted'] += [
+            r.as_dict()
+            for r in AgentContributionActivityQuery.read_agent_package(agent, pkg_id)
+        ]
     activities['deleted'] = list(set([a['id'] for a in activities['deleted']]))
     activity_cre = toolkit.get_action('contribution_activity_create')
     activity_upd = toolkit.get_action('contribution_activity_update')
@@ -97,7 +102,9 @@ def parse_contributors(context, data_dict):
         activity_del(context, {'id': activity})
 
     # citations (specialised activities)
-    citations = split_list_by_action(contributors.get('citations', []), ContributionActivityQuery)
+    citations = split_list_by_action(
+        contributors.get('citations', []), ContributionActivityQuery
+    )
     for citation in citations['new']:
         if citation['agent_id'] in deleted_agents:
             continue
@@ -116,22 +123,35 @@ def parse_contributors(context, data_dict):
     for citation in citations['deleted']:
         activity_del(context, {'id': citation['id']})
     # make sure the order is right
-    all_citations = sorted([c for c in PackageQuery.get_contributions(pkg_id) if
-                            c.activity == '[citation]'], key=lambda x: x.order)
+    all_citations = sorted(
+        [
+            c
+            for c in PackageQuery.get_contributions(pkg_id)
+            if c.activity == '[citation]'
+        ],
+        key=lambda x: x.order,
+    )
     for i, c in enumerate(all_citations):
-        if c.order != i+1:
-            activity_upd(context, {'id': c.id, 'order': i+1})
+        if c.order != i + 1:
+            activity_upd(context, {'id': c.id, 'order': i + 1})
 
     # affiliations
-    affiliations = split_list_by_action(contributors.get('affiliations', []), AgentAffiliationQuery,
-                                        'db_id')
+    affiliations = split_list_by_action(
+        contributors.get('affiliations', []), AgentAffiliationQuery, 'db_id'
+    )
 
     def affiliation_key(x):
         return sorted((x['agent_id'], x['other_agent_id']))
 
-    affiliations = {gk: [list(a)[0] for k, a in
-                         itertools.groupby(sorted(gv, key=affiliation_key),
-                                           key=affiliation_key)] for gk, gv in affiliations.items()}
+    affiliations = {
+        gk: [
+            list(a)[0]
+            for k, a in itertools.groupby(
+                sorted(gv, key=affiliation_key), key=affiliation_key
+            )
+        ]
+        for gk, gv in affiliations.items()
+    }
     affiliation_cre = toolkit.get_action('agent_affiliation_create')
     affiliation_upd = toolkit.get_action('agent_affiliation_update')
     affiliation_del = toolkit.get_action('agent_affiliation_delete')
@@ -167,16 +187,25 @@ def parse_contributors(context, data_dict):
 
 def get_author_string(package_id=None, citation_ids=None):
     if package_id is not None:
-        citations = sorted([c for c in PackageQuery.get_contributions(package_id) if
-                            c.activity == '[citation]'], key=lambda x: x.order)
+        citations = sorted(
+            [
+                c
+                for c in PackageQuery.get_contributions(package_id)
+                if c.activity == '[citation]'
+            ],
+            key=lambda x: x.order,
+        )
     elif citation_ids is not None:
-        citations = sorted([ContributionActivityQuery.read(c) for c in citation_ids],
-                           key=lambda x: x.order)
+        citations = sorted(
+            [ContributionActivityQuery.read(c) for c in citation_ids],
+            key=lambda x: x.order,
+        )
     else:
         citations = []
 
     if len(citations) == 0:
-        return toolkit.config.get('ckanext.doi.publisher',
-                                  toolkit.config.get('ckan.site_title', 'Anonymous'))
+        return toolkit.config.get(
+            'ckanext.doi.publisher', toolkit.config.get('ckan.site_title', 'Anonymous')
+        )
     else:
         return '; '.join([c.agent.citation_name for c in citations])

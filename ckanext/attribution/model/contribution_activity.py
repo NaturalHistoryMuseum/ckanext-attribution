@@ -6,7 +6,7 @@
 
 from ckan.model import DomainObject, meta
 from ckan.model.types import make_uuid
-from sqlalchemy import (Column, DateTime, Table, UnicodeText, Integer)
+from sqlalchemy import Column, DateTime, Table, UnicodeText, Integer
 
 # this table stores contribution activities
 contribution_activity_table = Table(
@@ -17,15 +17,20 @@ contribution_activity_table = Table(
     Column('scheme', UnicodeText, nullable=False),
     Column('level', UnicodeText, nullable=True),
     Column('time', DateTime, nullable=True),
-    Column('order', Integer, nullable=True)
+    Column('order', Integer, nullable=True),
 )
 
 
 class ContributionActivity(DomainObject):
-    '''A contribution activity record.'''
+    """
+    A contribution activity record.
+    """
+
     pass
 
 
 def check_for_table():
-    ''' '''
+    """
+    
+    """
     contribution_activity_table.create(checkfirst=True)

@@ -25,16 +25,12 @@ class ParsedSegment:
 
 
 class Parser(object):
-    '''
+    """
     Extracts names and affiliations from text.
-    '''
+    """
 
     def __init__(self):
-        self.contributors = {
-            'person': {},
-            'org': {},
-            'other': {}
-        }
+        self.contributors = {'person': {}, 'org': {}, 'other': {}}
         self.affiliations = {}
         spacy_model = 'en_core_web_trf'
         try:
@@ -44,13 +40,14 @@ class Parser(object):
             self.nlp = spacy.load(spacy_model)
 
     def run(self, txt, pkg_id, contrib_type):
-        '''
+        """
         Run the whole process over a line of text.
+
         :param txt: the chunk of text to process
         :param pkg_id: associated package
         :param contrib_type: author, contributor, or affiliation
         :return: list of ParsedSegment instances extracted from the text
-        '''
+        """
         if not self.validate(txt):
             return
         segments = []
@@ -59,10 +56,12 @@ class Parser(object):
             sublines = self.split(line)
             # bulk sort for large lists
             if len(sublines) > 20 and click.confirm(
-                f'Do you want to set the same type for all {len(sublines)} contributors found in this block?'):
+                f'Do you want to set the same type for all {len(sublines)} contributors found in this block?'
+            ):
                 i = multi_choice(
                     f'What type of contributors are in "{shorten(line, width=50, placeholder="...")}"?',
-                    self.contributors.keys())
+                    self.contributors.keys(),
+                )
                 _type = list(self.contributors.keys())[i]
             else:
                 _type = None
@@ -72,27 +71,36 @@ class Parser(object):
                 if contrib_type != 'affiliation':
                     name, affiliations = self.extract_affiliations(subline)
                     for a in affiliations:
-                        self.affiliations[pkg_id] = self.affiliations.get(pkg_id, []) + [
-                            (name.strip(), a)]
-                        parsed_affiliation = ParsedSegment(a.strip(), text=a, affiliations=[],
-                                                           packages={'affiliation': (pkg_id, None)})
+                        self.affiliations[pkg_id] = self.affiliations.get(
+                            pkg_id, []
+                        ) + [(name.strip(), a)]
+                        parsed_affiliation = ParsedSegment(
+                            a.strip(),
+                            text=a,
+                            affiliations=[],
+                            packages={'affiliation': (pkg_id, None)},
+                        )
                         self.sort_contributor(parsed_affiliation)
                 else:
                     name = subline
                     affiliations = []
                 order = (i + 1) if contrib_type == 'author' else None
-                parsed_segment = ParsedSegment(name=name.strip(), text=subline,
-                                               affiliations=affiliations,
-                                               packages={contrib_type: (pkg_id, order)})
+                parsed_segment = ParsedSegment(
+                    name=name.strip(),
+                    text=subline,
+                    affiliations=affiliations,
+                    packages={contrib_type: (pkg_id, order)},
+                )
                 self.sort_contributor(parsed_segment, _type)
                 segments.append(parsed_segment)
         return segments
 
     def validate(self, txt):
-        '''
+        """
         Check the text can/should actually be parsed.
+
         :return: True/False
-        '''
+        """
         if txt is None:
             return False
         parsed = self.nlp(txt)
@@ -109,13 +117,17 @@ class Parser(object):
         return True
 
     def split(self, txt):
-        '''
-        Uses multiple sub-methods to attempt to split the text into individual contributors.
+        """
+        Uses multiple sub-methods to attempt to split the text into individual
+        contributors.
+
         :param txt:
         :return:
-        '''
+        """
         lines = [ln.strip() for ln in txt.split('\n')]
-        segments = [rgx.initials.sub('\\1 ', s).strip() for ln in lines for s in ln.split(';')]
+        segments = [
+            rgx.initials.sub('\\1 ', s).strip() for ln in lines for s in ln.split(';')
+        ]
         names = []
 
         def _process_segment(segment):
@@ -128,7 +140,13 @@ class Parser(object):
             nlp_ent_splits = self._split_by_nlp_ents(segment)
             options = []
             printable_options = []
-            all_options = [nlp_ent_splits, rv_names, rgx_splits, semicolon_splits, [segment]]
+            all_options = [
+                nlp_ent_splits,
+                rv_names,
+                rgx_splits,
+                semicolon_splits,
+                [segment],
+            ]
             all_options = sorted(all_options, key=lambda x: -len(''.join(x)))
             all_options = sorted(all_options, key=lambda x: -len(x))
             for o in all_options:
@@ -148,7 +166,8 @@ class Parser(object):
 
         if len(segments) > 1:
             click.echo(
-                f'{len(segments)} found in "{shorten(txt, width=50, placeholder="...")}". e.g.:')
+                f'{len(segments)} found in "{shorten(txt, width=50, placeholder="...")}". e.g.:'
+            )
             for s in segments[:5]:
                 click.echo('\t' + s)
             if click.confirm('Skip individual processing of these segments?'):
@@ -161,14 +180,17 @@ class Parser(object):
                 if splits:
                     names += splits
                 else:
-                    t = prompt('Edit the line (try adding ";" between contributors): ', default=t)
+                    t = prompt(
+                        'Edit the line (try adding ";" between contributors): ',
+                        default=t,
+                    )
         return names
 
     def _split_by_nlp_sep(self, txt):
-        '''
-        Finds entities using spacy, then attempts to identify the character(s) separating them and
-        splits by that.
-        '''
+        """
+        Finds entities using spacy, then attempts to identify the character(s)
+        separating them and splits by that.
+        """
         parsed = self.nlp(txt)
         if len(parsed.ents) > 2:
             start_char = parsed.ents[0].end_char
@@ -180,9 +202,9 @@ class Parser(object):
         return [txt]
 
     def _split_by_nlp_ents(self, txt):
-        '''
+        """
         Extract all entities from the text using spacy.
-        '''
+        """
         parsed = self.nlp(txt)
         return [ent.text for ent in parsed.ents]
 
@@ -191,10 +213,11 @@ class Parser(object):
         return [', '.join(n) for n in names]
 
     def extract_affiliations(self, txt):
-        '''
+        """
         Uses regexes to find probable affiliations in parentheses.
+
         :return: contributor name, list of affiliations
-        '''
+        """
         has_affiliation = rgx.has_affiliation.match(txt)
         no_affiliation = rgx.no_affiliation.match(txt)
         if has_affiliation is not None:
@@ -205,9 +228,9 @@ class Parser(object):
             return txt, []
 
     def sort_contributor(self, c: ParsedSegment, default_type=None):
-        '''
+        """
         Sort a contributor into lists based on agent type.
-        '''
+        """
         name = HumanName(c.name)
         initials = ''.join(rgx.abbr.findall(c.name))
         _type = default_type
@@ -221,8 +244,10 @@ class Parser(object):
                     if any([x.name == c.name for x in v[initials]]):
                         _type = k
         if _type is None:
-            i = multi_choice('What type of contributor is "{0}"?'.format(c.name),
-                             self.contributors.keys())
+            i = multi_choice(
+                'What type of contributor is "{0}"?'.format(c.name),
+                self.contributors.keys(),
+            )
             _type = list(self.contributors.keys())[i]
         if _type == 'person':
             if name.last == '':
@@ -236,4 +261,6 @@ class Parser(object):
             family_name_records[name.first[0]] = initial_records
             self.contributors[_type][name.last] = family_name_records
         else:
-            self.contributors[_type][initials] = self.contributors[_type].get(initials, []) + [c]
+            self.contributors[_type][initials] = self.contributors[_type].get(
+                initials, []
+            ) + [c]
