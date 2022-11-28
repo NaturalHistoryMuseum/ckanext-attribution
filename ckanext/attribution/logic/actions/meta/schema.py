@@ -95,8 +95,8 @@ package_contribution_activity_show = {'id': [not_missing, str]}
 
 package_contributions_show = {
     'id': [not_missing, str],
-    'limit': [not_missing, int_validator],
-    'offset': [not_missing, int_validator],
+    'limit': [ignore_missing, int_validator],
+    'offset': [ignore_missing, int_validator],
 }
 
 agent_affiliations = {
