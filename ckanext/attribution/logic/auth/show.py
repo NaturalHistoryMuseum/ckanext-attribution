@@ -62,8 +62,7 @@ def package_contributions_show(context, data_dict):
     return auth_valid
 
 
-@auth(proxy='agent_show')
+@auth(proxy=['agent_show', 'agent_affiliation_show'], anon=True)
 def agent_affiliations(context, data_dict):
-    # this one calls two other auth actions but the auth decorator can only handle one atm, so just
-    # call the other one manually
-    return toolkit.check_access('agent_affiliation_show', context, data_dict)
+    # TODO: remove anon=True once ckantools#9 is fixed
+    return auth_valid
