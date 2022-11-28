@@ -44,6 +44,8 @@ def split_list_by_action(input_list, crud_model, id_field='id'):
 
 
 def parse_contributors(context, data_dict):
+    # if the context parameter is passed to any of the actions retrieved below with get_action,
+    # they break. I don't know why, they just do.
     contributors = json.loads(data_dict.get('attribution', '{}'))
 
     try:
@@ -64,10 +66,10 @@ def parse_contributors(context, data_dict):
     for agent in agents['new']:
         gen_id = agent['id']
         del agent['id']
-        new_id = agent_cre(context, agent)['id']
+        new_id = agent_cre({}, agent)['id']
         new_agents[gen_id] = new_id
     for agent in agents['updated']:
-        agent_upd(context, agent)
+        agent_upd({}, agent)
     # agents marked 'to_delete' almost certainly should not be deleted - only their activities
     # should be removed
     deleted_agents = [a['id'] for a in agents['deleted']]
@@ -93,13 +95,13 @@ def parse_contributors(context, data_dict):
         if new_agent_id:
             activity['agent_id'] = new_agent_id
         activity['package_id'] = activity.get('package_id', pkg_id)
-        activity_cre(context, activity)
+        activity_cre({}, activity)
     for activity in activities['updated']:
         if activity['agent_id'] in deleted_agents:
             continue
-        activity_upd(context, activity)
+        activity_upd({}, activity)
     for activity in activities['deleted']:
-        activity_del(context, {'id': activity})
+        activity_del({}, {'id': activity})
 
     # citations (specialised activities)
     citations = split_list_by_action(
@@ -115,13 +117,13 @@ def parse_contributors(context, data_dict):
         if new_agent_id:
             citation['agent_id'] = new_agent_id
         citation['package_id'] = citation.get('package_id', pkg_id)
-        new_citation = activity_cre(context, citation)
+        new_citation = activity_cre({}, citation)
     for citation in citations['updated']:
         if citation['agent_id'] in deleted_agents:
             continue
-        updated_citation = activity_upd(context, citation)
+        updated_citation = activity_upd({}, citation)
     for citation in citations['deleted']:
-        activity_del(context, {'id': citation['id']})
+        activity_del({}, {'id': citation['id']})
     # make sure the order is right
     all_citations = sorted(
         [
@@ -133,7 +135,7 @@ def parse_contributors(context, data_dict):
     )
     for i, c in enumerate(all_citations):
         if c.order != i + 1:
-            activity_upd(context, {'id': c.id, 'order': i + 1})
+            activity_upd({}, {'id': c.id, 'order': i + 1})
 
     # affiliations
     affiliations = split_list_by_action(
@@ -165,7 +167,7 @@ def parse_contributors(context, data_dict):
         aff['package_id'] = pkg_id
         if aff['agent_a_id'] in deleted_agents or aff['agent_b_id'] in deleted_agents:
             continue
-        affiliation_cre(context, aff)
+        affiliation_cre({}, aff)
 
     for aff in affiliations['updated']:
         aff['id'] = aff['db_id']
@@ -175,14 +177,14 @@ def parse_contributors(context, data_dict):
         aff['agent_b_id'] = new_other_agent_id or aff['other_agent_id']
         if aff['agent_a_id'] in deleted_agents or aff['agent_b_id'] in deleted_agents:
             continue
-        affiliation_upd(context, aff)
+        affiliation_upd({}, aff)
 
     for aff in affiliations['deleted']:
-        affiliation_del(context, {'id': aff['db_id']})
+        affiliation_del({}, {'id': aff['db_id']})
 
     for agent in deleted_agents:
         for aff in AgentAffiliationQuery.read_agent(agent, pkg_id):
-            affiliation_del(context, {'id': aff.id})
+            affiliation_del({}, {'id': aff.id})
 
 
 def get_author_string(package_id=None, citation_ids=None):
