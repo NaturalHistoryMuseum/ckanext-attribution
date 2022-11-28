@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.2.1 (2022-11-28)
+
+### Fix
+
+- enable anon access for agent_affiliations
+- ignore missing limit and offset in package_contributions_show
+- remove prepopulated context from get_action calls
+
+### Chores/Misc
+
+- set changelog generation to incremental
+
 ## v1.2.0 (2022-11-24)
 
 ### Fix
