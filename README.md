@@ -14,6 +14,7 @@ _A CKAN extension that adds support for complex attribution._
 <!--header-end-->
 
 # Overview
+
 <!--overview-start-->
 This extension standardises author/contributor attribution for datasets, enabling enhanced metadata
 and greater linkage between datasets. It currently integrates with the [ORCID](https://orcid.org)
@@ -82,79 +83,74 @@ Field|Type|Values|Notes
 <!--overview-end-->
 
 # Installation
+
 <!--installation-start-->
 Path variables used below:
-
 - `$INSTALL_FOLDER` (i.e. where CKAN is installed), e.g. `/usr/lib/ckan/default`
 - `$CONFIG_FILE`, e.g. `/etc/ckan/default/development.ini`
 
-1. Clone the repository into the `src` folder:
+## Installing from PyPI
 
-  ```bash
-  cd $INSTALL_FOLDER/src
-  git clone https://github.com/NaturalHistoryMuseum/ckanext-attribution.git
-  ```
-
-2. Activate the virtual env:
-
-  ```bash
-  . $INSTALL_FOLDER/bin/activate
-  ```
-
-3. Install the requirements from requirements.txt:
-
-  ```bash
-  cd $INSTALL_FOLDER/src/ckanext-attribution
-  pip install -r requirements.txt
-  ```
-
-4. Run setup.py:
-
-  ```bash
-  cd $INSTALL_FOLDER/src/ckanext-attribution
-  python setup.py develop
-  ```
-
-5. Add 'attribution' to the list of plugins in your `$CONFIG_FILE`:
-
-  ```ini
-  ckan.plugins = ... attribution
-  ```
-
-6. Add this block to `package_metadata_fields.html` to show the Vue app:
-
-  ```jinja2
-  {% block package_custom_fields_agent %}
-      {{ super() }}
-  {% endblock %}
-  ```
-
-## Additional steps
-
-### SOLR Faceting
-
-You will need to change the `authors` field in your `schema.xml` for faceting to work.
-
-```xml
-
-<schema>
-    <fields>
-        <...>
-        <field name="author" type="string" indexed="true" stored="true" multiValued="true"/>
-        <...>
-    </fields>
-    <...>
-    <copyField source="author" dest="text"/>
-</schema>
+```shell
+pip install ckanext-attribution
 ```
 
-After making the changes, restart SOLR and
-reindex (`ckan -c $CONFIG_FILE search-index rebuild-fast`). You will also have to enable the config
-option to see this in the UI (see below).
+## Installing from source
+
+1. Clone the repository into the `src` folder:
+   ```shell
+   cd $INSTALL_FOLDER/src
+   git clone https://github.com/NaturalHistoryMuseum/ckanext-attribution.git
+   ```
+
+2. Activate the virtual env:
+   ```shell
+   . $INSTALL_FOLDER/bin/activate
+   ```
+
+3. Install via pip:
+   ```shell
+   pip install $INSTALL_FOLDER/src/ckanext-attribution
+   ```
+
+### Installing in editable mode
+
+Installing from a `pyproject.toml` in editable mode (i.e. `pip install -e`) requires `setuptools>=64`; however, CKAN 2.9 requires `setuptools==44.1.0`. See [our CKAN fork](https://github.com/NaturalHistoryMuseum/ckan) for a version of v2.9 that uses an updated setuptools if this functionality is something you need.
+
+## Post-install setup
+
+1. Add 'attribution' to the list of plugins in your `$CONFIG_FILE`:
+   ```ini
+   ckan.plugins = ... attribution
+   ```
+
+2. Add this block to `package_metadata_fields.html` to show the Vue app:
+   ```jinja2
+   {% block package_custom_fields_agent %}
+        {{ super() }}
+   {% endblock %}
+   ```
+
+3. Change the `authors` field in your SOLR `schema.xml` to set up faceting.
+   ```xml
+   <schema>
+       <fields>
+           <...>
+           <field name="author" type="string" indexed="true" stored="true" multiValued="true"/>
+           <...>
+       </fields>
+       <...>
+       <copyField source="author" dest="text"/>
+   </schema>
+   ```
+
+   After making the changes, restart SOLR and reindex (`ckan -c $CONFIG_FILE search-index rebuild`).
+   You will also have to enable the config option (see below) to see this in the UI.
 
 <!--installation-end-->
 
 # Configuration
+
 <!--configuration-start-->
 These are the options that can be specified in your .ini config file. NB:
 setting `ckanext.attribution.debug` to `True` means that the API
@@ -180,6 +176,7 @@ Name|Description|Options|Default
 <!--configuration-end-->
 
 # Usage
+
 <!--usage-start-->
 ## Actions
 
@@ -393,6 +390,7 @@ It is recommended to run `merge-agents`, `refresh-packages`, and rebuild the sea
 <!--usage-end-->
 
 # Testing
+
 <!--testing-start-->
 There is a Docker compose configuration available in this repository to make it easier to run tests.
 
