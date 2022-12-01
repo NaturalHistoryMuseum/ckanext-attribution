@@ -37,14 +37,15 @@ between these and `Package` records).
 
 Defines _one_ agent.
 
-Field|Type|Values|Notes
------|----|------|-----
-`agent_type`|string|'person', 'org', 'other'|
-`family_name`|string||only used for 'person' records
-`given_names`|string||only used for 'person' records
-`given_names_first`|bool|True, False|only used for 'person' records; if the given names should be displayed first according to the person's culture/language (default True)
-`name`|string||used for non-'person' records
-`location`|string||used for non-person records, optional; a location to display for the organisation to help differentiate between similar names (e.g. 'Natural History Museum (_
+| Field               | Type   | Values                   | Notes                                                                                                                                                          |
+|---------------------|--------|--------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `agent_type`        | string | 'person', 'org', 'other' |                                                                                                                                                                |
+| `family_name`       | string |                          | only used for 'person' records                                                                                                                                 |
+| `given_names`       | string |                          | only used for 'person' records                                                                                                                                 |
+| `given_names_first` | bool   | True, False              | only used for 'person' records; if the given names should be displayed first according to the person's culture/language (default True)                         |
+| `name`              | string |                          | used for non-'person' records                                                                                                                                  |
+| `location`          | string |                          | used for non-person records, optional; a location to display for the organisation to help differentiate between similar names (e.g. 'Natural History Museum (_ |
+
 London_)' and 'Natural History Museum (_Dublin_)')
 `external_id`|string||an identifier from an external service like ORCID or ROR
 `external_id_scheme`|string|'orcid', 'ror', other|the scheme for the `external_id`; currently only 'orcid' and 'ror' are fully supported, though basic support for others can be implemented by adding to the `attribution_controlled_lists` [action](ckanext/attribution/logic/actions/extra.py#L14)
@@ -54,13 +55,13 @@ London_)' and 'Natural History Museum (_Dublin_)')
 
 Defines _one_ activity performed by _one_ agent on _one_ specific dataset.
 
-Field|Type|Values|Notes
------|----|------|-----
-`activity`|string|[controlled vocabulary]|the activity/role the agent is associated with, e.g. 'Editor', 'Methodology'; roles are defined in the `attribution_controlled_lists` [action](ckanext/attribution/logic/actions/extra.py#L14), which currently lists the [Datacite](https://datacite.org) and [CRediT](https://credit.niso.org) role taxonomies (but can be expanded)
-`scheme`|string|[controlled vocabulary]|name of the defined scheme from [`attribution_controlled_lists`](ckanext/attribution/logic/actions/extra.py#L14)
-`level`|string|'Lead', 'Equal', 'Supporting'|optional degree of contribution (from [CRediT](http://credit.niso.org/implementing-credit))
-`time`|datetime||optional date/time of the activity
-`order`|integer||order of the agent within all who are associated with the same activity, e.g. 1st Editor, 3rd DataCollector (optional)
+| Field      | Type     | Values                        | Notes                                                                                                                                                                                                                                                                                                                                  |
+|------------|----------|-------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `activity` | string   | [controlled vocabulary]       | the activity/role the agent is associated with, e.g. 'Editor', 'Methodology'; roles are defined in the `attribution_controlled_lists` [action](ckanext/attribution/logic/actions/extra.py#L14), which currently lists the [Datacite](https://datacite.org) and [CRediT](https://credit.niso.org) role taxonomies (but can be expanded) |
+| `scheme`   | string   | [controlled vocabulary]       | name of the defined scheme from [`attribution_controlled_lists`](ckanext/attribution/logic/actions/extra.py#L14)                                                                                                                                                                                                                       |
+| `level`    | string   | 'Lead', 'Equal', 'Supporting' | optional degree of contribution (from [CRediT](http://credit.niso.org/implementing-credit))                                                                                                                                                                                                                                            |
+| `time`     | datetime |                               | optional date/time of the activity                                                                                                                                                                                                                                                                                                     |
+| `order`    | integer  |                               | order of the agent within all who are associated with the same activity, e.g. 1st Editor, 3rd DataCollector (optional)                                                                                                                                                                                                                 |
 
 A specialised `ContributionActivity` entry with a '[citation]' activity is used to define the order
 in which contributors should be cited (and/or if they should be cited at all).
@@ -70,15 +71,15 @@ in which contributors should be cited (and/or if they should be cited at all).
 Defines a relationship between _two_ agents, either as a 'universal' (persistent) affiliation or for
 a single package (e.g. a project affiliation).
 
-Field|Type|Values|Notes
------|----|------|-----
-`agent_a_id`|string|`Agent.id` foreign key|one of the two agents (a/b order does not matter)
-`agent_b_id`|string|`Agent.id` foreign key|one of the two agents (a/b order does not matter)
-`affiliation_type`|string||very short description (1 or 2 words) of affiliation, e.g. 'employment' (optional)
-`description`|string||longer description of affiliation (optional)
-`start_date`|date||date at which the relationship began, e.g. employment start date (optional)
-`end_date`|date||date at which the relationship ended (optional)
-`package_id`|string|`Package.id` foreign key|links affiliation to a specific package/dataset (optional)
+| Field              | Type   | Values                   | Notes                                                                              |
+|--------------------|--------|--------------------------|------------------------------------------------------------------------------------|
+| `agent_a_id`       | string | `Agent.id` foreign key   | one of the two agents (a/b order does not matter)                                  |
+| `agent_b_id`       | string | `Agent.id` foreign key   | one of the two agents (a/b order does not matter)                                  |
+| `affiliation_type` | string |                          | very short description (1 or 2 words) of affiliation, e.g. 'employment' (optional) |
+| `description`      | string |                          | longer description of affiliation (optional)                                       |
+| `start_date`       | date   |                          | date at which the relationship began, e.g. employment start date (optional)        |
+| `end_date`         | date   |                          | date at which the relationship ended (optional)                                    |
+| `package_id`       | string | `Package.id` foreign key | links affiliation to a specific package/dataset (optional)                         |
 
 <!--overview-end-->
 
@@ -161,17 +162,17 @@ to the full set of authors on the sandbox.
 
 ## API credentials [REQUIRED]
 
-Name|Description|Options
-----|-----------|-------
-`ckanext.attribution.orcid_key`|Your ORCID API client ID/key|
-`ckanext.attribution.orcid_secret`|Your ORCID API client secret|
+| Name                               | Description                  | Options |
+|------------------------------------|------------------------------|---------|
+| `ckanext.attribution.orcid_key`    | Your ORCID API client ID/key |         |
+| `ckanext.attribution.orcid_secret` | Your ORCID API client secret |         |
 
 ## Optional
 
-Name|Description|Options|Default
-----|-----------|-------|-------
-`ckanext.attribution.debug`|If true, use sandbox.orcid.org (for testing)|True/False|True
-`ckanext.attribution.enable_faceting`|Enable filtering by contributor name (requires change to SOLR schema)|True/False|False
+| Name                                  | Description                                                           | Options    | Default |
+|---------------------------------------|-----------------------------------------------------------------------|------------|---------|
+| `ckanext.attribution.debug`           | If true, use sandbox.orcid.org (for testing)                          | True/False | True    |
+| `ckanext.attribution.enable_faceting` | Enable filtering by contributor name (requires change to SOLR schema) | True/False | False   |
 
 <!--configuration-end-->
 
