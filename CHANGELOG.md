@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.2.2 (2022-12-01)
+
+### Docs
+
+- **readme**: fix table borders
+- **readme**: format test section
+- **readme**: update ckan patch version in header badge
+- **readme**: update installation steps
+
 ## v1.2.1 (2022-11-28)
 
 ### Fix
