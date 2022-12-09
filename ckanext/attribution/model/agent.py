@@ -99,7 +99,8 @@ class Agent(DomainObject):
             citation = next(
                 c
                 for c in self.contribution_activities
-                if (c.package.id == pkg_id or c.package.name == pkg_id)
+                if c.package
+                and (c.package.id == pkg_id or c.package.name == pkg_id)
                 and c.activity == '[citation]'
             )
         except StopIteration:
@@ -120,7 +121,7 @@ class Agent(DomainObject):
 
 def check_for_table():
     """
-    
+    Checks to see if the user_table exists and creates it if it doesn't.
     """
     if user_table.exists():
         agent_table.create(checkfirst=True)
