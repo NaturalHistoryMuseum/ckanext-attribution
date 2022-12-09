@@ -120,7 +120,7 @@ class Agent(DomainObject):
 
 def check_for_table():
     """
-    
+    Checks to see if the user_table exists and creates it if it doesn't.
     """
     if user_table.exists():
         agent_table.create(checkfirst=True)
