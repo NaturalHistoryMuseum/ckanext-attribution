@@ -13,7 +13,6 @@
   },
   "homepage": "https://github.com/NaturalHistoryMuseum/ckanext-attribution",
   "dependencies": {
-    "less": "^4.1.3",
-    "package-edit": "file:ckanext/attribution/theme/assets/scripts/apps/package-edit"
+    "package-edit": "file:assets/scripts/apps/package-edit"
   }
 }
