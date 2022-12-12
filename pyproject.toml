@@ -19,7 +19,6 @@ classifiers = [
     "Programming Language :: Python :: 3.8"
 ]
 dependencies = [
-    "ckantools>=0.3.0",
     "orcid",
     "sqlalchemy",
     "requests",
@@ -27,7 +26,8 @@ dependencies = [
     "spacy[transformers]",
     "unidecode",
     "nameparser",
-    "prompt_toolkit"
+    "prompt_toolkit",
+    "ckantools>=0.3.0"
 ]
 
 [project.optional-dependencies]
@@ -58,6 +58,9 @@ zip-safe = false
 [tool.setuptools.packages.find]
 exclude = ["tests", "docs"]
 
+[tool.setuptools.package-data]
+"ckanext.attribution.theme" = ["*", "**/*"]
+
 [tool.commitizen]
 name = "cz_nhm"
 version = "1.2.2"
@@ -65,7 +68,7 @@ tag_format = "v$version"
 update_changelog_on_bump = true
 changelog_incremental = true
 version_files = [
-    "package.json",
+    "ckanext/attribution/theme/package.json",
     "pyproject.toml:version"
 ]
 
