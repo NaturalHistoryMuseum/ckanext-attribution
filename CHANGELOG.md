@@ -1,5 +1,28 @@
 # Changelog
 
+## v1.2.3 (2022-12-12)
+
+### Fix
+
+- **agent.py**: add guard in case contribution activities relationship's package is None
+
+### Docs
+
+- **readme**: add lessc installation step
+
+### Style
+
+- change setup.py to single quotes
+
+### Build System(s)
+
+- remove less, move package.json to theme
+- add package data
+
+### Chores/Misc
+
+- **agent.py**: add doc string to function instead of empty docstring
+
 ## v1.2.2 (2022-12-01)
 
 ### Docs
