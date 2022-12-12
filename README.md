@@ -125,14 +125,19 @@ Installing from a `pyproject.toml` in editable mode (i.e. `pip install -e`) requ
    ckan.plugins = ... attribution
    ```
 
-2. Add this block to `package_metadata_fields.html` to show the Vue app:
+2. Install `lessc` globally:
+   ```shell
+   npm install -g "less@~4.1"
+   ```
+
+3. Add this block to `package_metadata_fields.html` to show the Vue app:
    ```jinja2
    {% block package_custom_fields_agent %}
         {{ super() }}
    {% endblock %}
    ```
 
-3. Change the `authors` field in your SOLR `schema.xml` to set up faceting.
+4. Change the `authors` field in your SOLR `schema.xml` to set up faceting.
    ```xml
    <schema>
        <fields>
