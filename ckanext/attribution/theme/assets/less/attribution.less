@@ -1,13 +1,12 @@
 @smallScreen: 500px;
 @attribution-grey0: #757575;
-@attribution-grey1: #C3C3C3;
-@attribution-grey2: #DDDDDD;
-@attribution-grey3: #E8E8E8;
-@attribution-grey4: #F2F2F2;
-@attribution-grey5: #FFFFFF;
+@attribution-grey1: #c3c3c3;
+@attribution-grey2: #dddddd;
+@attribution-grey3: #e8e8e8;
+@attribution-grey4: #f2f2f2;
+@attribution-grey5: #ffffff;
 @attribution-bold: #188100;
 @attribution-soft: #bbeda9;
-
 
 // CONTRIBUTION BLOCK ==============================================================================
 
@@ -59,7 +58,6 @@
   }
 }
 
-
 // GENERIC FIELDS ==================================================================================
 
 .attribution-field {
@@ -81,12 +79,13 @@
     margin: 0;
   }
 
-  & input, select {
+  & input,
+  select {
     margin: 0;
     width: 100%;
     grid-column: span 2;
 
-    &[type="checkbox"] {
+    &[type='checkbox'] {
       top: 0;
       width: unset;
       grid-column: span 1;
@@ -240,7 +239,8 @@
   }
 }
 
-.agent-user-edit, .agent-affiliations-edit {
+.agent-user-edit,
+.agent-affiliations-edit {
   grid-template-columns: 1fr auto;
 }
 
@@ -283,7 +283,8 @@
   overflow-y: scroll;
 }
 
-.autocomplete-block-title, .autocomplete-option {
+.autocomplete-block-title,
+.autocomplete-option {
   font-size: 0.8em;
 
   &:last-of-type {
@@ -375,7 +376,6 @@
   padding-left: 0.5em;
   position: relative;
 
-
   & .help-tooltip {
     display: none;
     position: absolute;
@@ -408,7 +408,7 @@
   display: flex;
   align-items: center;
 
-  & > input[type=checkbox] {
+  & > input[type='checkbox'] {
     display: none;
 
     & + label {
@@ -416,14 +416,14 @@
       margin: 0 2px;
       border-radius: 5px;
       background-color: @attribution-grey3;
-      color: if(boolean(luma(@attribution-grey3) < 50%), #FFF, #000);
+      color: if(boolean(luma(@attribution-grey3) < 50%), #fff, #000);
       font-weight: normal;
       font-size: 0.9em;
       transition: all 0.4s ease;
 
       &::after {
         margin-left: 0.5em;
-        font-family: "Font Awesome 5 Free", serif;
+        font-family: 'Font Awesome 5 Free', serif;
         content: '\f00d';
         font-weight: bold;
       }
@@ -431,7 +431,7 @@
 
     &:checked + label {
       background-color: @attribution-soft;
-      color: if(boolean(luma(@attribution-soft) < 50%), #FFF, #000);
+      color: if(boolean(luma(@attribution-soft) < 50%), #fff, #000);
 
       &::after {
         content: '\f00c';
@@ -494,11 +494,11 @@
       bottom: 0;
       width: 22px;
       background-color: @attribution-grey1;
-      color: if(boolean(luma(@attribution-grey1) < 50%), #FFF, #000);
+      color: if(boolean(luma(@attribution-grey1) < 50%), #fff, #000);
       border-radius: 26px;
       transition: all 0.4s ease;
       text-align: center;
-      font-family: "Font Awesome 5 Free", serif;
+      font-family: 'Font Awesome 5 Free', serif;
       content: '\f00d';
       padding-top: 1px;
     }
@@ -506,7 +506,7 @@
     &:checked + label:after {
       margin-left: 26px;
       background-color: @attribution-bold;
-      color: if(boolean(luma(@attribution-bold) < 50%), #FFF, #000);
+      color: if(boolean(luma(@attribution-bold) < 50%), #fff, #000);
       content: '\f00c';
     }
   }
@@ -575,7 +575,7 @@
   visibility: hidden;
 }
 
-input.form-control[type=date] {
+input.form-control[type='date'] {
   padding: 0 12px;
 }
 
@@ -618,7 +618,8 @@ input.form-control[type=date] {
   }
 }
 
-.activity-sorted-agents, .activity-unsorted-agents {
+.activity-sorted-agents,
+.activity-unsorted-agents {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
