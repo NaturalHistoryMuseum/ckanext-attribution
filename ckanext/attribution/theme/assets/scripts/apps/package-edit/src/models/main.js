@@ -4,4 +4,4 @@ import Affiliation from './affiliation';
 import Meta from './meta';
 import Citation from './citation';
 
-export {Agent, Activity, Affiliation, Meta, Citation}
+export { Agent, Activity, Affiliation, Meta, Citation };
