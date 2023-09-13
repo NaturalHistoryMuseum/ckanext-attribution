@@ -15,7 +15,7 @@ int_validator = toolkit.get_validator('int_validator')
 unicode_safe = toolkit.get_validator("unicode_safe")
 list_of_strings = toolkit.get_validator("list_of_strings")
 
-# CREATE ===========================================================================================
+# CREATE ===============================================================================
 
 agent_affiliation_create = {
     'agent_a_id': [not_missing, unicode_safe],
@@ -44,7 +44,7 @@ contribution_activity_create = {
     'time': [ignore_missing, isodate_validator],
 }
 
-# DELETE ===========================================================================================
+# DELETE ===============================================================================
 
 agent_affiliation_delete = {'id': [not_missing, unicode_safe]}
 
@@ -58,7 +58,7 @@ contribution_activity_delete = {
 
 package_contribution_activity_delete = {'id': [not_missing, unicode_safe]}
 
-# EXTRA ============================================================================================
+# EXTRA ================================================================================
 
 attribution_controlled_lists = {'lists': [ignore_missing, list_of_strings]}
 
@@ -79,7 +79,7 @@ validate_external_id = {
     'external_id_scheme': [not_missing, unicode_safe],
 }
 
-# SHOW =============================================================================================
+# SHOW =================================================================================
 
 agent_affiliation_show = {'id': [not_missing, unicode_safe]}
 
@@ -107,7 +107,7 @@ agent_affiliations = {
     'package_id': [ignore_missing, unicode_safe],
 }
 
-# UPDATE ===========================================================================================
+# UPDATE ===============================================================================
 
 agent_affiliation_update = {
     'id': [not_missing, unicode_safe],
