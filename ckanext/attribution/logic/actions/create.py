@@ -87,4 +87,4 @@ def package_create(next_func, context, data_dict):
     parse_contributors(context, created_pkg)
 
     data_dict['author'] = get_author_string(package_id=created_pkg['id'])
-    return data_dict
+    return created_pkg
