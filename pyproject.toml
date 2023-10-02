@@ -69,7 +69,8 @@ update_changelog_on_bump = true
 changelog_incremental = true
 version_files = [
     "ckanext/attribution/theme/package.json",
-    "pyproject.toml:version"
+    "pyproject.toml:version",
+    "CITATION.cff"
 ]
 
 [tool.black]
