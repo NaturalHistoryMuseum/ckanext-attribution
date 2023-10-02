@@ -70,7 +70,7 @@ changelog_incremental = true
 version_files = [
     "ckanext/attribution/theme/package.json",
     "pyproject.toml:version",
-    "CITATION.cff"
+    "CITATION.cff:^version"
 ]
 
 [tool.black]
