@@ -35,7 +35,7 @@ def agent_show(original_data_dict):
 
 
 @action(schema.agent_list, help.agent_list, get=True)
-def agent_list(q, mode='normal'):
+def agent_list(q=None, mode='normal'):
     if q is not None and q != '':
         q_string = '{0}%'.format(q)
         name_cols = [
