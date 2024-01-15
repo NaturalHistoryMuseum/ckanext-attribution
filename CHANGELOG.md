@@ -1,5 +1,21 @@
 # Changelog
 
+## v1.2.10 (2024-01-15)
+
+### Fix
+
+- add default value for q
+
+### Chores/Misc
+
+- add build section to read the docs config
+- add regex for version line in citation file
+- add citation.cff to list of files with version
+- add contributing guidelines
+- add code of conduct
+- add citation file
+- update support.md links
+
 ## v1.2.9 (2023-07-17)
 
 ### Docs
