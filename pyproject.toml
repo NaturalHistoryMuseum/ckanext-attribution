@@ -23,7 +23,7 @@ dependencies = [
     "sqlalchemy",
     "requests",
     "fuzzywuzzy[speedup]",
-    "spacy[transformers]",
+    "spacy[transformers]==v3.7.6",
     "unidecode",
     "nameparser",
     "prompt_toolkit",
