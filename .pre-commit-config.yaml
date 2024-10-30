@@ -7,14 +7,14 @@ repos:
       - id: detect-private-key
       - id: end-of-file-fixer
       - id: name-tests-test
-        args: ["--pytest-test-first"]
+        args: ['--pytest-test-first']
         exclude: ^tests/helpers/
       - id: trailing-whitespace
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v3.30.0
     hooks:
       - id: commitizen
-        additional_dependencies: ["cz-nhm"]
+        additional_dependencies: ['cz-nhm']
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.7.1
     hooks:
