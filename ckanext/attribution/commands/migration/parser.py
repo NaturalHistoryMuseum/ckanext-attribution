@@ -9,11 +9,17 @@ from dataclasses import dataclass
 from textwrap import shorten
 
 import click
-import spacy
-from nameparser import HumanName
-from prompt_toolkit import prompt
 
-from .common import rgx, multi_choice
+try:
+    import spacy
+    from nameparser import HumanName
+    from prompt_toolkit import prompt
+
+    cli_installed = True
+except ImportError:
+    cli_installed = False
+
+from .common import check_installed, multi_choice, rgx
 
 
 @dataclass
@@ -30,6 +36,8 @@ class Parser(object):
     """
 
     def __init__(self):
+        check_installed(cli_installed)
+
         self.contributors = {'person': {}, 'org': {}, 'other': {}}
         self.affiliations = {}
         spacy_model = 'en_core_web_trf'
@@ -111,7 +119,7 @@ class Parser(object):
             return []
         pc_proper_nouns = pos.get('PROPN', 0) / len(tokens)
         if pc_proper_nouns < 0.5:
-            click.echo('\nThis text doesn\'t look right:')
+            click.echo("\nThis text doesn't look right:")
             click.echo(txt)
             return not click.confirm('Skip it?')
         return True

@@ -8,13 +8,16 @@ import itertools
 import re
 
 import click
-from ckanext.attribution.lib.orcid_api import OrcidApi
-from ckanext.attribution.lib.ror_api import RorApi
 from fuzzywuzzy import process
-from prompt_toolkit import prompt
-from unidecode import unidecode
 
-from .common import multi_choice
+try:
+    from unidecode import unidecode
+
+    cli_installed = True
+except ImportError:
+    cli_installed = False
+
+from .common import check_installed, multi_choice
 
 
 class Combiner(object):
@@ -30,7 +33,8 @@ class Combiner(object):
         """
         Ensure that the automated grouping is correct.
 
-        :param group: a list of ParsedSegment instances that are probably the same contributor
+        :param group: a list of ParsedSegment instances that are probably the same
+            contributor
         :return: a list of lists of ParsedSegments
         """
         all_names = sorted(
@@ -92,8 +96,10 @@ class Combiner(object):
         """
         Uses a list of HumanNames to determine the longest possible name for a person.
 
-        :return: a dict of family_name, given_names (includes middle names), and key (i.e. a sort/display name)
+        :return: a dict of family_name, given_names (includes middle names), and key
+            (i.e. a sort/display name)
         """
+        check_installed(cli_installed)
 
         def _filter_diacritics(name_list):
             filtered = [n for n in name_list if unidecode(n) != n]
