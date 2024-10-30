@@ -6,7 +6,7 @@
 
 from ckan.model import DomainObject, meta
 from ckan.model.types import make_uuid
-from sqlalchemy import Column, DateTime, Table, UnicodeText, Integer
+from sqlalchemy import Column, DateTime, Integer, Table, UnicodeText
 
 # this table stores contribution activities
 contribution_activity_table = Table(
@@ -30,7 +30,4 @@ class ContributionActivity(DomainObject):
 
 
 def check_for_table():
-    """
-    
-    """
     contribution_activity_table.create(checkfirst=True)

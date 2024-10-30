@@ -6,6 +6,7 @@
 
 from ckan.plugins import toolkit
 from flask import Blueprint
+
 from ckanext.attribution.lib.helpers import user_contributions
 
 blueprint = Blueprint(name='attribution_user', import_name=__name__)

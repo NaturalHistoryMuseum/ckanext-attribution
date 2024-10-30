@@ -4,9 +4,8 @@
 # This file is part of ckanext-attribution
 # Created by the Natural History Museum in London, UK
 
-from ckantools.validators import list_of_strings
-
 from ckan.plugins import toolkit
+from ckantools.validators import list_of_strings
 
 # grab all the validator functions upfront
 ignore_missing = toolkit.get_validator('ignore_missing')

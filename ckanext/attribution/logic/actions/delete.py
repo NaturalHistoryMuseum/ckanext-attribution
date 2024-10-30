@@ -4,6 +4,8 @@
 # This file is part of ckanext-attribution
 # Created by the Natural History Museum in London, UK
 
+from ckantools.decorators import action
+
 from ckanext.attribution.logic.actions.meta import help, schema
 from ckanext.attribution.model.crud import (
     AgentAffiliationQuery,
@@ -12,7 +14,6 @@ from ckanext.attribution.model.crud import (
     ContributionActivityQuery,
     PackageContributionActivityQuery,
 )
-from ckantools.decorators import action
 
 
 @action(schema.agent_affiliation_delete, help.agent_affiliation_delete)

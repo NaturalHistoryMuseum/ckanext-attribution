@@ -3,7 +3,6 @@
 #
 # This file is part of ckanext-attribution
 # Created by the Natural History Museum in London, UK
-
 """
 These relationships are defined separately to the object/table declarations to allow
 them to reference each other without circular imports.
@@ -11,7 +10,7 @@ them to reference each other without circular imports.
 
 from ckan.model import Package, User, meta
 from sqlalchemy import or_
-from sqlalchemy.orm import backref, relationship, attributes
+from sqlalchemy.orm import attributes, backref, relationship
 
 from .agent import Agent, agent_table
 from .agent_affiliation import AgentAffiliation, agent_affiliation_table

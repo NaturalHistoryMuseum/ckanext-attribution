@@ -6,9 +6,10 @@
 
 from ckan.model import DomainObject, meta
 from ckan.model.types import make_uuid
+from sqlalchemy import Column, ForeignKey, Table, UnicodeText
+
 from ckanext.attribution.model.agent import agent_table
 from ckanext.attribution.model.contribution_activity import contribution_activity_table
-from sqlalchemy import Column, ForeignKey, Table, UnicodeText
 
 agent_contribution_activity_table = Table(
     'agent_contribution_activity',
@@ -39,8 +40,5 @@ class AgentContributionActivity(DomainObject):
 
 
 def check_for_table():
-    """
-    
-    """
     if agent_table.exists() and contribution_activity_table.exists():
         agent_contribution_activity_table.create(checkfirst=True)

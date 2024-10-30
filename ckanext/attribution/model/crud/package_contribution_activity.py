@@ -4,19 +4,17 @@
 # This file is part of ckanext-attribution
 # Created by the Natural History Museum in London, UK
 
+from ckan.model import Session
+
 from ckanext.attribution.model.package_contribution_activity import (
     PackageContributionActivity,
     package_contribution_activity_table,
 )
-from ckan.model import Session
+
 from ._base import BaseQuery
 
 
 class PackageContributionActivityQuery(BaseQuery):
-    """
-    
-    """
-
     # model and table (subclasses should override)
     m = PackageContributionActivity
     t = package_contribution_activity_table

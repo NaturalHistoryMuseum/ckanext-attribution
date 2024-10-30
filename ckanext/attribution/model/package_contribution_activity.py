@@ -6,8 +6,9 @@
 
 from ckan.model import DomainObject, meta, package_table
 from ckan.model.types import make_uuid
-from ckanext.attribution.model.contribution_activity import contribution_activity_table
 from sqlalchemy import Column, ForeignKey, Table, UnicodeText
+
+from ckanext.attribution.model.contribution_activity import contribution_activity_table
 
 package_contribution_activity_table = Table(
     'package_contribution_activity',
@@ -38,8 +39,5 @@ class PackageContributionActivity(DomainObject):
 
 
 def check_for_table():
-    """
-    
-    """
     if package_table.exists() and contribution_activity_table.exists():
         package_contribution_activity_table.create(checkfirst=True)

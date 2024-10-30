@@ -5,6 +5,10 @@
 # Created by the Natural History Museum in London, UK
 
 from ckan.plugins import SingletonPlugin, implements, interfaces, toolkit
+from ckantools.loaders import create_actions, create_auth
+
+from ckanext.attribution import routes
+from ckanext.attribution.commands import cli
 from ckanext.attribution.lib import helpers
 from ckanext.attribution.model import (
     agent,
@@ -14,9 +18,6 @@ from ckanext.attribution.model import (
     package_contribution_activity,
     relationships,
 )
-from ckanext.attribution.commands import cli
-from ckanext.attribution import routes
-from ckantools.loaders import create_actions, create_auth
 
 try:
     from ckanext.doi.interfaces import IDoi
@@ -47,17 +48,17 @@ class AttributionPlugin(SingletonPlugin):
     def get_actions(self):
         from ckanext.attribution.logic.actions import (
             create,
-            show,
-            update,
             delete,
             extra,
+            show,
+            update,
         )
 
         return create_actions(create, show, update, delete, extra)
 
     # IAuthFunctions
     def get_auth_functions(self):
-        from ckanext.attribution.logic.auth import create, show, update, delete, extra
+        from ckanext.attribution.logic.auth import create, delete, extra, show, update
 
         return create_auth(create, show, update, delete, extra)
 

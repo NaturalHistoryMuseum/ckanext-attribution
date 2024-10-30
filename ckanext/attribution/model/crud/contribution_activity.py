@@ -13,10 +13,6 @@ from ._base import BaseQuery
 
 
 class ContributionActivityQuery(BaseQuery):
-    """
-    
-    """
-
     # model and table (subclasses should override)
     m = ContributionActivity
     t = contribution_activity_table

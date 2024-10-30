@@ -6,7 +6,6 @@
 
 from ckantools.decorators import auth
 from ckantools.vars import auth_valid
-from ckan.plugins import toolkit
 
 
 @auth(anon=True)
