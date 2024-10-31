@@ -55,9 +55,9 @@ class Agent(DomainObject):
     @property
     def standardised_name(self):
         """
-        Family name first for persons.
+        Name in a standardised format.
 
-        :returns:
+        :returns: full name (family name first) for person names, just name for other
         """
         if self.agent_type == 'person':
             return ', '.join([self.family_name, self.given_names])

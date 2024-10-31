@@ -129,8 +129,8 @@ class Parser(object):
         Uses multiple sub-methods to attempt to split the text into individual
         contributors.
 
-        :param txt:
-        :returns:
+        :param txt: a string containing multiple contributor names
+        :returns: a list of names
         """
         lines = [ln.strip() for ln in txt.split('\n')]
         segments = [
