@@ -18,7 +18,7 @@ def datasets(username):
     Render a list of datasets that this user has contributed to.
 
     :param username: The username
-    :return: str
+    :returns: str
     """
     try:
         toolkit.check_access('user_show', {}, {'id': username})

@@ -50,7 +50,7 @@ class APISearch(object):
         :param lookup: dict of query params (plus display_name) to send to api.search
         :param api_name: name of the API (see self.api)
         :param result_format: display format of each result, e.g. "{name} ({location})"
-        :return: None if not found, dict for matching result if found/selected
+        :returns: None if not found, dict for matching result if found/selected
         """
         check_installed(cli_installed)
 

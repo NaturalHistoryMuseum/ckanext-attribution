@@ -57,7 +57,7 @@ class Agent(DomainObject):
         """
         Family name first for persons.
 
-        :return:
+        :returns:
         """
         if self.agent_type == 'person':
             return ', '.join([self.family_name, self.given_names])

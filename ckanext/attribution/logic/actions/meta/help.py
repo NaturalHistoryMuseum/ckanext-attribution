@@ -131,7 +131,7 @@ translations, or icon definitions for templates) as long as the initial structur
 
 :param lists: names of the lists to be returned
 :type lists: list, optional
-:return: dict of all requested lists (or all lists if unspecified)
+:returns: dict of all requested lists (or all lists if unspecified)
 :rtype: dict
 """
 
@@ -169,7 +169,7 @@ Validate/format an external ID.
 :type external_id: str
 :param external_id_scheme: external scheme, e.g. orcid
 :type external_id_scheme: str
-:return:
+:returns:
 """
 
 # SHOW =============================================================================================

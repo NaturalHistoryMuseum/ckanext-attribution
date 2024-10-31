@@ -92,7 +92,7 @@ class BaseQuery(object):
         Check if a record with the given ID exists.
 
         :param item_id: the ID of the potential record
-        :return: bool
+        :returns: bool
         """
         return Session.query(cls.m).get(item_id) is not None
 

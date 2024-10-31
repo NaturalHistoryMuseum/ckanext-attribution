@@ -35,7 +35,7 @@ class Combiner(object):
 
         :param group: a list of ParsedSegment instances that are probably the same
             contributor
-        :return: a list of lists of ParsedSegments
+        :returns: a list of lists of ParsedSegments
         """
         all_names = sorted(
             list(set([str(x.name) for x in group])), key=lambda x: -len(x)
@@ -96,7 +96,7 @@ class Combiner(object):
         """
         Uses a list of HumanNames to determine the longest possible name for a person.
 
-        :return: a dict of family_name, given_names (includes middle names), and key
+        :returns: a dict of family_name, given_names (includes middle names), and key
             (i.e. a sort/display name)
         """
         check_installed(cli_installed)
@@ -168,7 +168,7 @@ class Combiner(object):
         Run the combiner over the whole parser list, including separating groups,
         combining names, searching APIs, and updating the affiliations dict.
 
-        :return: a list of contributors
+        :returns: a list of contributors
         """
         combined = []
 

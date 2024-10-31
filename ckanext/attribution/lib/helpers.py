@@ -16,7 +16,7 @@ def can_edit():
     """
     Check editing permissions for updating agent directly.
 
-    :return:
+    :returns:
     """
     try:
         permitted = toolkit.check_access('agent_update', {}, {})
@@ -35,7 +35,7 @@ def get_contributions(pkg_id):
     :func:`~ckanext.attribution.model.crud.PackageQuery.get_contributions` query method.
 
     :param pkg_id:
-    :return:
+    :returns:
     """
     return PackageQuery.get_contributions(pkg_id)
 
