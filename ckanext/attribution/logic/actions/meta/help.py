@@ -131,7 +131,7 @@ translations, or icon definitions for templates) as long as the initial structur
 
 :param lists: names of the lists to be returned
 :type lists: list, optional
-:return: dict of all requested lists (or all lists if unspecified)
+:returns: dict of all requested lists (or all lists if unspecified)
 :rtype: dict
 """
 
@@ -169,7 +169,7 @@ Validate/format an external ID.
 :type external_id: str
 :param external_id_scheme: external scheme, e.g. orcid
 :type external_id_scheme: str
-:return:
+:returns: dict containing the ID if valid and any errors
 """
 
 # SHOW =============================================================================================
@@ -281,8 +281,8 @@ Update an :class:`~ckanext.attribution.model.agent_affiliation.AgentAffiliation`
 :type start_date: datetime.date, optional
 :param end_date: when the affiliation ended (e.g. when a researcher left an institution)
 :type end_date: datetime.date, optional
-:param context:
-:param data_dict:
+:param context: request context
+:param data_dict: request data
 :returns: The updated agent affiliation record.
 :rtype: dict
 """
@@ -307,8 +307,8 @@ required by different agent types.
 :type user_id: str, optional
 :param name: name of an organisation [org only]
 :type name: str, optional
-:param context:
-:param data_dict:
+:param context: request context
+:param data_dict: request data
 :returns: The updated agent record.
 :rtype: dict
 """
@@ -339,8 +339,8 @@ should not exist without the package or agent.
 :type level: str, optional
 :param time: time activity took place
 :type time: datetime.datetime, optional
-:param context:
-:param data_dict:
+:param context: request context
+:param data_dict: request data
 :returns: New contribution activity record.
 :rtype: dict
 """

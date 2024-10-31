@@ -54,7 +54,7 @@ class Parser(object):
         :param txt: the chunk of text to process
         :param pkg_id: associated package
         :param contrib_type: author, contributor, or affiliation
-        :return: list of ParsedSegment instances extracted from the text
+        :returns: list of ParsedSegment instances extracted from the text
         """
         if not self.validate(txt):
             return
@@ -107,7 +107,7 @@ class Parser(object):
         """
         Check the text can/should actually be parsed.
 
-        :return: True/False
+        :returns: True/False
         """
         if txt is None:
             return False
@@ -129,8 +129,8 @@ class Parser(object):
         Uses multiple sub-methods to attempt to split the text into individual
         contributors.
 
-        :param txt:
-        :return:
+        :param txt: a string containing multiple contributor names
+        :returns: a list of names
         """
         lines = [ln.strip() for ln in txt.split('\n')]
         segments = [
@@ -224,7 +224,7 @@ class Parser(object):
         """
         Uses regexes to find probable affiliations in parentheses.
 
-        :return: contributor name, list of affiliations
+        :returns: contributor name, list of affiliations
         """
         has_affiliation = rgx.has_affiliation.match(txt)
         no_affiliation = rgx.no_affiliation.match(txt)

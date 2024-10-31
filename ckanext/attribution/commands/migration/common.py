@@ -14,7 +14,7 @@ def multi_choice(question, options, default=0):
     """
     Provide the user with a list of options.
 
-    :return: index of the chosen option
+    :returns: index of the chosen option
     """
     click.echo(question)
     for i, o in enumerate(options):
