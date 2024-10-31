@@ -6,8 +6,9 @@
 
 from ckan.model import DomainObject, meta
 from ckan.model.types import make_uuid
-from ckanext.attribution.model.agent import agent_table
 from sqlalchemy import Column, Date, ForeignKey, Table, UnicodeText
+
+from ckanext.attribution.model.agent import agent_table
 
 agent_affiliation_table = Table(
     'agent_affiliation',
@@ -54,8 +55,5 @@ class AgentAffiliation(DomainObject):
 
 
 def check_for_table():
-    """
-    
-    """
     if agent_table.exists():
         agent_affiliation_table.create(checkfirst=True)

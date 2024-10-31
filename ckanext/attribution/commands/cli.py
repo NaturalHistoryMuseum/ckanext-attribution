@@ -8,6 +8,9 @@ import click
 from ckan.model import Session
 from ckan.model.package_extra import PackageExtra
 from ckan.plugins import toolkit
+from fuzzywuzzy import fuzz, process
+from sqlalchemy import and_, or_
+
 from ckanext.attribution.commands import migration
 from ckanext.attribution.logic.actions.helpers import get_author_string
 from ckanext.attribution.model import (
@@ -19,14 +22,12 @@ from ckanext.attribution.model import (
     relationships,
 )
 from ckanext.attribution.model.crud import (
-    AgentQuery,
-    PackageQuery,
-    PackageContributionActivityQuery,
     AgentAffiliationQuery,
     AgentContributionActivityQuery,
+    AgentQuery,
+    PackageContributionActivityQuery,
+    PackageQuery,
 )
-from fuzzywuzzy import process, fuzz
-from sqlalchemy import and_, or_
 
 
 def get_commands():
@@ -235,7 +236,7 @@ def merge_agents(q, match_threshold):
 @click.option(
     '--limit', help='Process n packages at a time (best for testing/debugging).'
 )
-@click.option('--dry-run', help='Don\'t save anything to the database.', is_flag=True)
+@click.option('--dry-run', help="Don't save anything to the database.", is_flag=True)
 @click.option(
     '--search-api/--no-search-api',
     help='Search external APIs (e.g. ORCID) for details.',

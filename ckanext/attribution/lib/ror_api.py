@@ -4,20 +4,15 @@
 # This file is part of ckanext-attribution
 # Created by the Natural History Museum in London, UK
 
-import requests
 import json
+
+import requests
 
 
 class RorApi(object):
     url = 'https://api.ror.org'
 
     def read(self, ror_id):
-        '''
-
-
-        :param ror_id:
-
-        '''
         response = requests.get('{0}/organizations/{1}'.format(self.url, ror_id))
         if not response.ok:
             return None
@@ -48,12 +43,6 @@ class RorApi(object):
         }
 
     def as_agent_record(self, ror_record):
-        '''
-
-
-        :param ror_record:
-
-        '''
         if ror_record is None:
             return {}
         address = ror_record.get('addresses')

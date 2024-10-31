@@ -25,7 +25,7 @@ def multi_choice(question, options, default=0):
         click.echo('')
         return answer - 1
     except:
-        click.echo('That wasn\'t an option.', err=True)
+        click.echo("That wasn't an option.", err=True)
         return multi_choice(question, options, default)
 
 
@@ -40,3 +40,15 @@ rgx = SimpleNamespace(
     initialism=re.compile(r'^[A-Z.]+$'),
     abbr=re.compile(r'([A-Z]|(?<=[^A-Za-z])[a-z])'),
 )
+
+
+def check_installed(is_cli_installed):
+    """
+    Returns an error message if additional CLI packages are not installed.
+
+    :param is_cli_installed: True if additional packages are installed
+    """
+    if not is_cli_installed:
+        raise click.Exception(
+            'Install additional requirements with: pip install ckanext-attribution[cli]'
+        )

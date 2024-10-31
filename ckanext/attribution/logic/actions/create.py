@@ -5,19 +5,20 @@
 # Created by the Natural History Museum in London, UK
 
 from ckan.plugins import toolkit
+from ckantools.decorators import action, basic_action
+
 from ckanext.attribution.logic.actions.helpers import (
-    parse_contributors,
     get_author_string,
+    parse_contributors,
 )
+from ckanext.attribution.logic.actions.meta import help, schema
 from ckanext.attribution.model.crud import (
+    AgentAffiliationQuery,
     AgentContributionActivityQuery,
     AgentQuery,
     ContributionActivityQuery,
     PackageContributionActivityQuery,
-    AgentAffiliationQuery,
 )
-from ckantools.decorators import action, basic_action
-from ckanext.attribution.logic.actions.meta import help, schema
 
 
 @action(schema.agent_affiliation_create, help.agent_affiliation_create)

@@ -94,6 +94,8 @@ Path variables used below:
 
 ```shell
 pip install ckanext-attribution
+# to use the CLI as well:
+pip install ckanext-attribution[cli]
 ```
 
 ## Installing from source
@@ -112,6 +114,8 @@ pip install ckanext-attribution
 3. Install via pip:
    ```shell
    pip install $INSTALL_FOLDER/src/ckanext-attribution
+   # to use the cli as well:
+   pip install $INSTALL_FOLDER/src/ckanext-attribution[cli]
    ```
 
 ### Installing in editable mode
@@ -351,6 +355,8 @@ toolkit.get_action('agent_external_read')({}, data_dict)
 ```
 
 ## Commands
+
+**NB**: you will have to install the optional `[cli]` packages to use several of these commands.
 
 ### `initdb`
 ```shell

@@ -2,13 +2,13 @@ import itertools
 import json
 
 from ckan.plugins import toolkit
+
 from ckanext.attribution.model.crud import (
-    AgentQuery,
-    AgentContributionActivityQuery,
-    ContributionActivityQuery,
     AgentAffiliationQuery,
+    AgentContributionActivityQuery,
+    AgentQuery,
+    ContributionActivityQuery,
     PackageQuery,
-    PackageContributionActivityQuery,
 )
 
 

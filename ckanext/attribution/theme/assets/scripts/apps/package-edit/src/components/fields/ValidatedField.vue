@@ -48,10 +48,10 @@ export default {
       return this.failed
         ? 'fa-times'
         : this.loading
-        ? 'fa-spinner fa-spin'
-        : this.typing
-        ? 'fa-xs fa-ellipsis-h'
-        : 'fa-check';
+          ? 'fa-spinner fa-spin'
+          : this.typing
+            ? 'fa-xs fa-ellipsis-h'
+            : 'fa-check';
     },
   },
   methods: {
