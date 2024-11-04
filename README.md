@@ -37,19 +37,17 @@ between these and `Package` records).
 
 Defines _one_ agent.
 
-| Field               | Type   | Values                   | Notes                                                                                                                                                          |
-|---------------------|--------|--------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `agent_type`        | string | 'person', 'org', 'other' |                                                                                                                                                                |
-| `family_name`       | string |                          | only used for 'person' records                                                                                                                                 |
-| `given_names`       | string |                          | only used for 'person' records                                                                                                                                 |
-| `given_names_first` | bool   | True, False              | only used for 'person' records; if the given names should be displayed first according to the person's culture/language (default True)                         |
-| `name`              | string |                          | used for non-'person' records                                                                                                                                  |
-| `location`          | string |                          | used for non-person records, optional; a location to display for the organisation to help differentiate between similar names (e.g. 'Natural History Museum (_ |
-
-London_)' and 'Natural History Museum (_Dublin_)')
-`external_id`|string||an identifier from an external service like ORCID or ROR
-`external_id_scheme`|string|'orcid', 'ror', other|the scheme for the `external_id`; currently only 'orcid' and 'ror' are fully supported, though basic support for others can be implemented by adding to the `attribution_controlled_lists` [action](ckanext/attribution/logic/actions/extra.py#L14)
-`user_id`|string|`User.id` foreign key|link to a user account on the CKAN instance
+| Field                | Type   | Values                   | Notes                                                                                                                                                                                                                                               |
+|----------------------|--------|--------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `agent_type`         | string | 'person', 'org', 'other' |                                                                                                                                                                                                                                                     |
+| `family_name`        | string |                          | only used for 'person' records                                                                                                                                                                                                                      |
+| `given_names`        | string |                          | only used for 'person' records                                                                                                                                                                                                                      |
+| `given_names_first`  | bool   | True, False              | only used for 'person' records; if the given names should be displayed first according to the person's culture/language (default True)                                                                                                              |
+| `name`               | string |                          | used for non-'person' records                                                                                                                                                                                                                       |
+| `location`           | string |                          | used for non-person records, optional; a location to display for the organisation to help differentiate between similar names (e.g. 'Natural History Museum (_London_)' and 'Natural History Museum (_Dublin_)')
+ `external_id`        | string |                          | an identifier from an external service like ORCID or ROR
+ `external_id_scheme` | string | 'orcid', 'ror', other    | the scheme for the `external_id`; currently only 'orcid' and 'ror' are fully supported, though basic support for others can be implemented by adding to the `attribution_controlled_lists` [action](ckanext/attribution/logic/actions/extra.py#L14)
+ `user_id`            | string | `User.id` foreign key    | link to a user account on the CKAN instance
 
 ### `ContributionActivity`
 
