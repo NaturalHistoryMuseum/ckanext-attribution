@@ -6,6 +6,11 @@
 
 import itertools
 
+from ckan.plugins import toolkit
+from ckantools.decorators import action
+from fuzzywuzzy import fuzz
+from sqlalchemy import or_
+
 from ckanext.attribution.logic.actions.meta import help, schema
 from ckanext.attribution.model.crud import (
     AgentAffiliationQuery,
@@ -15,11 +20,6 @@ from ckanext.attribution.model.crud import (
     PackageContributionActivityQuery,
     PackageQuery,
 )
-from ckantools.decorators import action
-from fuzzywuzzy import fuzz
-from sqlalchemy import or_
-
-from ckan.plugins import toolkit
 
 
 @action(schema.agent_affiliation_show, help.agent_affiliation_show, get=True)

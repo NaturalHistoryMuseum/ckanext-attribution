@@ -4,10 +4,9 @@
 # This file is part of ckanext-attribution
 # Created by the Natural History Museum in London, UK
 
+from ckan.authz import is_sysadmin
 from ckantools.decorators import auth
 from ckantools.vars import auth_valid
-
-from ckan.authz import is_sysadmin
 
 
 @auth()

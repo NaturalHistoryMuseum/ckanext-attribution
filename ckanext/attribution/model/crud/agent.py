@@ -6,10 +6,11 @@
 
 from ckan.model import Session
 from ckan.plugins import toolkit
+from requests import HTTPError
+
 from ckanext.attribution.lib.orcid_api import OrcidApi
 from ckanext.attribution.lib.ror_api import RorApi
 from ckanext.attribution.model.agent import Agent, agent_table
-from requests import HTTPError
 
 from ._base import BaseQuery
 
@@ -18,23 +19,23 @@ class AgentQuery(BaseQuery):
     """
     CRUD methods for :class:`~ckanext.attribution.model.agent.Agent`.
 
-    Fields
-    ======
+    Fields ======
     :param agent_type: broad type of agent; usually 'person' or 'org'
     :type agent_type: str
     :param external_id: the agent's ID from an external service like ORCID or ROR
     :type external_id: str, optional
-    :param external_id_scheme: the name of the scheme for the external ID, e.g. 'orcid' or 'ror'
+    :param external_id_scheme: the name of the scheme for the external ID, e.g. 'orcid'
+        or 'ror'
     :type external_id_scheme: str, optional
     :param family_name: family name of an person [person only, required]
     :type family_name: str, optional
     :param given_names: given name(s) or initials of an person [person only, required]
     :type given_names: str, optional
-    :param given_names_first: whether given names should be displayed before the family name
-                              (default True) [person only, optional]
+    :param given_names_first: whether given names should be displayed before the family
+        name (default True) [person only, optional]
     :type given_names_first: bool, optional
-    :param user_id: the ID for a registered user of this CKAN instance associated with this agent
-                    [person only, optional]
+    :param user_id: the ID for a registered user of this CKAN instance associated with
+        this agent [person only, optional]
     :type user_id: str, optional
     :param name: name of an organisation [org only, required]
     :type name: str, optional
@@ -124,8 +125,9 @@ class AgentQuery(BaseQuery):
 
         :param record: the existing record
         :type record: Agent
-        :param api: an API instance already in use (useful if performing this action over many
-                    agent records, to avoid instantiating many API connections) (Default value = None)
+        :param api: an API instance already in use (useful if performing this action
+            over many agent records, to avoid instantiating many API connections)
+            (Default value = None)
         :type api: OrcidApi
         :returns: the updated agent record
         :rtype: Agent

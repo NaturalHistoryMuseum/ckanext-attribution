@@ -6,7 +6,7 @@
 
 # CREATE ===========================================================================================
 
-agent_affiliation_create = '''
+agent_affiliation_create = """
 Create an :class:`~ckanext.attribution.model.agent_affiliation.AgentAffiliation` link record
 between two :class:`~ckanext.attribution.model.agent.Agent` records, e.g. to show institutional
 affiliation for an author.
@@ -25,9 +25,9 @@ affiliation for an author.
 :type end_date: datetime.date, optional
 :returns: New agent affiliation record.
 :rtype: dict
-'''
+"""
 
-agent_create = '''
+agent_create = """
 Action for creating an :class:`~ckanext.attribution.model.agent.Agent` record. Different fields are
 required by different agent types.
 
@@ -47,9 +47,9 @@ required by different agent types.
 :type name: str, optional
 :returns: New agent record.
 :rtype: dict
-'''
+"""
 
-contribution_activity_create = '''
+contribution_activity_create = """
 Creates a :class:`~ckanext.attribution.model.contribution_activity.ContributionActivity` record,
 linked to a package and an agent via package_contribution_activity and agent_contribution_activity
 records (respectively). These link records are also created as part of this action, as the activity
@@ -69,29 +69,29 @@ should not exist without the package or agent.
 :type time: datetime.datetime, optional
 :returns: New contribution activity record.
 :rtype: dict
-'''
+"""
 
 # DELETE ===========================================================================================
 
-agent_affiliation_delete = '''
+agent_affiliation_delete = """
 Delete an :class:`~ckanext.attribution.model.agent_affiliation.AgentAffiliation` record by ID.
 
 :param id: ID of the affiliation record
 :type id: str
 :returns: The affiliation record.
 :rtype: dict
-'''
+"""
 
-agent_delete = '''
+agent_delete = """
 Delete an :class:`~ckanext.attribution.model.agent.Agent` record by ID.
 
 :param id: ID of the agent record
 :type id: str
 :returns: The agent record.
 :rtype: dict
-'''
+"""
 
-agent_contribution_activity_delete = '''
+agent_contribution_activity_delete = """
 Delete an :class:`~ckanext.attribution.model.agent_contribution_activity.AgentContributionActivity`
 record by ID.
 
@@ -99,9 +99,9 @@ record by ID.
 :type id: str
 :returns: The agent contribution activity record.
 :rtype: dict
-'''
+"""
 
-contribution_activity_delete = '''
+contribution_activity_delete = """
 Delete a :class:`~ckanext.attribution.model.contribution_activity.ContributionActivity` record by
 ID.
 
@@ -109,9 +109,9 @@ ID.
 :type id: str
 :returns: The contribution activity record.
 :rtype: dict
-'''
+"""
 
-package_contribution_activity_delete = '''
+package_contribution_activity_delete = """
 Delete a
 :class:`~ckanext.attribution.model.package_contribution_activity.PackageContributionActivity` record
 by ID.
@@ -120,22 +120,22 @@ by ID.
 :type id: str
 :returns: The package contribution activity record.
 :rtype: dict
-'''
+"""
 
 # EXTRA ============================================================================================
 
-attribution_controlled_lists = '''
+attribution_controlled_lists = """
 Return one or more lists or dicts of defined values, e.g. agent types or contribution activity
 types. Details dicts can include various pieces of arbitrary information (e.g. names,
 translations, or icon definitions for templates) as long as the initial structure is retained.
 
 :param lists: names of the lists to be returned
 :type lists: list, optional
-:return: dict of all requested lists (or all lists if unspecified)
+:returns: dict of all requested lists (or all lists if unspecified)
 :rtype: dict
-'''
+"""
 
-agent_external_search = '''
+agent_external_search = """
 Search external sources for agent data. Ignores records that already exist in the database.
 
 :param q: searches all fields (names, ids, etc)
@@ -144,9 +144,9 @@ Search external sources for agent data. Ignores records that already exist in th
 :type sources: list, optional
 :returns: A list of potential matches.
 :rtype: list
-'''
+"""
 
-agent_external_read = '''
+agent_external_read = """
 Read data from an external source like ORCID or ROR.
 
 :param agent_id: ID of the record to read
@@ -160,39 +160,39 @@ Read data from an external source like ORCID or ROR.
 :type diff: bool, optional
 :returns: The details pulled from the external source, formatted as a record dict
 :rtype: dict
-'''
+"""
 
-validate_external_id = '''
+validate_external_id = """
 Validate/format an external ID.
 
 :param external_id: ID from external service
 :type external_id: str
 :param external_id_scheme: external scheme, e.g. orcid
 :type external_id_scheme: str
-:return:
-'''
+:returns: dict containing the ID if valid and any errors
+"""
 
 # SHOW =============================================================================================
 
-agent_affiliation_show = '''
+agent_affiliation_show = """
 Retrieve an :class:`~ckanext.attribution.model.agent_affiliation.AgentAffiliation` record by ID.
 
 :param id: ID of the affiliation record
 :type id: str
 :returns: The affiliation record.
 :rtype: dict
-'''
+"""
 
-agent_show = '''
+agent_show = """
 Retrieve an :class:`~ckanext.attribution.model.agent.Agent` record by ID.
 
 :param id: ID of the agent record
 :type id: str
 :returns: The agent record.
 :rtype: dict
-'''
+"""
 
-agent_list = '''
+agent_list = """
 Search for :class:`~ckanext.attribution.model.agent.Agent` records.
 
 :param q: name or external id (ORCID/ROR ID) of the agent record
@@ -201,9 +201,9 @@ Search for :class:`~ckanext.attribution.model.agent.Agent` records.
 :type mode: str, optional
 :returns: A list of potential matches.
 :rtype: list
-'''
+"""
 
-agent_contribution_activity_show = '''
+agent_contribution_activity_show = """
 Retrieve an
 :class:`~ckanext.attribution.model.agent_contribution_activity.AgentContributionActivity` record
 by ID.
@@ -212,9 +212,9 @@ by ID.
 :type id: str
 :returns: The agent contribution activity record.
 :rtype: dict
-'''
+"""
 
-contribution_activity_show = '''
+contribution_activity_show = """
 Retrieve a :class:`~ckanext.attribution.model.contribution_activity.ContributionActivity` record by
 ID.
 
@@ -222,9 +222,9 @@ ID.
 :type id: str
 :returns: The contribution activity record.
 :rtype: dict
-'''
+"""
 
-package_contribution_activity_show = '''
+package_contribution_activity_show = """
 Retrieve a
 :class:`~ckanext.attribution.model.package_contribution_activity.PackageContributionActivity`
 record by ID.
@@ -233,9 +233,9 @@ record by ID.
 :type id: str
 :returns: The package contribution activity record.
 :rtype: dict
-'''
+"""
 
-package_contributions_show = '''
+package_contributions_show = """
 Show associated agents and their contributions for a given package. Agents are returned in citation
 then agent id order.
 
@@ -247,10 +247,10 @@ then agent id order.
 :type offset: int
 :returns: The package contribution activity record.
 :rtype: dict
-'''
+"""
 
 
-agent_affiliations = '''
+agent_affiliations = """
 Show affiliated agents, either all or for a given package. Including a package ID will still return
 'global' affiliations, e.g. those with no specific package associated.
 
@@ -260,11 +260,11 @@ Show affiliated agents, either all or for a given package. Including a package I
 :type package_id: str, optional
 :returns: The package contribution activity record.
 :rtype: dict
-'''
+"""
 
 # UPDATE ===========================================================================================
 
-agent_affiliation_update = '''
+agent_affiliation_update = """
 Update an :class:`~ckanext.attribution.model.agent_affiliation.AgentAffiliation` link record.
 
 :param id: ID of the record to update
@@ -281,13 +281,13 @@ Update an :class:`~ckanext.attribution.model.agent_affiliation.AgentAffiliation`
 :type start_date: datetime.date, optional
 :param end_date: when the affiliation ended (e.g. when a researcher left an institution)
 :type end_date: datetime.date, optional
-:param context:
-:param data_dict:
+:param context: request context
+:param data_dict: request data
 :returns: The updated agent affiliation record.
 :rtype: dict
-'''
+"""
 
-agent_update = '''
+agent_update = """
 Action for updating an :class:`~ckanext.attribution.model.agent.Agent` record. Different fields are
 required by different agent types.
 
@@ -307,13 +307,13 @@ required by different agent types.
 :type user_id: str, optional
 :param name: name of an organisation [org only]
 :type name: str, optional
-:param context:
-:param data_dict:
+:param context: request context
+:param data_dict: request data
 :returns: The updated agent record.
 :rtype: dict
-'''
+"""
 
-agent_external_update = '''
+agent_external_update = """
 Action for updating an :class:`~ckanext.attribution.model.agent.Agent` record by pulling information
 from an external source like ORCID or ROR.
 
@@ -321,9 +321,9 @@ from an external source like ORCID or ROR.
 :type id: str
 :returns: The updated agent record.
 :rtype: dict
-'''
+"""
 
-contribution_activity_update = '''
+contribution_activity_update = """
 Updates a :class:`~ckanext.attribution.model.contribution_activity.ContributionActivity` record,
 linked to a package and an agent via package_contribution_activity and agent_contribution_activity
 records (respectively). These link records are also updated as part of this action, as the activity
@@ -339,8 +339,8 @@ should not exist without the package or agent.
 :type level: str, optional
 :param time: time activity took place
 :type time: datetime.datetime, optional
-:param context:
-:param data_dict:
+:param context: request context
+:param data_dict: request data
 :returns: New contribution activity record.
 :rtype: dict
-'''
+"""

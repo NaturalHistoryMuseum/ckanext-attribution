@@ -5,12 +5,19 @@
 # Created by the Natural History Museum in London, UK
 
 import click
+
 from ckanext.attribution.lib.orcid_api import OrcidApi
 from ckanext.attribution.lib.ror_api import RorApi
-from prompt_toolkit import prompt
-from nameparser import HumanName
 
-from .common import multi_choice
+try:
+    from nameparser import HumanName
+    from prompt_toolkit import prompt
+
+    cli_installed = True
+except ImportError:
+    cli_installed = False
+
+from .common import check_installed, multi_choice
 
 
 class APISearch(object):
@@ -43,8 +50,10 @@ class APISearch(object):
         :param lookup: dict of query params (plus display_name) to send to api.search
         :param api_name: name of the API (see self.api)
         :param result_format: display format of each result, e.g. "{name} ({location})"
-        :return: None if not found, dict for matching result if found/selected
+        :returns: None if not found, dict for matching result if found/selected
         """
+        check_installed(cli_installed)
+
         aff = '; '.join(contrib.get('affiliations', []))
         api = self.api[api_name]
         display_name = lookup.pop('display_name')
@@ -53,7 +62,7 @@ class APISearch(object):
                 f'Do any of these {api_name} results match "{display_name}" ({aff})?'
             )
             click.echo(f'\nSearching {api_name} for "{display_name}"...')
-            results = api.search(**lookup).get(u'records', [])
+            results = api.search(**lookup).get('records', [])
             if len(results) > 0:
                 i = multi_choice(
                     question,
@@ -94,6 +103,8 @@ class APISearch(object):
         return update_dict
 
     def _manual_edit(self, contrib, api_name):
+        check_installed(cli_installed)
+
         if click.confirm('Enter ID manually?'):
             api = self.api[api_name]
             _id = click.prompt(f'{api_name} ID', show_default=False).strip()

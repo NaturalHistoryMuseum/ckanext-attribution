@@ -7,15 +7,16 @@
 import itertools
 import re
 
-from ckan.plugins import toolkit, plugin_loaded
-from ckanext.attribution.model.crud import PackageQuery, AgentQuery
+from ckan.plugins import plugin_loaded, toolkit
+
+from ckanext.attribution.model.crud import AgentQuery, PackageQuery
 
 
 def can_edit():
     """
     Check editing permissions for updating agent directly.
 
-    :return:
+    :returns: True if user can edit agents, False if not
     """
     try:
         permitted = toolkit.check_access('agent_update', {}, {})
@@ -29,12 +30,13 @@ def split_caps(string_input):
 
 
 def get_contributions(pkg_id):
-    '''
+    """
     Template access for the
     :func:`~ckanext.attribution.model.crud.PackageQuery.get_contributions` query method.
-    :param pkg_id:
-    :return:
-    '''
+
+    :param pkg_id: the ID of the package
+    :returns: list of activities associated with the package
+    """
     return PackageQuery.get_contributions(pkg_id)
 
 

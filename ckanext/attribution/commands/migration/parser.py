@@ -9,11 +9,17 @@ from dataclasses import dataclass
 from textwrap import shorten
 
 import click
-import spacy
-from nameparser import HumanName
-from prompt_toolkit import prompt
 
-from .common import rgx, multi_choice
+try:
+    import spacy
+    from nameparser import HumanName
+    from prompt_toolkit import prompt
+
+    cli_installed = True
+except ImportError:
+    cli_installed = False
+
+from .common import check_installed, multi_choice, rgx
 
 
 @dataclass
@@ -30,6 +36,8 @@ class Parser(object):
     """
 
     def __init__(self):
+        check_installed(cli_installed)
+
         self.contributors = {'person': {}, 'org': {}, 'other': {}}
         self.affiliations = {}
         spacy_model = 'en_core_web_trf'
@@ -46,7 +54,7 @@ class Parser(object):
         :param txt: the chunk of text to process
         :param pkg_id: associated package
         :param contrib_type: author, contributor, or affiliation
-        :return: list of ParsedSegment instances extracted from the text
+        :returns: list of ParsedSegment instances extracted from the text
         """
         if not self.validate(txt):
             return
@@ -99,7 +107,7 @@ class Parser(object):
         """
         Check the text can/should actually be parsed.
 
-        :return: True/False
+        :returns: True/False
         """
         if txt is None:
             return False
@@ -111,7 +119,7 @@ class Parser(object):
             return []
         pc_proper_nouns = pos.get('PROPN', 0) / len(tokens)
         if pc_proper_nouns < 0.5:
-            click.echo('\nThis text doesn\'t look right:')
+            click.echo("\nThis text doesn't look right:")
             click.echo(txt)
             return not click.confirm('Skip it?')
         return True
@@ -121,8 +129,8 @@ class Parser(object):
         Uses multiple sub-methods to attempt to split the text into individual
         contributors.
 
-        :param txt:
-        :return:
+        :param txt: a string containing multiple contributor names
+        :returns: a list of names
         """
         lines = [ln.strip() for ln in txt.split('\n')]
         segments = [
@@ -216,7 +224,7 @@ class Parser(object):
         """
         Uses regexes to find probable affiliations in parentheses.
 
-        :return: contributor name, list of affiliations
+        :returns: contributor name, list of affiliations
         """
         has_affiliation = rgx.has_affiliation.match(txt)
         no_affiliation = rgx.no_affiliation.match(txt)

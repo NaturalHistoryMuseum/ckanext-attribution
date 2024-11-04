@@ -1,6 +1,7 @@
 import pytest
-from ckan.tests import factories
 from ckan.common import g
+from ckan.tests import factories
+
 from ckanext.attribution.lib import helpers
 
 

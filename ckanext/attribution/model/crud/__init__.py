@@ -2,5 +2,5 @@ from .agent import AgentQuery
 from .agent_affiliation import AgentAffiliationQuery
 from .agent_contribution_activity import AgentContributionActivityQuery
 from .contribution_activity import ContributionActivityQuery
-from .package_contribution_activity import PackageContributionActivityQuery
 from .package import PackageQuery
+from .package_contribution_activity import PackageContributionActivityQuery

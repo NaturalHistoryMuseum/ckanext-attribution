@@ -4,9 +4,8 @@
 # This file is part of ckanext-attribution
 # Created by the Natural History Museum in London, UK
 
-import itertools
 
-from ckan.model import Package, package_table, Session
+from ckan.model import Package, Session, package_table
 from ckan.plugins import toolkit
 
 from ._base import BaseQuery
@@ -14,10 +13,6 @@ from .package_contribution_activity import PackageContributionActivityQuery
 
 
 class PackageQuery(BaseQuery):
-    """
-    
-    """
-
     m = Package
     t = package_table
 

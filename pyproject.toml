@@ -19,15 +19,11 @@ classifiers = [
     "Programming Language :: Python :: 3.8"
 ]
 dependencies = [
-    "orcid",
+    "orcid~=1.0",
     "sqlalchemy",
     "requests",
     "fuzzywuzzy[speedup]",
-    "spacy[transformers]",
-    "unidecode",
-    "nameparser",
-    "prompt_toolkit",
-    "ckantools>=0.3.0"
+    "ckantools>=0.4.1"
 ]
 
 [project.optional-dependencies]
@@ -36,6 +32,12 @@ test = [
     "pytest>=4.6.5",
     "pytest-cov>=2.7.1",
     "coveralls"
+]
+cli = [
+    "spacy[transformers]~=3.7.0",
+    "unidecode~=1.0",
+    "nameparser~=1.0",
+    "prompt_toolkit~=3.0"
 ]
 
 [project.urls]
@@ -73,9 +75,8 @@ version_files = [
     "CITATION.cff:^version"
 ]
 
-[tool.black]
-line-length = 88
-skip_string_normalization = true
+[tool.ruff.format]
+quote-style = "single"
 
 [tool.pylint]
 max-line-length = 88

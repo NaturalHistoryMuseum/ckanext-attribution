@@ -6,6 +6,7 @@
 
 from ckan.plugins import toolkit
 from flask import Blueprint
+
 from ckanext.attribution.lib.helpers import user_contributions
 
 blueprint = Blueprint(name='attribution_user', import_name=__name__)
@@ -17,7 +18,7 @@ def datasets(username):
     Render a list of datasets that this user has contributed to.
 
     :param username: The username
-    :return: str
+    :returns: str
     """
     try:
         toolkit.check_access('user_show', {}, {'id': username})

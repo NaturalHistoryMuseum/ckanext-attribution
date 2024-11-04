@@ -3,14 +3,16 @@
 #
 # This file is part of ckanext-attribution
 # Created by the Natural History Museum in London, UK
+
 import re
 
 from ckan.plugins import toolkit
+from ckantools.decorators import action
+
 from ckanext.attribution.lib.orcid_api import OrcidApi
 from ckanext.attribution.lib.ror_api import RorApi
+from ckanext.attribution.logic.actions.meta import help, schema
 from ckanext.attribution.model.crud import AgentQuery
-from ckantools.decorators import action
-from ckanext.attribution.logic.actions.meta import schema, help
 
 
 @action(
@@ -109,7 +111,7 @@ def agent_external_search(q, sources):
         orcid_remaining = 0
         orcidapi = OrcidApi()
         orcid_search = orcidapi.search(q=q)
-        n = orcid_search.get(u'total', 0)
+        n = orcid_search.get('total', 0)
         orcid_records = orcid_search.get('records')
         orcid_records = [
             r
@@ -125,7 +127,7 @@ def agent_external_search(q, sources):
         ror_remaining = 0
         rorapi = RorApi()
         ror_search = rorapi.search(q=q)
-        n = ror_search.get(u'total', 0)
+        n = ror_search.get('total', 0)
         ror_records = ror_search.get('records')
         ror_records = [
             r

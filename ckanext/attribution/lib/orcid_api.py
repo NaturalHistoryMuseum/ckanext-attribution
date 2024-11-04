@@ -11,10 +11,6 @@ from werkzeug.utils import cached_property
 
 
 class OrcidApi(object):
-    """
-    
-    """
-
     def __init__(self):
         self.key = toolkit.config.get('ckanext.attribution.orcid_key')
         self.secret = toolkit.config.get('ckanext.attribution.orcid_secret')
@@ -22,18 +18,12 @@ class OrcidApi(object):
 
     @cached_property
     def conn(self):
-        """
-        
-        """
         if self.key is None or self.secret is None:
             raise Exception(toolkit._('ORCID API credentials not supplied.'))
         return orcid.PublicAPI(self.key, self.secret, sandbox=self._debug)
 
     @cached_property
     def read_token(self):
-        """
-        
-        """
         if self.key is None or self.secret is None:
             raise Exception(toolkit._('ORCID API credentials not supplied.'))
         url = (
@@ -57,12 +47,6 @@ class OrcidApi(object):
             return None
 
     def search(self, orcid_q=None, q=None, family_name=None, given_names=None):
-        '''
-
-        :param orcid_q:  (Default value = None)
-        :param q:  (Default value = None)
-
-        '''
         query = []
         if orcid_q is not None and orcid_q != '':
             query.append('orcid:' + orcid_q)
@@ -77,7 +61,7 @@ class OrcidApi(object):
         records = []
         loaded_ids = []
         for r in search_response.get('result', []):
-            _id = r.get(u'orcid-identifier', {}).get(u'path', None)
+            _id = r.get('orcid-identifier', {}).get('path', None)
             if _id is not None and _id not in loaded_ids:
                 try:
                     orcid_record = self.as_agent_record(self.read(_id))
@@ -90,22 +74,10 @@ class OrcidApi(object):
         return result
 
     def read(self, orcid_id):
-        '''
-
-
-        :param orcid_id:
-
-        '''
         record = self.conn.read_record_public(orcid_id, 'record', self.read_token)
         return record
 
     def as_agent_record(self, orcid_record):
-        '''
-
-
-        :param orcid_record:
-
-        '''
         names = orcid_record.get('person', {}).get('name', {})
         return {
             'family_name': names.get('family-name', {}).get('value', ''),
