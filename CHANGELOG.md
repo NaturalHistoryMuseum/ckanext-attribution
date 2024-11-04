@@ -1,5 +1,43 @@
 # Changelog
 
+## v1.2.12 (2024-11-04)
+
+### Fix
+
+- make additional cli packages optional
+
+### Docs
+
+- fill some empty parameters
+- return -> returns
+- add notes about optional CLI packages
+
+### Style
+
+- automatic reformat auto reformat with ruff/docformatter/prettier after config changes
+
+### Build System(s)
+
+- pin package versions and make cli dependencies optional
+- remove version from docker compose file version specifier is deprecated
+
+### CI System(s)
+
+- add tomli as docformatter dep
+- pull docformatter args from pyproject
+- add docformatter args back
+- only apply auto-fixes in pre-commit F401 returns linting errors as well as auto-fixes, so this disables the errors and just applies the fixes
+- remove python version specifier
+- update tool config update pre-commit repo versions and switch black to ruff
+- add pull request validation workflow new workflow to check commit format and code style against pre-commit config
+- update workflow files standardise format, change name of tests file
+
+### Chores/Misc
+
+- standardise quotes in pre-commit config
+- add pull request template
+- update tool details in contributing guide
+
 ## v1.2.11 (2024-08-20)
 
 ## v1.2.10 (2024-01-15)
