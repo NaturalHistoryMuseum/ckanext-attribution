@@ -1,9 +1,13 @@
 <!--header-start-->
-<img src="https://data.nhm.ac.uk/images/nhm_logo.svg" align="left" width="150px" height="100px" hspace="40"/>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://data.nhm.ac.uk/images/nhm_logo.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://data.nhm.ac.uk/images/nhm_logo_black.svg">
+  <img alt="The Natural History Museum logo." src="https://data.nhm.ac.uk/images/nhm_logo_black.svg" align="left" width="150px" height="100px" hspace="40">
+</picture>
 
 # ckanext-attribution
 
-[![Tests](https://img.shields.io/github/actions/workflow/status/NaturalHistoryMuseum/ckanext-attribution/main.yml?style=flat-square)](https://github.com/NaturalHistoryMuseum/ckanext-attribution/actions/workflows/main.yml)
+[![Tests](https://img.shields.io/github/actions/workflow/status/NaturalHistoryMuseum/ckanext-attribution/tests.yml?style=flat-square)](https://github.com/NaturalHistoryMuseum/ckanext-attribution/actions/workflows/tests.yml)
 [![Coveralls](https://img.shields.io/coveralls/github/NaturalHistoryMuseum/ckanext-attribution/main?style=flat-square)](https://coveralls.io/github/NaturalHistoryMuseum/ckanext-attribution)
 [![CKAN](https://img.shields.io/badge/ckan-2.9.7-orange.svg?style=flat-square)](https://github.com/ckan/ckan)
 [![Python](https://img.shields.io/badge/python-3.6%20%7C%203.7%20%7C%203.8-blue.svg?style=flat-square)](https://www.python.org/)
@@ -37,19 +41,17 @@ between these and `Package` records).
 
 Defines _one_ agent.
 
-| Field               | Type   | Values                   | Notes                                                                                                                                                          |
-|---------------------|--------|--------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `agent_type`        | string | 'person', 'org', 'other' |                                                                                                                                                                |
-| `family_name`       | string |                          | only used for 'person' records                                                                                                                                 |
-| `given_names`       | string |                          | only used for 'person' records                                                                                                                                 |
-| `given_names_first` | bool   | True, False              | only used for 'person' records; if the given names should be displayed first according to the person's culture/language (default True)                         |
-| `name`              | string |                          | used for non-'person' records                                                                                                                                  |
-| `location`          | string |                          | used for non-person records, optional; a location to display for the organisation to help differentiate between similar names (e.g. 'Natural History Museum (_ |
-
-London_)' and 'Natural History Museum (_Dublin_)')
-`external_id`|string||an identifier from an external service like ORCID or ROR
-`external_id_scheme`|string|'orcid', 'ror', other|the scheme for the `external_id`; currently only 'orcid' and 'ror' are fully supported, though basic support for others can be implemented by adding to the `attribution_controlled_lists` [action](ckanext/attribution/logic/actions/extra.py#L14)
-`user_id`|string|`User.id` foreign key|link to a user account on the CKAN instance
+| Field                | Type   | Values                   | Notes                                                                                                                                                                                                                                               |
+|----------------------|--------|--------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `agent_type`         | string | 'person', 'org', 'other' |                                                                                                                                                                                                                                                     |
+| `family_name`        | string |                          | only used for 'person' records                                                                                                                                                                                                                      |
+| `given_names`        | string |                          | only used for 'person' records                                                                                                                                                                                                                      |
+| `given_names_first`  | bool   | True, False              | only used for 'person' records; if the given names should be displayed first according to the person's culture/language (default True)                                                                                                              |
+| `name`               | string |                          | used for non-'person' records                                                                                                                                                                                                                       |
+| `location`           | string |                          | used for non-person records, optional; a location to display for the organisation to help differentiate between similar names (e.g. 'Natural History Museum (_London_)' and 'Natural History Museum (_Dublin_)')
+ `external_id`        | string |                          | an identifier from an external service like ORCID or ROR
+ `external_id_scheme` | string | 'orcid', 'ror', other    | the scheme for the `external_id`; currently only 'orcid' and 'ror' are fully supported, though basic support for others can be implemented by adding to the `attribution_controlled_lists` [action](ckanext/attribution/logic/actions/extra.py#L14)
+ `user_id`            | string | `User.id` foreign key    | link to a user account on the CKAN instance
 
 ### `ContributionActivity`
 
