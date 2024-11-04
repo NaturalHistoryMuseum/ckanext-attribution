@@ -1,6 +1,6 @@
 {
   "name": "ckanext-attribution",
-  "version": "1.2.12",
+  "version": "1.2.13",
   "description": "A CKAN extension that adds support for complex attribution.",
   "repository": {
     "type": "git",

@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.2.13 (2024-11-04)
+
+### Docs
+
+- use variable logo based on colour scheme
+- fix agent table
+- fix tests badge
+
+### CI System(s)
+
+- fix python setup action version
+- add merge to valid commit types
+
 ## v1.2.12 (2024-11-04)
 
 ### Fix
