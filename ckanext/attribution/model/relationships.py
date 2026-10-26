@@ -29,7 +29,6 @@ def setup_relationships():
     """
     Defines relationships/joins between the new models in ckanext-attribution.
     """
-
     # Agent
     manager = attributes.manager_of_class(Agent)
     if not manager or not manager.is_mapped:

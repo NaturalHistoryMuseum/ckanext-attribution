@@ -35,8 +35,8 @@ class BaseQuery(object):
         Ensure the data_dict provided contains the correct parameters for creating or
         updating a record, and fix issues where possible by deleting extra fields.
 
-        :param data_dict: a complete dictionary of parameters that will be passed to :func:`create`
-                          or :func:`update`
+        :param data_dict: a complete dictionary of parameters that will be passed to
+            :func:`create` or :func:`update`
         :type data_dict: dict
         :returns: updated data_dict if valid, raises error if not
         """

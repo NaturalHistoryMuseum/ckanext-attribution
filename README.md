@@ -214,11 +214,7 @@ Show all contribution records for a package, grouped by agent. Optionally provid
 for pagination.
 
 ```python
-data_dict = {
-    'id': 'PACKAGE_ID',
-    'limit': 'PAGE_SIZE',
-    'offset': 'OFFSET'
-}
+data_dict = {'id': 'PACKAGE_ID', 'limit': 'PAGE_SIZE', 'offset': 'OFFSET'}
 
 toolkit.get_action('package_contributions_show')({}, data_dict)
 ```
@@ -242,16 +238,16 @@ Returns a dict:
                     },
                     'other_agent': {
                         # Agent.as_dict()
-                    }
+                    },
                 },
                 # ...
-            ]
+            ],
         },
         # ...
     ],
     'total': total,
     'offset': offset,
-    'page_size': limit or total
+    'page_size': limit or total,
 }
 ```
 
@@ -263,7 +259,7 @@ global' affiliations).
 ```python
 data_dict = {
     'agent_id': 'AGENT_ID',
-    'package_id': 'PACKAGE_ID'  # optional
+    'package_id': 'PACKAGE_ID',  # optional
 }
 
 toolkit.get_action('agent_affiliations')({}, data_dict)
@@ -278,7 +274,7 @@ Returns a list of records formatted as such:
     },
     'other_agent': {
         # Agent.as_dict()
-    }
+    },
 }
 ```
 
@@ -315,7 +311,7 @@ database.
 ```python
 data_dict = {
     'q': 'QUERY_STRING',
-    'sources': ['SOURCE1', 'SOURCE2']  # optional; only search these sources
+    'sources': ['SOURCE1', 'SOURCE2'],  # optional; only search these sources
 }
 
 toolkit.get_action('agent_external_search')({}, data_dict)
@@ -343,14 +339,14 @@ external ID.
 # EITHER
 data_dict_existing = {
     'agent_id': 'AGENT_ID',
-    'diff': False
+    'diff': False,
     # optional; only show values that differ from the record's current values (default False)
 }
 
 # OR
 data_dict_new = {
     'external_id': 'EXTERNAL_ID',
-    'external_id_scheme': 'orcid'  # or 'ror', etc.
+    'external_id_scheme': 'orcid',  # or 'ror', etc.
 }
 
 toolkit.get_action('agent_external_read')({}, data_dict)
